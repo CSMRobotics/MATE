@@ -1,10 +1,10 @@
 #include <iostream>
-#include <include/components/Component.hpp>
-#include <include/networking/UDPClientServer.hpp>
+#include <components/Component.hpp>
+#include <networking/TCPClientServer.hpp>
 
 Component* components[2] = {nullptr, nullptr};
-udp_client client;
-udp_server server;
+TCP_Client client;
+TCP_Server server;
 
 void init() {
     components[0];
