@@ -1,10 +1,10 @@
 #include <iostream>
-#include <components/Component.hpp>
-#include <networking/TCPClientServer.hpp>
+#include "Component.hpp"
+#include "TCPClientServer.hpp"
 
 Component* components[2] = {nullptr, nullptr};
-TCP_Client client;
-TCP_Server server;
+TCP_Client* client = new TCP_Client("10.0.0.2", 7777);
+TCP_Server* server;
 
 void init() {
     components[0];

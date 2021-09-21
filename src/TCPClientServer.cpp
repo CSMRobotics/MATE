@@ -1,6 +1,12 @@
-#include <include/networking/TCPClientServer.hpp>
+#include "TCPClientServer.hpp"
 
-TCP_Client::TCP_Client(const char address[], int port) {
+float exponentialBackoff(float retry_s) {
+    if(retry_s == 0)
+        return .250;
+    return retry_s * 2;
+}
+
+TCP_Client::TCP_Client(const char* address, int port) {
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
     if(this->sock < 0) {
         printf("\nSocket creation error\n"); // TODO: replace with logger
@@ -23,10 +29,4 @@ TCP_Client::TCP_Client(const char address[], int port) {
         else
             this->connected = true;
     }
-}
-
-float exponentialBackoff(float retry_s) {
-    if(retry_s == 0)
-        return .250;
-    return retry_s * 2;
 }

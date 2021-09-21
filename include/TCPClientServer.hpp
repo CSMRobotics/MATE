@@ -8,8 +8,8 @@
 
 class TCP_Client {
 public:
-    TCP_Client(const char address[], int port);
-    ~TCP_Client();
+    TCP_Client(const char* address, int port);
+    ~TCP_Client() = default;
 
     int getSock() const;
     int getPort() const;
@@ -24,7 +24,7 @@ private:
 
 class TCP_Server {
 public:
-    TCP_Server();
+    TCP_Server() = default;
     ~TCP_Server();
 
     int getSock() const;

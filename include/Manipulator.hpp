@@ -1,4 +1,4 @@
-#include <include/components/Component.hpp>
+#include "Component.hpp"
 #include <iostream>
 
 // Create basic class definition responsible for moving the robot

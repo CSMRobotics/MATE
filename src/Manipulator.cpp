@@ -1,4 +1,4 @@
-#include <include/components/Manipulator.hpp>
+#include "Manipulator.hpp"
 
 Manipulator::Manipulator() {
     // TODO: set angles to 0 upon creation

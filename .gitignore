@@ -31,7 +31,11 @@
 *.out
 *.app
 
+# build files
 build/
+
+# vscode
+.vscode/
 
 CMakeLists.txt.user
 CMakeCache.txt
