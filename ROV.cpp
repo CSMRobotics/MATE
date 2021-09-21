@@ -1,13 +1,17 @@
 #include <iostream>
 #include "Component.hpp"
+#include "Drive.hpp"
+#include "Manipulator.hpp"
 #include "TCPClientServer.hpp"
 
 Component* components[2] = {nullptr, nullptr};
-TCP_Client* client = new TCP_Client("10.0.0.2", 7777);
-TCP_Server* server;
+TCP_Client* client = new TCP_Client();
+TCP_Server* server = new TCP_Server();
 
 void init() {
-    components[0];
+    components[0] = new Drive();
+    client->start();
+    server->start();
 }
 
 int main() {

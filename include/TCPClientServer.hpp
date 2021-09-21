@@ -1,38 +1,42 @@
-// implements UDP for all data transmission with fixed size packets
+#include <iostream>
+#include <sys/types.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include <string>
-#define ADDRLEN = sizeof(address)
+
+#define PORT_RECV 7777
+#define PORT_SEND 7778
+#define DRIVERSTATION_ADDRESS "10.0.0.1"
 
 class TCP_Client {
 public:
-    TCP_Client(const char* address, int port);
+    TCP_Client();
     ~TCP_Client() = default;
 
-    int getSock() const;
-    int getPort() const;
-    sockaddr_in getAddress() const;
+    void start();
+    void stop();
 private:
-    int port;
     int sock;
-    bool connected = false;
-    char* buffer[1024];
+    char buffer[4096];
     struct sockaddr_in address;
 };
 
 class TCP_Server {
 public:
-    TCP_Server() = default;
-    ~TCP_Server();
+    TCP_Server();
+    ~TCP_Server() = default;
 
-    int getSock() const;
-    int getPort() const;
-    sockaddr_in getAddress() const;
+    void start();
+    void stop();
 private:
-    int server_fd, new_socket, valread;
-    struct sockaddr_in address;
-    int opt = 1;
-    char buffer[1024] = {0};
+    int listeningSocket, clientSocket;
+    char host[NI_MAXHOST], service[NI_MAXSERV];
+    sockaddr_in address, client;
+    socklen_t clientSize = sizeof(client);
+    char buffer[4096] = {0};
+
+    void handleConnection();
 };

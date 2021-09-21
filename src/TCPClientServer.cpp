@@ -1,32 +1,119 @@
 #include "TCPClientServer.hpp"
 
-float exponentialBackoff(float retry_s) {
-    if(retry_s == 0)
-        return .250;
-    return retry_s * 2;
+TCP_Server::TCP_Server() {
+    // create a socket
+    listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if(listeningSocket == -1) {
+        // THROW ERROR
+    }
+
+    // fill sockaddr_in
+    address.sin_family = AF_INET;
+    address.sin_port = htons(PORT_RECV);
+    inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
+
+    // bind socket to port
+    bind(listeningSocket, (sockaddr*)&address, sizeof(address));
 }
 
-TCP_Client::TCP_Client(const char* address, int port) {
-    this->sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(this->sock < 0) {
-        printf("\nSocket creation error\n"); // TODO: replace with logger
+void TCP_Server::start() {
+    // tell winsock the socket is ready for listening
+    listen(listeningSocket, SOMAXCONN);
+
+    // wait for connection
+    clientSocket = accept(listeningSocket, (sockaddr*)&client, &clientSize);
+
+    memset(host, 0, NI_MAXHOST);
+    memset(service, 0, NI_MAXSERV);
+
+    // report that a connection has been established
+    if(getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0) {
+        std::cout << host << " connected on port " << service << std::endl;
+    }
+    else {
+        inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+        std::cout << host << " connected on port " << ntohs(client.sin_port) << std::endl;
     }
 
-    this->address.sin_family = AF_INET;
-    this->address.sin_port = htons(port);
-    if(inet_pton(AF_INET, address, &this->address.sin_addr) <=0) {
-        printf("\nInvalid Address\n"); // TODO: replace with logger
+    // close the listening socket
+    close(listeningSocket);
+
+    this->handleConnection();
+}
+
+void TCP_Server::handleConnection() {
+    // wait for messages
+    while(true) {
+        memset(buffer, 0, 4096);
+        
+        // wait for client to send
+        int bytesReceived = recv(clientSocket, buffer, 4096, 0);
+        switch(bytesReceived) {
+            case -1:
+                std::cerr << "Error in recv(). Quitting" << std::endl;
+                return;
+            case 0:
+                std::cout << "Client disconnected" << std::endl;
+                return;
+            default:
+                std::cout << std::string(buffer, 0, bytesReceived);
+                break;
+        }
+
+        // TESTING ONLY
+        // echo back to client
+        send(clientSocket, buffer, bytesReceived + 1, 0);
     }
 
-    float retry_s = 0;
-    while(!this->connected) {
-        if(connect(sock, (struct sockaddr *)&this->address, sizeof(this->address)) < 0 ) {
-            retry_s = exponentialBackoff(retry_s);
-            printf("\nConnection Failed...Retrying in %f.2f seconds", retry_s);
-            sleep(retry_s);
+    close(clientSocket);
+}
+
+TCP_Client::TCP_Client() {
+    // create socket
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock == -1) {
+        // THROW ERROR
+    }
+
+    // create address structure for server we are connecting to
+    address.sin_family = AF_INET;
+    address.sin_port = htons(PORT_SEND);
+    inet_pton(AF_INET, DRIVERSTATION_ADDRESS, &address.sin_addr);
+}
+
+void TCP_Client::start() {
+    // connect to server
+    int connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
+    if(connectionResult == -1) {
+        // THROW ERROR
+    }
+
+    // TESTING ONLY BELOW THIS LINE
+    // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT
+    std::string userInput;
+    while(true) {
+        // get input from user
+        std::cout << "> ";
+        getline(std::cin, userInput);
+
+        // send to server
+        int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+        if(sendResult == -1) {
+            std::cout << "Error occured while sending. Unable to deliver\r\n";
             continue;
         }
-        else
-            this->connected = true;
+
+        // wait for echo
+        memset(buffer, 0, 4096);
+        int bytesReceived = recv(sock, buffer, 4096, 0);
+        if(bytesReceived == -1) {
+            std::cout << "Error getting echo from server\r\n";
+        }
+        else {
+            std::cout << "SERVER> " << std::string(buffer, bytesReceived) << "\r\n";
+        }
     }
+
+    // close socket
+    close(sock);
 }
