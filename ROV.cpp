@@ -1,5 +1,4 @@
 #include <iostream>
-#include "Component.hpp"
 #include "Drive.hpp"
 #include "Manipulator.hpp"
 #include "TCPClientServer.hpp"
