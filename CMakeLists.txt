@@ -12,4 +12,10 @@ file(GLOB all_SRCS
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
+# library directories
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_executable(ROV ROV.cpp ${all_SRCS})
+
+# link the libraries to project
+target_link_libraries(ROV ${OpenCV_LIBS})
