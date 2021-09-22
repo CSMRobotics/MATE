@@ -1,0 +1,5 @@
+add_library(
+    JHPWMPCA9685
+    JHPWMPCA9685.h
+    JHPWMPCA9685.cpp
+)
