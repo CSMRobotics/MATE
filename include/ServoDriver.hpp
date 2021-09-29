@@ -1,9 +1,12 @@
+#ifndef SERVO_DRIVER_HPP
+#define SERVO_DRIVER_HPP
+
 #include "JHPWMPCA9685.h"
 #include <string>
 
 struct Servo{
     bool initialized = false;
-    std::string type = "";
+    std::string type = ""; // TODO: CHANGE TO ENUM
     float setpoint = 0.0f;
     float setpoint_minimum = 0.0f;
     float setpoint_maximum = 0.0f;
@@ -37,3 +40,5 @@ class ServoDriver{
         bool isServoChannelInUse(int channel);
         bool isContinuousServoChannelInUse(int channel);
 };
+
+#endif // SERVO_DRIVER_HPP

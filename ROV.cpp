@@ -3,6 +3,8 @@
 #include "Manipulator.hpp"
 #include "TCPClientServer.hpp"
 
+#include "ServoTest.hpp"
+
 Component* components[2] = {nullptr, nullptr};
 TCP_Client* client = new TCP_Client();
 TCP_Server* server = new TCP_Server();
@@ -14,6 +16,8 @@ void init() {
 }
 
 int main() {
+    TEST(); // UNCOMMENT FOR TESTING
+
     // initialize ROV parts
     init();
 

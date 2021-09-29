@@ -1,4 +1,4 @@
-#include <JHPWMPCA9685.h>
+#include "JHPWMPCA9685.h"
 #include <math.h>
 
  PCA9685::PCA9685(int address) {
