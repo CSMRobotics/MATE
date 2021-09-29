@@ -5,6 +5,7 @@ project(ROV)
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/src
+    /usr/local/include/opencv4
     # uncomment to include tests
     ${PROJECT_SOURCE_DIR}/tests
 )

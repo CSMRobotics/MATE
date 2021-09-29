@@ -1,3 +1,5 @@
+#ifndef CSMUTIL_HPP
+#define CSMUTIL_HPP
 
 class CSMUtil{
     public:
@@ -8,3 +10,5 @@ class CSMUtil{
             return (int)((value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min);
         }
 };
+
+#endif // CSMUTIL_HPP

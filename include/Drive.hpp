@@ -1,3 +1,6 @@
+#ifndef DRIVE_HPP
+#define DRIVE_HPP
+
 #include "Component.hpp"
 
 class Drive : public Component {
@@ -13,3 +16,5 @@ protected:
 private:
 
 };
+
+#endif // DRIVE_HPP

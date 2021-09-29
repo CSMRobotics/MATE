@@ -1,3 +1,6 @@
+#ifndef MANIPULATOR_HPP
+#define MANIPULATOR_HPP
+
 #include "Component.hpp"
 #include <iostream>
 
@@ -49,3 +52,5 @@ private:
     float const WRIST_ANGLE_MAX = 180;
     float const WRIST_ANGLE_MIN = 0;
 };
+
+#endif // MANIPULATOR_HPP

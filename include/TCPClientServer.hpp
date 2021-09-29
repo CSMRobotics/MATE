@@ -1,3 +1,6 @@
+#ifndef TCPCLIENTSERVER_HPP
+#define TCPCLIENTSERVER_HPP
+
 #include <iostream>
 #include <sys/types.h>
 #include <unistd.h>
@@ -40,3 +43,5 @@ private:
 
     void handleConnection();
 };
+
+#endif // TCPCLIENTSERVER_HPP
