@@ -3,6 +3,7 @@
 #include "Manipulator.hpp"
 #include "TCPClientServer.hpp"
 
+#include "TestManager.hpp"
 #include "ServoTest.hpp"
 
 Component* components[2] = {nullptr, nullptr};
@@ -15,8 +16,18 @@ void init() {
     server->start();
 }
 
+void doTests() {
+    // add functionalities to test (NOTHING CAN BE BLOCKING, NO ASYNC FUNCTIONALITY IMPLEMENTED)
+    TestManager::registerTest(new ServoTest());
+
+    // actually test
+    TestManager::runTests(5);
+}
+
 int main() {
-    TEST(); // UNCOMMENT FOR TESTING
+    // UNCOMMENT FOR TESTING
+    doTests();
+    return 0;
 
     // initialize ROV parts
     init();

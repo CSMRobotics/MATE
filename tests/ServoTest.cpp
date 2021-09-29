@@ -1,12 +1,12 @@
 #include "ServoTest.hpp"
 #include "ServoDriver.hpp"
 
-void TEST() {
+void ServoTest::TEST(int iterations) {
     ServoDriver* driver = new ServoDriver();
     driver->addServo(0);
 
     driver->setAngle(0, 0);
-    while(true) {
+    for(int i=0; i < iterations; i++) {
         driver->setAngle(0, 0);
         sleep(5);
         driver->setAngle(0, 180);
