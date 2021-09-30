@@ -7,7 +7,7 @@ ServoDriver::ServoDriver(){
         throw "failed to open PCA9685";
     this->driver_board.setAllPWM(0,0);
     this->driver_board.reset();
-    this->setPWMFrequency(60.0f);
+    this->setPWMFrequency(this->driver_board_frequency);
 }
 
 ServoDriver::~ServoDriver(){}
@@ -20,6 +20,7 @@ void ServoDriver::addServo(int channel){
         new_servo.setpoint_minimum = 0.0f;
         new_servo.setpoint_maximum = 180.0f;
         this->servos[channel] = new_servo;
+        this->setPWMBounds(channel, 500, 2500);
     }
 }
 
@@ -31,6 +32,7 @@ void ServoDriver::addContinuousServo(int channel){
         new_servo.setpoint_minimum = -1.0f;
         new_servo.setpoint_maximum = 1.0f;
         this->servos[channel] = new_servo;
+        this->setPWMBounds(channel, 500, 2500);
     }
 }
 
@@ -53,7 +55,6 @@ void ServoDriver::setAngle(int channel, float angle){
             throw "Servo angle " + std::to_string(angle) + " is not in range [" + std::to_string(working_servo.setpoint_minimum) + ", " + std::to_string(working_servo.setpoint_maximum) + "]";
         }else{
             working_servo.setpoint = angle;
-            // TODO: ENSURE THIS MATH WORKS
             this->setPWM(channel, CSMUtil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
         }
     }
@@ -66,7 +67,6 @@ void ServoDriver::setThrottle(int channel, float throttle){
             throw "Servo angle " + std::to_string(throttle) + " is not in range [" + std::to_string(working_servo.setpoint_minimum) + ", " + std::to_string(working_servo.setpoint_maximum) + "]";
         }else{
             working_servo.setpoint = throttle;
-            // TODO: ENSURE THIS MATH WORKS
             this->setPWM(channel, CSMUtil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
         }
     }
@@ -88,11 +88,12 @@ void ServoDriver::setThrottleBounds(int channel, float minimum_throttle, float m
     }
 }
 
-void ServoDriver::setPWMBounds(int channel, float minimum_pwm, float maximum_pwm){
+void ServoDriver::setPWMBounds(int channel, int minimum_us, int maximum_us){
     if(this->isChannelInUse(channel)){
         Servo working_servo = this->servos[channel];
-        working_servo.pwm_minimum = minimum_pwm / 4; // Note: Must divide by 4 because it works in 4 microsecond intervals because of frequency (note: this is technically hardcoded but our PCA9685 library doesnt expose frequency so whatever)
-        working_servo.pwm_maximum = maximum_pwm / 4;
+        float counts_per_microsecond = this->getCountsPerMicrosecond();
+        working_servo.pwm_minimum = minimum_us * counts_per_microsecond;
+        working_servo.pwm_maximum = maximum_us * counts_per_microsecond;
     }
 }
 
@@ -154,4 +155,8 @@ bool ServoDriver::isContinuousServoChannelInUse(int channel){
     }else{
         return false;
     }
+}
+
+float ServoDriver::getCountsPerMicrosecond(){
+    return (this->driver_board_frequency * 4096) / 1000000;
 }
