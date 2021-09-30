@@ -3,6 +3,10 @@
 
 ServoDriver::ServoDriver(){
     this->driver_board = PCA9685();
+    if(!this->driver_board.openPCA9685())
+        throw "failed to open PCA9685";
+    this->driver_board.setAllPWM(0,0);
+    this->driver_board.reset();
     this->setPWMFrequency(60.0f);
 }
 
@@ -87,8 +91,8 @@ void ServoDriver::setThrottleBounds(int channel, float minimum_throttle, float m
 void ServoDriver::setPWMBounds(int channel, float minimum_pwm, float maximum_pwm){
     if(this->isChannelInUse(channel)){
         Servo working_servo = this->servos[channel];
-        working_servo.pwm_minimum = minimum_pwm;
-        working_servo.pwm_maximum = maximum_pwm;
+        working_servo.pwm_minimum = minimum_pwm / 4; // Note: Must divide by 4 because it works in 4 microsecond intervals because of frequency (note: this is technically hardcoded but our PCA9685 library doesnt expose frequency so whatever)
+        working_servo.pwm_maximum = maximum_pwm / 4;
     }
 }
 

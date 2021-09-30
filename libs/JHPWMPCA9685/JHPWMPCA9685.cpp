@@ -54,7 +54,7 @@ void PCA9685::setPWMFrequency ( float frequency ) {
     // For debugging
     // printf("PCA9685 Prescale: 0x%02X\n",prescale) ;
     int oldMode = readByte(PCA9685_MODE1) ;
-     int newMode = ( oldMode & 0x7F ) | PCA9685_SLEEP ;
+    int newMode = ( oldMode & 0x7F ) | PCA9685_SLEEP ;
     writeByte(PCA9685_MODE1, newMode) ;
     writeByte(PCA9685_PRE_SCALE, prescale) ;
     writeByte(PCA9685_MODE1, oldMode) ;

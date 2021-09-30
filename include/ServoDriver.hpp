@@ -10,8 +10,8 @@ struct Servo{
     float setpoint = 0.0f;
     float setpoint_minimum = 0.0f;
     float setpoint_maximum = 0.0f;
-    int pwm_minimum = 500;
-    int pwm_maximum = 2500;
+    int pwm_minimum = 125;
+    int pwm_maximum = 625;
 };
 
 class ServoDriver{
