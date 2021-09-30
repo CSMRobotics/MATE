@@ -16,7 +16,7 @@ void ServoDriver::addServo(int channel){
     if(this->isChannelNotInUse(channel)){
         Servo new_servo;
         new_servo.initialized = true;
-        new_servo.type = "Servo";
+        new_servo.type = ServoType::POSITIONAL;
         new_servo.setpoint_minimum = 0.0f;
         new_servo.setpoint_maximum = 180.0f;
         this->servos[channel] = new_servo;
@@ -28,7 +28,7 @@ void ServoDriver::addContinuousServo(int channel){
     if(this->isChannelNotInUse(channel)){
         Servo new_servo;
         new_servo.initialized = true;
-        new_servo.type = "ContinuousServo";
+        new_servo.type = ServoType::CONTINUOUS;
         new_servo.setpoint_minimum = -1.0f;
         new_servo.setpoint_maximum = 1.0f;
         this->servos[channel] = new_servo;
@@ -133,7 +133,7 @@ bool ServoDriver::isChannelNotInUse(int channel){
 
 bool ServoDriver::isServoChannelInUse(int channel){
     if(this->isChannelInUse(channel)){
-        if(this->servos[channel].type != "Servo"){
+        if(this->servos[channel].type != ServoType::POSITIONAL){
             throw "Channel number " + std::to_string(channel) + " is not a Servo";
             return false;
         }else{
@@ -146,7 +146,7 @@ bool ServoDriver::isServoChannelInUse(int channel){
 
 bool ServoDriver::isContinuousServoChannelInUse(int channel){
     if(this->isChannelInUse(channel)){
-        if(this->servos[channel].type != "ContinuousServo"){
+        if(this->servos[channel].type != ServoType::CONTINUOUS){
             throw "Channel number " + std::to_string(channel) + " is not a ContinuousServo";
             return false;
         }else{

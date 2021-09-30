@@ -4,9 +4,14 @@
 #include "JHPWMPCA9685.h"
 #include <string>
 
+enum class ServoType{
+    POSITIONAL,
+    CONTINUOUS
+};
+
 struct Servo{
     bool initialized = false;
-    std::string type = ""; // TODO: CHANGE TO ENUM
+    ServoType type;
     float setpoint = 0.0f;
     float setpoint_minimum = 0.0f;
     float setpoint_maximum = 0.0f;
