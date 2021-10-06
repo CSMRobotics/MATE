@@ -4,14 +4,19 @@
 #include "JHPWMPCA9685.h"
 #include <string>
 
+enum class ServoType{
+    POSITIONAL,
+    CONTINUOUS
+};
+
 struct Servo{
     bool initialized = false;
-    std::string type = ""; // TODO: CHANGE TO ENUM
+    ServoType type;
     float setpoint = 0.0f;
     float setpoint_minimum = 0.0f;
     float setpoint_maximum = 0.0f;
-    int pwm_minimum = 125;
-    int pwm_maximum = 625;
+    int pwm_minimum;
+    int pwm_maximum;
 };
 
 class ServoDriver{
@@ -27,10 +32,11 @@ class ServoDriver{
         void setThrottle(int channel, float throttle);
         void setAngleBounds(int channel, float minimum_angle, float maximum_angle);
         void setThrottleBounds(int channel, float minimum_throttle, float maximum_throttle);
-        void setPWMBounds(int channel, float minimum_pwm, float maximum_pwm);
+        void setPWMBounds(int channel, int minimum_us, int maximum_us);
 
     private:
         PCA9685 driver_board;
+        float driver_board_frequency = 60;
         Servo servos[16];
 
         void setPWM(int channel, int value);
@@ -39,6 +45,7 @@ class ServoDriver{
         bool isChannelNotInUse(int channel);
         bool isServoChannelInUse(int channel);
         bool isContinuousServoChannelInUse(int channel);
+        float getCountsPerMicrosecond();
 };
 
 #endif // SERVO_DRIVER_HPP
