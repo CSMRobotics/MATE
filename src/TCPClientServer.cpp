@@ -9,7 +9,7 @@ TCP_Server::TCP_Server() {
 
     // fill sockaddr_in
     address.sin_family = AF_INET;
-    address.sin_port = htons(PORT_RECV);
+    address.sin_port = htons(NETWORK_PORT);
     inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
 
     // bind socket to port
@@ -19,8 +19,10 @@ TCP_Server::TCP_Server() {
 void TCP_Server::start() {
     // tell winsock the socket is ready for listening
     listen(listeningSocket, SOMAXCONN);
+    
 
     // wait for connection
+    std::cout << "Listening for connections on 0.0.0.0:" << NETWORK_PORT << std::endl;
     clientSocket = accept(listeningSocket, (sockaddr*)&client, &clientSize);
 
     memset(host, 0, NI_MAXHOST);
@@ -77,12 +79,13 @@ TCP_Client::TCP_Client() {
 
     // create address structure for server we are connecting to
     address.sin_family = AF_INET;
-    address.sin_port = htons(PORT_SEND);
+    address.sin_port = htons(NETWORK_PORT);
     inet_pton(AF_INET, DRIVERSTATION_ADDRESS, &address.sin_addr);
 }
 
 void TCP_Client::start() {
     // connect to server
+    std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << NETWORK_PORT << std::endl;
     int connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
     if(connectionResult == -1) {
         // THROW ERROR
