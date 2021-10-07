@@ -1,3 +1,6 @@
+#ifndef TCPCLIENTSERVER_HPP
+#define TCPCLIENTSERVER_HPP
+
 #include <iostream>
 #include <sys/types.h>
 #include <unistd.h>
@@ -7,8 +10,7 @@
 #include <string.h>
 #include <string>
 
-#define PORT_RECV 7777
-#define PORT_SEND 7778
+#define NETWORK_PORT 7777
 #define DRIVERSTATION_ADDRESS "10.0.0.1"
 
 class TCP_Client {
@@ -40,3 +42,5 @@ private:
 
     void handleConnection();
 };
+
+#endif // TCPCLIENTSERVER_HPP
