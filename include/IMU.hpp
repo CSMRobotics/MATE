@@ -1,5 +1,6 @@
 #include "Component.hpp"
-#include "libs/bno055/bno055.h"
+#include "../libs/bno055/bno055.h"
+#include <iostream>
 
 class IMU : public Component{
 
