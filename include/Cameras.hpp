@@ -1,6 +1,6 @@
-#include <Component.hpp>
+#include "Component.hpp"
 #include <array>
-#include <opencv2/opencv.hpp>
+#include "opencv2/opencv.hpp"
 
 class Cameras : public Component{
 
