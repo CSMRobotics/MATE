@@ -11,7 +11,7 @@
 #include <string>
 
 #define NETWORK_PORT 7777
-#define DRIVERSTATION_ADDRESS "10.0.0.1"
+#define DRIVERSTATION_ADDRESS "127.0.0.1"
 
 class TCP_Client {
 public:

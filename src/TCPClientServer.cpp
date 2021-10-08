@@ -46,6 +46,7 @@ void TCP_Server::start() {
 void TCP_Server::handleConnection() {
     // wait for messages
     while(true) {
+        std::cout << "Waiting for message..." << "\n";
         memset(buffer, 0, 4096);
         
         // wait for client to send
@@ -58,7 +59,7 @@ void TCP_Server::handleConnection() {
                 std::cout << "Client disconnected" << std::endl;
                 return;
             default:
-                std::cout << std::string(buffer, 0, bytesReceived);
+                std::cout << "CLIENT> " << std::string(buffer, 0, bytesReceived) << "\n";
                 break;
         }
 
@@ -86,10 +87,10 @@ TCP_Client::TCP_Client() {
 void TCP_Client::start() {
     // connect to server
     std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << NETWORK_PORT << std::endl;
-    int connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
-    if(connectionResult == -1) {
-        // THROW ERROR
-    }
+    int connectionResult = -1;
+    do {
+        connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
+    } while(connectionResult == -1);
 
     // TESTING ONLY BELOW THIS LINE
     // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT

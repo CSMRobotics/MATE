@@ -1,4 +1,4 @@
-#include "../include/IMU.hpp>"
+#include "IMU.hpp"
 
 IMU::IMU() {
     //TODO: we need to supply the bno055 struct with a delay function

@@ -3,9 +3,6 @@
 #include "Manipulator.hpp"
 #include "TCPClientServer.hpp"
 
-#include "TestManager.hpp"
-#include "ServoTest.hpp"
-
 Component* components[2];
 TCP_Client* client = new TCP_Client();
 TCP_Server* server = new TCP_Server();

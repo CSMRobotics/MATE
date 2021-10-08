@@ -26,17 +26,17 @@ SOFTWARE.
 #define _JHPWMPCA9685_H
 
 #include <cstddef>
-extern "C" {
-    #include <linux/i2c.h>
-    #include <linux/i2c-dev.h>
-    #include <i2c/smbus.h>
-}
 #include <sys/ioctl.h>
 #include <cstdlib>
 #include <cstdio>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+
+extern "C" {
+    #include <linux/i2c-dev.h>
+    #include <i2c/smbus.h>
+}
 
 class PCA9685
 {

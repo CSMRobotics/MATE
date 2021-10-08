@@ -1,6 +1,9 @@
-#include "Component.hpp"
+#ifndef CAMERAS_HPP
+#define CAMERAS_HPP
+
 #include <array>
 #include "opencv2/opencv.hpp"
+#include "Component.hpp"
 
 class Cameras : public Component{
 

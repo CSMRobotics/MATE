@@ -1,5 +1,8 @@
+#ifndef IMU_HPP
+#define IMU_HPP
+
 #include "Component.hpp"
-#include "../libs/bno055/bno055.h"
+#include "bno055.h"
 #include <iostream>
 
 class IMU : public Component{
@@ -17,3 +20,4 @@ private:
 
 };
 
+#endif // IMU_HPP
