@@ -9,7 +9,7 @@
 #include <memory>
 #include <cassert>
 #include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 #define JS_EVENT_BUTTON 0x01 // button pressed/released
 #define JS_EVENT_AXIS   0x02 // joystick moved
@@ -65,106 +65,62 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const JoystickEvent& e);
 };
 
-// declare ostream << to allow cout << event
+// declare ostream << to allow std::cout << event
 std::ostream& operator<<(std::ostream& os, const JoystickEvent& e);
 
 struct Button {
+    std::string name;
+    unsigned char number;
     short value;
     bool pressedSinceLastCheck = false;
     bool releasedSinceLastCheck = false;
     unsigned int time;
+
+    Button(std::string name) {this->name = name;};
 };
+
+static const Button BUTTON_NO_EXIST = Button("DNE");
 
 struct Axis {
+    std::string name;
+    unsigned char number;
     short value;
     unsigned int time;
+
+    Axis(std::string name) {this->name = name;};
 };
 
-struct JSDescriptor {
+// Wrapper around a map of Button presses to allow smart indexing (READ ONLY)
+class ButtonPresses {
+public:
+    ButtonPresses();
+
+    Button operator[](unsigned char number);
+
+    Button operator[](std::string name);
+private:
+    std::unordered_map<unsigned char, Button> m_byNumber = {};
+    std::unordered_map<std::string, Button> m_byName = {};
+friend class JSDescriptor;
+};
+
+// fancy map that maps names of buttons to button objects
+class JSDescriptor {
+public:
     std::unordered_map<std::string, std::shared_ptr<Button>> buttonsByString;
+    std::unordered_map<std::string, std::shared_ptr<Axis>> axesByString; 
     std::unordered_map<unsigned char, std::shared_ptr<Button>> buttonsByNumber;
+    std::unordered_map<unsigned char, std::shared_ptr<Axis>> axesByNumber; 
 
-    std::unordered_map<std::string, std::shared_ptr<Axis>> axesByString;
-    std::unordered_map<unsigned char, std::shared_ptr<Axis>> axesByNumber;
+    JSDescriptor();
 
-    JSDescriptor() {
-        std::shared_ptr<Button> BUTTON_0 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_0",BUTTON_0));
-        buttonsByNumber.emplace(std::make_pair(0, BUTTON_0));
+    ButtonPresses checkAndGetPresses();
+    ButtonPresses getPresses() {return this->presses;};
+protected:
+    ButtonPresses presses;
+    ButtonPresses releases;
 
-        std::shared_ptr<Button> BUTTON_1 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_1",BUTTON_1));
-        buttonsByNumber.emplace(std::make_pair(1, BUTTON_1));
-
-        std::shared_ptr<Button> BUTTON_2 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_2",BUTTON_2));
-        buttonsByNumber.emplace(std::make_pair(2, BUTTON_2));
-
-        std::shared_ptr<Button> BUTTON_3 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_3",BUTTON_3));
-        buttonsByNumber.emplace(std::make_pair(3, BUTTON_3));
-
-        std::shared_ptr<Button> BUTTON_4 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_4",BUTTON_4));
-        buttonsByNumber.emplace(std::make_pair(4, BUTTON_4));
-
-        std::shared_ptr<Button> BUTTON_5 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_5",BUTTON_5));
-        buttonsByNumber.emplace(std::make_pair(5, BUTTON_5));
-
-        std::shared_ptr<Button> BUTTON_6 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_6",BUTTON_6));
-        buttonsByNumber.emplace(std::make_pair(6, BUTTON_6));
-
-        std::shared_ptr<Button> BUTTON_7 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_7",BUTTON_7));
-        buttonsByNumber.emplace(std::make_pair(7, BUTTON_7));
-
-        std::shared_ptr<Button> BUTTON_8 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_8",BUTTON_8));
-        buttonsByNumber.emplace(std::make_pair(8, BUTTON_8));
-
-        std::shared_ptr<Button> BUTTON_9 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_9",BUTTON_9));
-        buttonsByNumber.emplace(std::make_pair(9, BUTTON_9));
-
-        std::shared_ptr<Button> BUTTON_10 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_10",BUTTON_10));
-        buttonsByNumber.emplace(std::make_pair(10, BUTTON_10));
-
-        std::shared_ptr<Button> BUTTON_11 = std::make_shared<Button>();
-        buttonsByString.emplace(std::make_pair("BUTTON_11",BUTTON_11));
-        buttonsByNumber.emplace(std::make_pair(11, BUTTON_11));
-
-
-        std::shared_ptr<Axis> AXIS_PITCH = std::make_shared<Axis>();
-        axesByString.emplace(std::make_pair("AXIS_PITCH", AXIS_PITCH));
-        axesByNumber.emplace(std::make_pair(0, AXIS_PITCH));
-
-        std::shared_ptr<Axis> AXIS_ROLL = std::make_shared<Axis>();
-        axesByString.emplace(std::make_pair("AXIS_ROLL", AXIS_ROLL));
-        axesByNumber.emplace(std::make_pair(1, AXIS_ROLL));
-
-        std::shared_ptr<Axis> AXIS_YAW = std::make_shared<Axis>();
-        axesByString.emplace(std::make_pair("AXIS_YAW", AXIS_YAW));
-        axesByNumber.emplace(std::make_pair(2, AXIS_YAW));
-
-        std::shared_ptr<Axis> HAT_X = std::make_shared<Axis>();
-        axesByString.emplace(std::make_pair("HAT_X", HAT_X));
-        axesByNumber.emplace(std::make_pair(3, HAT_X));
-
-        std::shared_ptr<Axis> HAT_Y = std::make_shared<Axis>();
-        axesByString.emplace(std::make_pair("HAT_Y", HAT_Y));
-        axesByNumber.emplace(std::make_pair(4, HAT_Y));
-    }
-
-    bool isPressed(Button& button) {
-        return button.value == 1;
-    }
-
-    unsigned int held(Button& button) {
-        return 1;
-    }
+    friend class Joystick;
 };
 
 // Represents a Loigitech Extreme 3D Pro joystick
@@ -195,7 +151,7 @@ public:
     bool isFound();
 
     // Updates pressed buttons. Call only once per main loop iteration!
-    void update_presses();
+    void update();
 private:
     // thread to manage polling controller
     class PollingThread {
@@ -214,9 +170,6 @@ private:
 
     // polling thread
     PollingThread t;
-
-    // interal descriptor of buttons that have been pressed since last update call
-    std::unordered_set<std::shared_ptr<Button>> m_presses;
 
     // file descriptor for the appropriate /dev/input/js event
     int _fd;

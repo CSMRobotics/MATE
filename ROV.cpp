@@ -22,6 +22,7 @@ int main() {
     // start update loop
     bool quit = false;
     while(!quit) {
+        js.update(); // update controller button presses
         for(Component* component : components) {
             component->Update();
         }
