@@ -26,6 +26,6 @@ int main() {
             component->Update();
         }
     }
-
+    
     return 0;
 }

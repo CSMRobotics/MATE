@@ -25,4 +25,4 @@ link_directories(${PROJECT_SOURCE_DIR}/libs/CSMUtil ${PROJECT_SOURCE_DIR}/libs/J
 add_executable(ROV ROV.cpp ${all_SRCS})
 
 # link the libraries to project
-target_link_libraries(ROV ${OpenCV_LIBS} JHPWMPCA9685 CSMUtil BNO055)
+target_link_libraries(ROV ${OpenCV_LIBS} JHPWMPCA9685 CSMUtil BNO055 pthread)

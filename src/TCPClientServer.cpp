@@ -4,7 +4,8 @@ TCP_Server::TCP_Server() {
     // create a socket
     listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
     if(listeningSocket == -1) {
-        // THROW ERROR
+        std::cout << "Unable to aquire socket. Quitting and dumping any locks.";
+        std::abort();
     }
 
     // fill sockaddr_in
@@ -17,9 +18,9 @@ TCP_Server::TCP_Server() {
 }
 
 void TCP_Server::start() {
+    started = true;
     // tell winsock the socket is ready for listening
     listen(listeningSocket, SOMAXCONN);
-    
 
     // wait for connection
     std::cout << "Listening for connections on 0.0.0.0:" << NETWORK_PORT << std::endl;
@@ -40,16 +41,22 @@ void TCP_Server::start() {
     // close the listening socket
     close(listeningSocket);
 
-    this->handleConnection();
+    // start handling thread
+    server = std::thread(&TCP_Server::handleConnection, this, std::ref(shouldThreadBeRunning));
 }
 
-void TCP_Server::handleConnection() {
+bool TCP_Server::isStarted() {
+    return started;
+}
+
+void TCP_Server::handleConnection(bool& running) {
     // wait for messages
-    while(true) {
+    while(running) {
         std::cout << "Waiting for message..." << "\n";
         memset(buffer, 0, 4096);
         
         // wait for client to send
+        // TODO: make nonblocking
         int bytesReceived = recv(clientSocket, buffer, 4096, 0);
         switch(bytesReceived) {
             case -1:
@@ -68,10 +75,24 @@ void TCP_Server::handleConnection() {
         send(clientSocket, buffer, bytesReceived + 1, 0);
     }
 
+    // clear buffer
+    memset(buffer, 0, 4096);
+    // set buffer to indicate server is exiting;
+    std::string toCpy = "Server Exiting";
+    memcpy(buffer, toCpy.c_str(), 14);
+    // send exit message to client
+    send(clientSocket, buffer, 14, 0);
+
     close(clientSocket);
 }
 
+void TCP_Server::stop() {
+    shouldThreadBeRunning = false;
+    server.join();
+}
+
 TCP_Client::TCP_Client() {
+    started = true;
     // create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock == -1) {
@@ -92,10 +113,17 @@ void TCP_Client::start() {
         connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
     } while(connectionResult == -1);
 
+    client = std::thread(&TCP_Client::handleConnection, this, std::ref(shouldThreadBeRunning));
+
+    // close socket
+    close(sock);
+}
+
+void TCP_Client::handleConnection(bool& running) {
     // TESTING ONLY BELOW THIS LINE
     // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT
     std::string userInput;
-    while(true) {
+    while(shouldThreadBeRunning) {
         // get input from user
         std::cout << "> ";
         getline(std::cin, userInput);
@@ -117,7 +145,15 @@ void TCP_Client::start() {
             std::cout << "SERVER> " << std::string(buffer, bytesReceived) << "\r\n";
         }
     }
+}
 
-    // close socket
+bool TCP_Client::isStarted() {
+    return started;
+}
+
+void TCP_Client::stop() {
+    shouldThreadBeRunning = false;
+    client.join();
     close(sock);
 }
+
