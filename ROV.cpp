@@ -15,7 +15,21 @@ void init() {
     server->start();
 }
 
+void testJoystick() {
+    sleep(1);
+    while(js.isFound()) {
+        js.update();
+        
+        controller::ButtonPresses presses = js.getPresses();
+
+        std::cout << presses << '\n';
+        std::cout << "sleeping for 5 seconds" << '\n';
+        sleep(5);
+    }
+}
+
 int main() {
+    testJoystick();
     // initialize ROV parts
     init();
 

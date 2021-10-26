@@ -79,8 +79,6 @@ struct Button {
     Button(std::string name) {this->name = name;};
 };
 
-static const Button BUTTON_NO_EXIST = Button("DNE");
-
 struct Axis {
     std::string name;
     unsigned char number;
@@ -93,16 +91,21 @@ struct Axis {
 // Wrapper around a map of Button presses to allow smart indexing (READ ONLY)
 class ButtonPresses {
 public:
-    ButtonPresses();
+    // returns true if button at number was pressed
+    bool operator[](unsigned char number);
 
-    Button operator[](unsigned char number);
+    // returns true if button at name was pressed
+    bool operator[](std::string name);
 
-    Button operator[](std::string name);
+    friend std::ostream& operator<<(std::ostream& os, const ButtonPresses& presses);
 private:
     std::unordered_map<unsigned char, Button> m_byNumber = {};
     std::unordered_map<std::string, Button> m_byName = {};
 friend class JSDescriptor;
 };
+
+// allow std::cout << ButtonPresses
+std::ostream& operator<<(std::ostream& os, const ButtonPresses& presses);
 
 // fancy map that maps names of buttons to button objects
 class JSDescriptor {
@@ -116,14 +119,14 @@ public:
 
     ButtonPresses checkAndGetPresses();
     ButtonPresses getPresses() {return this->presses;};
+    ButtonPresses getReleases() {return this->releases;};
 protected:
     ButtonPresses presses;
     ButtonPresses releases;
-
-    friend class Joystick;
+friend class Joystick;
 };
 
-// Represents a Loigitech Extreme 3D Pro joystick
+// Represents a Logitech Extreme 3D Pro joystick
 class Joystick
 {
 public:
@@ -152,6 +155,9 @@ public:
 
     // Updates pressed buttons. Call only once per main loop iteration!
     void update();
+
+    ButtonPresses getPresses();
+    ButtonPresses getReleases();
 private:
     // thread to manage polling controller
     class PollingThread {

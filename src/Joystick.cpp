@@ -74,7 +74,7 @@ void Joystick::axis_updated(const JoystickEvent& ev) {
 }
 
 void Joystick::update() {
-    m_js.presses = m_js.checkAndGetPresses();
+    m_js.checkAndGetPresses();
 }
 
 bool Joystick::isFound()
@@ -222,22 +222,42 @@ ButtonPresses JSDescriptor::checkAndGetPresses() {
     return this->presses;
 }
 
-ButtonPresses::ButtonPresses() {
-
-}
-
-Button ButtonPresses::operator[](unsigned char number) {
+bool ButtonPresses::operator[](unsigned char number) {
     try {
-        return m_byNumber.at(number);
-    } catch (std::out_of_range) {}
+        m_byNumber.at(number);
+        return true;
+    } catch (const std::out_of_range& e) {
+        return false;
+    }
 
-    return BUTTON_NO_EXIST;
+    return false;
 }
 
-Button ButtonPresses::operator[](std::string name) {
+bool ButtonPresses::operator[](std::string name) {
     try {
-        return m_byName.at(name);
-    } catch (std::out_of_range) {}
+        m_byName.at(name);
+        return true;
+    } catch (const std::out_of_range& e) {
+        return false;
+    }
 
-    return BUTTON_NO_EXIST;
+    return false;
 }
+
+std::ostream& controller::operator<<(std::ostream& os, const ButtonPresses& presses) {
+    os << "Presses/Releases:[";
+    for(auto mapObj : presses.m_byName) {
+        os << "{Name=" << mapObj.first << "},";
+    }
+    os << "]";
+    return os;
+}
+
+ButtonPresses Joystick::getPresses() {
+    return m_js.getPresses();
+}
+
+ButtonPresses Joystick::getReleases() {
+    return m_js.getReleases();
+}
+
