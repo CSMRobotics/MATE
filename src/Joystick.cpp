@@ -239,6 +239,14 @@ Axis* JSDescriptor::getAxis(std::string name) {
     return axesByString.at(name).get();
 }
 
+Axis Joystick::getAxis(unsigned char number) {
+    return *m_js.axesByNumber.at(number).get();
+}
+
+Axis Joystick::getAxis(std::string name) {
+    return *m_js.axesByString.at(name).get();
+}
+
 float Axis::normalizeAxis() {
     return csmutil::map<float, float, float>(value, -32768, 32767, -1, 1);
 }
