@@ -55,7 +55,7 @@ void ServoDriver::setAngle(int channel, float angle){
             throw "Servo angle " + std::to_string(angle) + " is not in range [" + std::to_string(working_servo.setpoint_minimum) + ", " + std::to_string(working_servo.setpoint_maximum) + "]";
         }else{
             working_servo.setpoint = angle;
-            this->setPWM(channel, CSMUtil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
+            this->setPWM(channel, csmutil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
         }
     }
 }
@@ -67,7 +67,7 @@ void ServoDriver::setThrottle(int channel, float throttle){
             throw "Servo angle " + std::to_string(throttle) + " is not in range [" + std::to_string(working_servo.setpoint_minimum) + ", " + std::to_string(working_servo.setpoint_maximum) + "]";
         }else{
             working_servo.setpoint = throttle;
-            this->setPWM(channel, CSMUtil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
+            this->setPWM(channel, csmutil::imap(working_servo.setpoint, working_servo.setpoint_minimum, working_servo.setpoint_maximum, working_servo.pwm_minimum, working_servo.pwm_maximum));
         }
     }
 }

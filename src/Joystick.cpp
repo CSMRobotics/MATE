@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <unistd.h>
+#include "CSMUtil.hpp"
 
 using namespace controller;
 
@@ -220,6 +221,26 @@ ButtonPresses JSDescriptor::checkAndGetPresses() {
     }
 
     return this->presses;
+}
+
+float JSDescriptor::getAxisValue(unsigned char number) {
+    return axesByNumber.at(number).get()->value;
+}
+
+float JSDescriptor::getAxisValue(std::string name) {
+    return axesByString.at(name).get()->value;
+}
+
+Axis* JSDescriptor::getAxis(unsigned char number) {
+    return axesByNumber.at(number).get();
+}
+
+Axis* JSDescriptor::getAxis(std::string name) {
+    return axesByString.at(name).get();
+}
+
+float Axis::normalizeAxis() {
+    return csmutil::map<float, float, float>(value, -32768, 32767, -1, 1);
 }
 
 bool ButtonPresses::operator[](unsigned char number) {

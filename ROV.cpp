@@ -23,6 +23,7 @@ void testJoystick() {
         controller::ButtonPresses presses = js.getPresses();
 
         std::cout << presses << '\n';
+        std::cout << "Pitch Axis: " << js.getAxis("AXIS_PITCH").normalizeAxis() << '\n';
         std::cout << "sleeping for 5 seconds" << '\n';
         sleep(5);
     }

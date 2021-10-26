@@ -86,6 +86,7 @@ struct Axis {
     unsigned int time;
 
     Axis(std::string name) {this->name = name;};
+    float normalizeAxis();
 };
 
 // Wrapper around a map of Button presses to allow smart indexing (READ ONLY)
@@ -97,7 +98,7 @@ public:
     // returns true if button at name was pressed
     bool operator[](std::string name);
 
-    friend std::ostream& operator<<(std::ostream& os, const ButtonPresses& presses);
+friend std::ostream& operator<<(std::ostream& os, const ButtonPresses& presses);
 private:
     std::unordered_map<unsigned char, Button> m_byNumber = {};
     std::unordered_map<std::string, Button> m_byName = {};
@@ -120,6 +121,10 @@ public:
     ButtonPresses checkAndGetPresses();
     ButtonPresses getPresses() {return this->presses;};
     ButtonPresses getReleases() {return this->releases;};
+    float getAxisValue(unsigned char number);
+    float getAxisValue(std::string name);
+    Axis* getAxis(unsigned char number);
+    Axis* getAxis(std::string name);
 protected:
     ButtonPresses presses;
     ButtonPresses releases;
@@ -158,6 +163,9 @@ public:
 
     ButtonPresses getPresses();
     ButtonPresses getReleases();
+
+    Axis getAxis(unsigned char number);
+    Axis getAxis(std::string name);
 private:
     // thread to manage polling controller
     class PollingThread {
