@@ -119,6 +119,9 @@ public:
     JSDescriptor();
 
     ButtonPresses checkAndGetPresses();
+
+    // TODO: i wrote this when it was like 10pm so obviously these
+    // functions should be implemented in Joystick 
     ButtonPresses getPresses() {return this->presses;};
     ButtonPresses getReleases() {return this->releases;};
     float getAxisValue(unsigned char number);

@@ -35,6 +35,8 @@ void Joystick::openPath(std::string devicePath)
     bool blocking = false;
     // Open the device using either blocking or non-blocking
     _fd = open(devicePath.c_str(), blocking ? O_RDONLY : O_RDONLY | O_NONBLOCK);
+    m_js = JSDescriptor();
+    this->t = PollingThread(*this);
 }
 
 bool Joystick::sample(JoystickEvent* ev) {
@@ -100,6 +102,7 @@ Joystick::PollingThread::PollingThread(Joystick& js) {
     assert(("Joystick not found, unable to start thread.", js.isFound()));
     this->m_isRunning = true;
     t = std::thread(&PollingThread::poll, this, std::ref(this->m_isRunning), std::ref(js));
+    std::cout << "Polling Thread Created" << '\n';
 }
 
 void Joystick::PollingThread::poll(bool& running, Joystick& js) {
