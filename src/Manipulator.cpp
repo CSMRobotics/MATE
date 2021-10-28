@@ -1,77 +1,90 @@
 #include "Manipulator.hpp"
 
-Manipulator::Manipulator() {
-    // TODO: set angles to 0 upon creation
-}
-
-Manipulator::~Manipulator() {
-    
+Manipulator::Manipulator(Joystick* joystick, ServoDriver* driver) {
+    this->joystick = joystick;
+    this->driver = driver;
+    m_isActive = false;
+    m_isChicken = false;
+    m_isClamping = false;
+    this->driver->addServo(m_elbowServo);
+    this->driver->addServo(m_elbowServo2);
+    this->driver->addServo(m_levelServo);
+    this->driver->addServo(m_wristServo);
+    this->driver->addServo(m_clampServo);
 }
 
 void Manipulator::Update() {
-    // TODO: implement game controller updating x/y velocity
-    // TODO: update buttons
+    // update velocities based on pitch and roll joystick axes
+    m_levelVelocity = joystick->getAxes()[1];
+    m_wristVelocity = joystick->getAxes()[0];
 
-    if(isChicken){
-        elbow_angle = elbow_angle_old + y_velocity;
-        level_angle = level_angle_old - y_velocity;
-        wrist_angle = wrist_angle_old + x_velocity;
+    if(joystick->getPresses()[m_clampButton])
+        m_isClamping = !m_isClamping;
+    if(joystick->getPresses()[m_chickenButton])
+        m_isChicken = !m_isChicken;
+
+    if(m_isChicken){
+        m_elbowAngle = m_elbowAngleOld + m_levelVelocity;
+        m_levelAngle = m_levelAngleOld - m_levelVelocity;
+        m_wristAngle = m_wristAngleOld + m_wristVelocity;
     }
     else {
-        level_angle = level_angle_old + y_velocity;
-        wrist_angle = wrist_angle_old + x_velocity;
+        m_levelAngle = m_levelAngleOld + m_levelVelocity;
+        m_wristAngle = m_wristAngleOld + m_wristVelocity;
     }
 
     // keep angles from over/under-shooting
-    if(elbow_angle > ELBOW_ANGLE_MAX)
-        elbow_angle = ELBOW_ANGLE_MAX;
-    else if(elbow_angle < ELBOW_ANGLE_MIN)
-        elbow_angle = ELBOW_ANGLE_MIN;
-    if(level_angle > LEVEL_ANGLE_MAX)
-        level_angle = LEVEL_ANGLE_MAX;
-    else if(level_angle < LEVEL_ANGLE_MIN)
-        level_angle = LEVEL_ANGLE_MIN;
-    if(wrist_angle > WRIST_ANGLE_MAX)
-        wrist_angle = WRIST_ANGLE_MAX;
-    else if(wrist_angle < WRIST_ANGLE_MIN)
-        wrist_angle = WRIST_ANGLE_MIN;
+    if(m_elbowAngle > ELBOW_ANGLE_MAX)
+        m_elbowAngle = ELBOW_ANGLE_MAX;
+    else if(m_elbowAngle < ELBOW_ANGLE_MIN)
+        m_elbowAngle = ELBOW_ANGLE_MIN;
+
+    if(m_levelAngle > LEVEL_ANGLE_MAX)
+        m_levelAngle = LEVEL_ANGLE_MAX;
+    else if(m_levelAngle < LEVEL_ANGLE_MIN)
+        m_levelAngle = LEVEL_ANGLE_MIN;
+
+    if(m_wristAngle > WRIST_ANGLE_MAX)
+        m_wristAngle = WRIST_ANGLE_MAX;
+    else if(m_wristAngle < WRIST_ANGLE_MIN)
+        m_wristAngle = WRIST_ANGLE_MIN;
 
     // update positions
     // always write wrist
-    // wrist_servo.angle = wrist_angle + wrist_tune;
+    this->driver->setAngle(m_wristServo, m_wristAngle + m_wristTune);
 
     //determines updates based on chicken protocol
-    if(isChicken) {
-        // elbow_servo.angle = elbow_angle + elbow_tune;
-        // elbow_servo2.angle = 180 - elbow_angle + elbow_tune2;
-        // level_servo.angle = level_angle + level_tune;
+    if(m_isChicken) {
+        this->driver->setAngle(m_elbowServo, m_elbowAngle + m_elbowTune);
+        this->driver->setAngle(m_elbowServo2, 180 - m_elbowAngle + m_elbowTune2);
+        this->driver->setAngle(m_levelServo, m_levelAngle + m_levelTune);
     }
     else {
-        // level_servo.angle = level_angle + level_tune;
+        this->driver->setAngle(m_levelServo, m_levelAngle + m_levelTune);
     }
 
     // update vars
-    elbow_angle_old = elbow_angle;
-    level_angle_old = level_angle;
-    wrist_angle_old = wrist_angle;
+    m_elbowAngleOld = m_elbowAngle;
+    m_levelAngleOld = m_levelAngle;
+    m_wristAngleOld = m_wristAngle;
 
     // TODO: reimplement this to prevent unnecessary torque from being applied to gripped object (overheating possible issue???)
-    if(isClamping) {
-        // clamp_servo.angle = 130;
+    if(m_isClamping) {
+        this->driver->setAngle(m_clampServo, 130);
     }
     else {
-        // clamp_servo.angle = 85;
+        this->driver->setAngle(m_clampServo, 85);
     }
 }
 
 void Manipulator::AutoUpdate() {
-
+    this->Update();
 }
 
 void Manipulator::Stop() {
-    // TODO: set duty cycles to 0
-}
-
-void Manipulator::toggleChicken() {
-    this->isChicken = !this->isChicken;
+    this->driver->setAngle(m_elbowServo, 0);
+    this->driver->setAngle(m_elbowServo2, 0);
+    this->driver->setAngle(m_levelServo, 0);
+    this->driver->setAngle(m_wristServo, 0);
+    this->driver->setAngle(m_clampServo, 0);
 }

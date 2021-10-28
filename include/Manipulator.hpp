@@ -2,47 +2,52 @@
 #define MANIPULATOR_HPP
 
 #include "Component.hpp"
+#include "Joystick.hpp"
+#include "ServoDriver.hpp"
 #include <iostream>
 
 // Create basic class definition responsible for moving the robot
 class Manipulator : public Component{
 public:
-    Manipulator();
-    ~Manipulator();
+    Manipulator() = default;
+    Manipulator(Joystick* joystick, ServoDriver* driver);
+    ~Manipulator() = default;
 
     void Update();
     void AutoUpdate();
     void Stop();
-
-    void toggleChicken();
-
-protected:
-
 private:
-    //elbow_servo = MANIP_ELBOW_SERVO
-    //elbow_servo2 = MANIP_ELBOW_SERVO_2
-    //level_servo = MANIP_LEVEL_SERVO
-    //wrist_servo = MANIP_WRIST_SERVO
-    //clamp_servo = MANIP_CLAMP_SERVO
+    unsigned char m_elbowServo = 8;
+    unsigned char m_elbowServo2 = 9;
+    unsigned char m_levelServo = 10;
+    unsigned char m_wristServo = 11;
+    unsigned char m_clampServo = 12;
+    
+    unsigned char m_clampButton = 0;
+    unsigned char m_chickenButton = 1;
+    
+    Joystick* joystick;
+    ServoDriver* driver;
 
-    bool isChicken = false;
-    bool isClamping = false;
+    bool m_isChicken = false;
+    bool m_isClamping = false;
+    bool m_isActive = false;
 
-    float elbow_angle = 90;
-    float elbow_angle_old = 90;
-    float wrist_angle = 90;
-    float wrist_angle_old = 90;
-    float level_angle = 90;
-    float level_angle_old = 90;
+    float m_elbowAngle = 90;
+    float m_elbowAngleOld = 90;
+    float m_wristAngle = 90;
+    float m_wristAngleOld = 90;
+    float m_levelAngle = 90;
+    float m_levelAngleOld = 90;
 
-    float elbow_tune = 11;
-    float elbow_tune2 = 12;
-    float level_tune = 0;
-    float wrist_tune = 15;
+    float m_elbowTune = 11;
+    float m_elbowTune2 = 12;
+    float m_levelTune = 0;
+    float m_wristTune = 15;
 
-    float x_velocity = 0;
-    float y_velocity = 0;
-
+    float m_levelVelocity;
+    float m_wristVelocity;
+    
     float const VELOCITY_SCALING_FACTOR = .1f;
     float const DELTA_VELOCITY_IGNORE = .1f;
     float const ELBOW_ANGLE_MAX = 180;
