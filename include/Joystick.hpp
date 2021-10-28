@@ -105,6 +105,7 @@ public:
     bool isFound();
     void updatePresses();
     ButtonPresses getPresses();
+    ButtonPresses getReleases();
     Axes getAxes();
 private:
     PollingThread* pollingThread;

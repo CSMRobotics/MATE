@@ -126,6 +126,10 @@ ButtonPresses Joystick::getPresses() {
     return *presses;
 }
 
+ButtonPresses Joystick::getReleases() {
+    return *releases;
+}
+
 // technically this should have a lock but......
 Axes Joystick::getAxes() {
     return axes;
