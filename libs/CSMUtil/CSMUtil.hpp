@@ -46,7 +46,8 @@ public:
     T dot(const Vector3<K>& other);
     T dot(const Vector3<T>& other);
 
-    // Vector cpp operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) )
+    // TODO:implement
+    // Vector cpp operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) ) 
     bool operator==(const Vector3<T>& rhs);
     bool operator!=(const Vector3<T>& rhs);
 
