@@ -47,8 +47,8 @@ public:
     T dot(const Vector3<T>& other);
 
     // Vector cpp operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) )
-    bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs);
-    bool operator!=(const Vector3<T>& lhs, const Vector3<T>& rhs);
+    bool operator==(const Vector3<T>& rhs);
+    bool operator!=(const Vector3<T>& rhs);
 
 
 /* declare new typename to not step on T
