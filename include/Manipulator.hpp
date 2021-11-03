@@ -34,6 +34,7 @@ private:
     bool m_isActive = false;
 
     float m_elbowAngle = 90;
+    float m_elbowAngle2 = 90;
     float m_elbowAngleOld = 90;
     float m_wristAngle = 90;
     float m_wristAngleOld = 90;
@@ -45,8 +46,8 @@ private:
     float m_levelTune = 0;
     float m_wristTune = 15;
 
-    float m_levelVelocity;
-    float m_wristVelocity;
+    float m_levelVelocity = 0.0f;
+    float m_wristVelocity = 0.0f;
     
     float const VELOCITY_SCALING_FACTOR = .1f;
     float const DELTA_VELOCITY_IGNORE = .1f;
