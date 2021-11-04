@@ -11,9 +11,18 @@
 #include <string>
 #include <thread>
 #include <queue>
+#include <bitset>
+
+#include "Joystick.hpp"
 
 #define NETWORK_PORT 7777
-#define DRIVERSTATION_ADDRESS "127.0.0.1"
+#define DRIVERSTATION_ADDRESS "10.0.0.1"
+
+#define MSB 0x80000000
+#define HEADER 0xFF000000
+#define JOYSTICK_INDEX 0x1F000000
+#define METADATA 0x00FF0000
+#define DATA 0x0000FFFF
 
 class TCP_Client {
 public:
@@ -21,20 +30,18 @@ public:
     ~TCP_Client() = default;
 
     void start();
-    bool isStarted();
     void stop();
 
     void sendMessage();
 private:
     int sock;
-    char buffer[4096];
+    char buffer[32];
     struct sockaddr_in address;
-    bool started;
     bool shouldThreadBeRunning = true;
     std::thread client;
-    std::priority_queue<std::string> sendQueue;
+    std::priority_queue<uint32_t> sendQueue;
 
-    void handleConnection(bool& running);
+    void handleConnection(std::reference_wrapper<bool> running);
 };
 
 class TCP_Server {
@@ -42,20 +49,23 @@ public:
     TCP_Server();
     ~TCP_Server() = default;
 
+    void registerJoystick(Joystick* joystick);
+
     void start();
-    bool isStarted();
     void stop();
 private:
     int listeningSocket, clientSocket;
     char host[NI_MAXHOST], service[NI_MAXSERV];
     sockaddr_in address, client;
     socklen_t clientSize = sizeof(client);
-    char buffer[4096] = {0};
-    bool started;
+    char buffer[32] = {0};
     bool shouldThreadBeRunning = true;
     std::thread server;
 
-    void handleConnection(bool& running);
+    Joystick* joystick;
+
+    void handleConnection(std::reference_wrapper<bool> running);
+    void decodeMessage(char* buffer);
 };
 
 #endif // TCPCLIENTSERVER_HPP

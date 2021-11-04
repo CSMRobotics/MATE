@@ -85,6 +85,11 @@ Joystick::~Joystick() {
     pollingThread->stop();
 }
 
+Joystick::Joystick(TCP_Server* server) {
+    this->init();
+    server->registerJoystick(this);
+}
+
 Joystick::Joystick(int joystickNumber) {
     init();
     std::stringstream ss;

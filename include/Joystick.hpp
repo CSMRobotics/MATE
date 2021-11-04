@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #include "CSMUtil.hpp"
+#include "TCPClientServer.hpp"
 
 #define JS_EVENT_BUTTON 0x01 // button pressed/released
 #define JS_EVENT_AXIS   0x02 // joystick moved
@@ -100,6 +101,7 @@ class Joystick
 {
 public:
     ~Joystick();
+    Joystick(TCP_Server* server);
     Joystick(int joystickNumber);
     Joystick(std::string path);
     bool isFound();
@@ -120,6 +122,7 @@ private:
 
     void init();
 friend class PollingThread;
+friend class TCP_Server;
 };
 
 class PollingThread {
