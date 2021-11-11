@@ -15,6 +15,8 @@
 
 #include "Joystick.hpp"
 
+class Joystick;
+
 #define NETWORK_PORT 7777
 #define DRIVERSTATION_ADDRESS "10.0.0.1"
 

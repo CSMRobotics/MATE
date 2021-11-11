@@ -54,7 +54,6 @@ void TCP_Server::handleConnection(std::reference_wrapper<bool> running) {
 
     // wait for messages
     while(running.get()) {
-        std::cout << "Waiting for message..." << "\n";
         memset(buffer, 0, 32);
         
         // wait for client to send
@@ -80,28 +79,24 @@ void TCP_Server::handleConnection(std::reference_wrapper<bool> running) {
 }
 
 void TCP_Server::decodeMessage(char* buffer) {
-    uint32_t message = std::bitset<32>(buffer).to_ulong();
-    if(message & MSB) {
+    uint32_t message = *reinterpret_cast<uint32_t*>(buffer);
+
+    if(!message & MSB) {
         std::cout << "undefined message type received" << std::endl;
     } else {
-        // message received is a joysticke event
+        // message received is a joystick event
         JoystickEvent event;
-        event.number = message & JOYSTICK_INDEX;
+        event.number = (message & JOYSTICK_INDEX) >> 24;
         event.time = 0;
-        event.type = message & METADATA;
+        event.type = (message & METADATA) >> 16;
         event.value =  message & DATA;
 
-        // update joystick accordingly
-        if(event.isInitialState()) {
-            // do we care?
-        }
         if(event.isButton()) {
             if(event.value)
                 joystick->button_pressed(event.number, 0);
             else
                 joystick->button_released(event.number, 0);
         } else if(event.isAxis()) {
-            
             joystick->axis_updated(event);
         }
     }

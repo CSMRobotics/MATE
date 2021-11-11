@@ -21,6 +21,7 @@
 #define JS_EVENT_INIT   0x80 // initial state of device
 
 class PollingThread;
+class TCP_Server;
 
 // represents a single button on the joystick
 struct Button {

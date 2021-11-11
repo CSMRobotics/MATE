@@ -33,9 +33,11 @@ int main() {
     
     while(true) {
         js.updatePresses();
-        for(Component* component : components) {
-            component->Update();
-        }
+	    std::cout << js.getAxes()[0] << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        //for(Component* component : components) {
+        //    component->Update();
+        //}
     }
     
     stop();
