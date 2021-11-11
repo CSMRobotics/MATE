@@ -17,8 +17,19 @@ TCP_Server::TCP_Server() {
     bind(listeningSocket, (sockaddr*)&address, sizeof(address));
 }
 
+void TCP_Server::registerJoystick(Joystick* joystick) {
+    this->joystick = joystick;
+}
+
 void TCP_Server::start() {
-    started = true;
+    // start handling thread
+    std::cout << "starting server thread" << std::endl;
+    server = std::thread(&TCP_Server::handleConnection, this, std::ref(shouldThreadBeRunning));
+    server.detach();
+    std::cout << "server thread detached" << std::endl;
+}
+
+void TCP_Server::handleConnection(std::reference_wrapper<bool> running) {
     // tell winsock the socket is ready for listening
     listen(listeningSocket, SOMAXCONN);
 
@@ -41,23 +52,12 @@ void TCP_Server::start() {
     // close the listening socket
     close(listeningSocket);
 
-    // start handling thread
-    server = std::thread(&TCP_Server::handleConnection, this, std::ref(shouldThreadBeRunning));
-}
-
-bool TCP_Server::isStarted() {
-    return started;
-}
-
-void TCP_Server::handleConnection(bool& running) {
     // wait for messages
-    while(running) {
-        std::cout << "Waiting for message..." << "\n";
-        memset(buffer, 0, 4096);
+    while(running.get()) {
+        memset(buffer, 0, 32);
         
         // wait for client to send
-        // TODO: make nonblocking
-        int bytesReceived = recv(clientSocket, buffer, 4096, 0);
+        int bytesReceived = recv(clientSocket, buffer, 32, 0);
         switch(bytesReceived) {
             case -1:
                 std::cerr << "Error in recv(). Quitting" << std::endl;
@@ -66,7 +66,7 @@ void TCP_Server::handleConnection(bool& running) {
                 std::cout << "Client disconnected" << std::endl;
                 return;
             default:
-                std::cout << "CLIENT> " << std::string(buffer, 0, bytesReceived) << "\n";
+                decodeMessage(buffer);
                 break;
         }
 
@@ -75,15 +75,31 @@ void TCP_Server::handleConnection(bool& running) {
         send(clientSocket, buffer, bytesReceived + 1, 0);
     }
 
-    // clear buffer
-    memset(buffer, 0, 4096);
-    // set buffer to indicate server is exiting;
-    std::string toCpy = "Server Exiting";
-    memcpy(buffer, toCpy.c_str(), 14);
-    // send exit message to client
-    send(clientSocket, buffer, 14, 0);
-
     close(clientSocket);
+}
+
+void TCP_Server::decodeMessage(char* buffer) {
+    uint32_t message = *reinterpret_cast<uint32_t*>(buffer);
+
+    if(!message & MSB) {
+        std::cout << "undefined message type received" << std::endl;
+    } else {
+        // message received is a joystick event
+        JoystickEvent event;
+        event.number = (message & JOYSTICK_INDEX) >> 24;
+        event.time = 0;
+        event.type = (message & METADATA) >> 16;
+        event.value =  message & DATA;
+
+        if(event.isButton()) {
+            if(event.value)
+                joystick->button_pressed(event.number, 0);
+            else
+                joystick->button_released(event.number, 0);
+        } else if(event.isAxis()) {
+            joystick->axis_updated(event);
+        }
+    }
 }
 
 void TCP_Server::stop() {
@@ -92,7 +108,6 @@ void TCP_Server::stop() {
 }
 
 TCP_Client::TCP_Client() {
-    started = true;
     // create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock == -1) {
@@ -106,6 +121,14 @@ TCP_Client::TCP_Client() {
 }
 
 void TCP_Client::start() {
+
+    std::cout << "starting client thread" << std::endl;
+    client = std::thread(&TCP_Client::handleConnection, this, std::ref(shouldThreadBeRunning));
+    client.detach();
+    std::cout << "client thread detached" << std::endl;
+}
+
+void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
     // connect to server
     std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << NETWORK_PORT << std::endl;
     int connectionResult = -1;
@@ -113,17 +136,10 @@ void TCP_Client::start() {
         connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
     } while(connectionResult == -1);
 
-    client = std::thread(&TCP_Client::handleConnection, this, std::ref(shouldThreadBeRunning));
-
-    // close socket
-    close(sock);
-}
-
-void TCP_Client::handleConnection(bool& running) {
     // TESTING ONLY BELOW THIS LINE
     // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT
     std::string userInput;
-    while(shouldThreadBeRunning) {
+    while(running.get()) {
         // get input from user
         std::cout << "> ";
         getline(std::cin, userInput);
@@ -136,8 +152,8 @@ void TCP_Client::handleConnection(bool& running) {
         }
 
         // wait for echo
-        memset(buffer, 0, 4096);
-        int bytesReceived = recv(sock, buffer, 4096, 0);
+        memset(buffer, 0, 32);
+        int bytesReceived = recv(sock, buffer, 32, 0);
         if(bytesReceived == -1) {
             std::cout << "Error getting echo from server\r\n";
         }
@@ -145,10 +161,6 @@ void TCP_Client::handleConnection(bool& running) {
             std::cout << "SERVER> " << std::string(buffer, bytesReceived) << "\r\n";
         }
     }
-}
-
-bool TCP_Client::isStarted() {
-    return started;
 }
 
 void TCP_Client::stop() {

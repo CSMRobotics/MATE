@@ -85,6 +85,11 @@ Joystick::~Joystick() {
     pollingThread->stop();
 }
 
+Joystick::Joystick(TCP_Server* server) {
+    this->init();
+    server->registerJoystick(this);
+}
+
 Joystick::Joystick(int joystickNumber) {
     init();
     std::stringstream ss;
@@ -152,7 +157,7 @@ void Joystick::button_released(unsigned char number, unsigned int time) {
 }
 
 void Joystick::axis_updated(const JoystickEvent& ev) {
-    // std::cout << "Axis " << static_cast<int>(ev.number) << " updated" << '\n';
+    std::cout << "Axis " << static_cast<int>(ev.number) << " updated" <<  " to position " << ev.value <<'\n';
     Axis* axis = axes.axes.at(ev.number).get();
     axis->value = ev.value;
     axis->time = ev.time;
