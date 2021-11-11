@@ -3,12 +3,17 @@
 
 #include "Component.hpp"
 #include "Thruster.hpp"
+#include "Joystick.hpp"
+#include "IMU.hpp"
 
 #include <chrono>
 
+#define THRUSTER_NUM 8
+
 class Drive : public Component {
 public:
-    Drive();
+    Drive() = default;
+    Drive(Joystick* joystick, IMU* imu, Thruster* thrusters[]);
     ~Drive();
 
     void Update();
@@ -22,7 +27,14 @@ private:
                   now().time_since_epoch()).count();
         return ms;
     }
-    uint64_t timeInitialMillis, timePreviousMillis, timeCurrentMillis;
+
+    uint64_t timeInitialMillis = millis();
+    uint64_t timeCurrentMillis = timeInitialMillis;
+    uint64_t timePreviousMillis = timeInitialMillis;
+
+    Thruster* thrusters[THRUSTER_NUM];
+    Joystick* joystick;
+    IMU* imu;
 };
 
 #endif // DRIVE_HPP
