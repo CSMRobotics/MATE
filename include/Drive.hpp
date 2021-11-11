@@ -2,6 +2,8 @@
 #define DRIVE_HPP
 
 #include "Component.hpp"
+#include "Thruster.hpp"
+
 #include <chrono>
 
 class Drive : public Component {
