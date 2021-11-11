@@ -1,7 +1,8 @@
 #include "Drive.hpp"
 
 Drive::Drive() {
-
+    timeInitialMillis = millis();
+    timeCurrentMillis = timeInitialMillis;
 }
 
 Drive::~Drive() {
@@ -9,7 +10,8 @@ Drive::~Drive() {
 }
 
 void Drive::Update() {
-
+    timePreviousMillis = timeCurrentMillis;
+    timeCurrentMillis = millis();
 }
 
 void Drive::AutoUpdate() {
