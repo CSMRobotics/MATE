@@ -52,6 +52,8 @@ public:
     bool operator==(const Vector3<T>& rhs);
     bool operator!=(const Vector3<T>& rhs);
 
+    // TODO:implement scalar algebra
+
 
 /* declare new typename to not step on T
  * and allow cout << Vector3<any>
@@ -69,6 +71,66 @@ std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector);
 typedef Vector3<int> Vector3i;
 typedef Vector3<float> Vector3f;
 typedef Vector3<double> Vector3d;
+
+
+template<typename T>
+class Quaternion {
+public:
+    Quaternion() = default;
+    Quaternion(T w, T i, T j, T k);
+    // NOTE: expects radians
+    Quaternion(Vector3f axis, float angle);
+    // allow static_cast<T>(Quaternion<Y>) to work NOTE: WILL NOT WORK FOR TYPES THAT FAIL static_cast<T>(Y);
+    template<typename Y>
+    explicit Quaternion(const Quaternion<Y>& quaternion);
+
+    // get the components as either type T or as pointer to array of type T
+    T getW() {return m_w;};
+    T getI() {return m_a;};
+    T getJ() {return m_b;};
+    T getK() {return m_c;};
+
+    // TODO: get euler angles, get axis angle, e.g. finish implementing -> https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Using_quaternions_as_rotations
+    T getScalar() {return m_a;};
+    Vector3<T> getVector() {return Vector3<T>(m_a, m_b, m_c);};
+    Quaternion<T> getConjugate() {return Quaternion<T>(m_w, -m_a, -m_b, -m_c);};
+    T getNorm() {return sqrt(m_w*m_w + m_a*m_a + m_b*m_b + m_c*m_c);};
+    T getDistanceToQuat(const Quaternion<T> quat) {return (*this - quat).getNorm();};
+    Quaternion<T> getAsUnit() {return (*this) / getNorm();}; // aka versor
+    Quaternion<T> getReciprocal() {T norm = getNorm();return getConjugate() / (norm * norm);};
+
+    bool isVectorQuat() {return m_w == 0;};
+    bool isScalarQuat() {return m_a == 0 && m_b == 0 && m_c == 0;};
+
+    Quaternion<T> rotateQuat(const Quaternion<T> quat) const;
+
+    T getDotProduct(const Quaternion<T>& other) const;
+    Vector3<T> getCrossProduct(const Quaternion<T>& other) const;
+    T getCommutator(const Quaternion<T>& other) const;
+
+    // component-wise addition
+    Quaternion<T> operator+(const Quaternion<T>& quat) const;
+    // component-wise subtraction
+    Quaternion<T> operator-(const Quaternion<T>& quat) const;
+    // scalar multiplication
+    Quaternion<T> operator*(const T& scalar) const;
+    // hamilton product (not commutative (unless real), but is associative)
+    Quaternion<T> operator*(const Quaternion<T>& quat) const;
+    // q/p != p/q because p*q^-1 != p^-1*q
+    Quaternion<T> operator/(const Quaternion<T>& quat) const;
+    // scalar division
+    Quaternion<T> operator/(const T& scalar) const;
+
+    // assign this quaternion's values to another
+    Quaternion<T>& operator=(const Quaternion<T>& quat) const;
+
+    // TODO: more advanced match functions? exponential, log, and power are very disgusting btw
+private:
+    T m_w;
+    T m_a;
+    T m_b;
+    T m_c;
+};
 
 };
 
