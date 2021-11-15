@@ -31,7 +31,6 @@ public:
     T getI();
     T getJ();
     T getK();
-    const T* getComponents();
     T getMagnitude();
     
     // set components as either three distinct parameters or as pointer to array of type T
@@ -48,21 +47,48 @@ public:
     T dot(const Vector3<T>& other);
 
     // TODO:implement
-    // Vector cpp operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) ) 
-    bool operator==(const Vector3<T>& rhs);
-    bool operator!=(const Vector3<T>& rhs);
+    // operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) ) 
+    template<typename U>
+    friend bool operator==(const Vector3<U>& lhs, const Vector3<U>& rhs);
 
-    // TODO:implement scalar algebra
+    Vector3<T>& operator=(const Vector3<T>& vec);
+    template<typename U>
+    Vector3<T>& operator=(const Vector3<U>& vec);
 
+    // component wise addition
+    template<typename U> // NOTE: i used a different typename here. idk if it works like that
+    friend Vector3<U>& operator+(Vector3<U> lhs, const Vector3<U>& rhs);
+    // compound assignment
+    Vector3<T>& operator+=(const Vector3<T>& vec);
 
-/* declare new typename to not step on T
- * and allow cout << Vector3<any>
-*/
-template<typename Y>
-friend std::ostream& operator<<(std::ostream& os, const Vector3<Y>& vector);
+    // component wise subtraction
+    template<typename U>
+    friend Vector3<U>& operator-(Vector3<U> lhs, const Vector3<U>& rhs);
+    Vector3<T>& operator-=(const Vector3<T>& vec);
+    
+    const T& operator[](unsigned char idx) const;
+
+    // copy and swap operator
+    Vector3<T>& operator=(Vector3<T> vec) noexcept;
+
+    /* declare new typename to not step on T
+    * and allow cout << Vector3<any>
+    */
+    template<typename Y>
+    friend std::ostream& operator<<(std::ostream& os, const Vector3<Y>& vector);
 private:
-    T m_ijk[3] = {0};
+    T m_i;
+    T m_j;
+    T m_k;
 };
+
+template<typename T>
+bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs);
+
+template<typename T>
+Vector3<T>& operator+(Vector3<T> lhs, const Vector3<T>& rhs);
+template<typename T>
+Vector3<T>& operator-(Vector3<T> lhs, const Vector3<T>& rhs);
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector);

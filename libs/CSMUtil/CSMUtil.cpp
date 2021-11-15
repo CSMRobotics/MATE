@@ -4,100 +4,179 @@ using namespace csmutil;
 
 template<typename T>
 Vector3<T>::Vector3(T i, T j, T k) {
-    m_ijk[0] = i;
-    m_ijk[1] = j;
-    m_ijk[2] = k;
+    m_i = i;
+    m_j = j;
+    m_k = k;
 }
 
 template<typename T>
 template<typename Y>
 Vector3<T>::Vector3(const Vector3<Y>& vector) {
-    m_ijk[0] = static_cast<T>(vector.m_ijk[0]);
-    m_ijk[1] = static_cast<T>(vector.m_ijk[1]);
-    m_ijk[2] = static_cast<T>(vector.m_ijk[2]);
+    m_i = static_cast<T>(vector.m_i);
+    m_j = static_cast<T>(vector.m_j);
+    m_k = static_cast<T>(vector.m_k);
 }
 
 template<typename T>
 T Vector3<T>::getI() {
-    return this->m_ijk[0];
+    return this->m_i;
 }
 
 template<typename T>
 T Vector3<T>::getJ() {
-    return this->m_ijk[1];
+    return this->m_j;
 }
 
 template<typename T>
 T Vector3<T>::getK() {
-    return this->m_ijk[2];
-}
-
-template<typename T>
-const T* Vector3<T>::getComponents() {
-    return this->m_ijk;
+    return this->m_k;
 }
 
 template<typename T>
 T Vector3<T>::getMagnitude() {
-    return static_cast<T>(sqrt(m_ijk[0] * m_ijk[0] 
-                             + m_ijk[1] * m_ijk[1]
-                             + m_ijk[2] * m_ijk[2]));
+    return static_cast<T>(sqrt(m_i * m_i 
+                             + m_j * m_j
+                             + m_k * m_k));
 }
 
 template<typename T>
 void Vector3<T>::setComponents(T i, T j, T k) {
-    m_ijk[0] = i;
-    m_ijk[1] = j;
-    m_ijk[2] = k;
+    m_i = i;
+    m_j = j;
+    m_k = k;
 }
 
 template<typename T>
 void Vector3<T>::setComponents(const T* ijk) {
-    m_ijk[0] = ijk[0];
-    m_ijk[1] = ijk[1];
-    m_ijk[2] = ijk[2];
+    m_i = ijk[0];
+    m_j = ijk[1];
+    m_k = ijk[2];
 }
 
 template<typename T>
 Vector3<T> Vector3<T>::toUnitVector() {
     T mag = getMagnitude();
-    return Vector3<T>(static_cast<T>(m_ijk[0] / mag),
-                      static_cast<T>(m_ijk[1] / mag),
-                      static_cast<T>(m_ijk[2] / mag));
+    return Vector3<T>(static_cast<T>(m_i / mag),
+                      static_cast<T>(m_j / mag),
+                      static_cast<T>(m_k / mag));
 }
 
 template<typename T>
 template<typename K>
 Vector3<T> Vector3<T>::cross(const Vector3<K>& other) {
-    return Vector3<T>(static_cast<T>((this->m_ijk[1] * other->m_ijk[3]) - (this->m_ijk[2] * other->m_ijk[1])),
-                      static_cast<T>((this->m_ijk[1] * other->m_ijk[0]) - (this->m_ijk[0] * other->m_ijk[2])),
-                      static_cast<T>((this->m_ijk[0] * other->m_ijk[1]) - (this->m_ijk[1] * other->m_ijk[0])));
+    return Vector3<T>(static_cast<T>((this->m_j * other->m_ijk[3]) - (this->m_k * other->m_j)),
+                      static_cast<T>((this->m_j * other->m_i) - (this->m_i * other->m_k)),
+                      static_cast<T>((this->m_i * other->m_j) - (this->m_j * other->m_i)));
 }
 
 template<typename T>
 Vector3<T> Vector3<T>::cross(const Vector3<T>& other) {
-    return Vector3<T>((this->m_ijk[1] * other->m_ijk[3]) - (this->m_ijk[2] * other->m_ijk[1]),
-                      (this->m_ijk[1] * other->m_ijk[0]) - (this->m_ijk[0] * other->m_ijk[2]),
-                      (this->m_ijk[0] * other->m_ijk[1]) - (this->m_ijk[1] * other->m_ijk[0]));
+    return Vector3<T>((this->m_j * other->m_ijk[3]) - (this->m_k * other->m_j),
+                      (this->m_j * other->m_i) - (this->m_i * other->m_k),
+                      (this->m_i * other->m_j) - (this->m_j * other->m_i));
 }
 
 template<typename T>
 template<typename K>
 T Vector3<T>::dot(const Vector3<K>& other) {
-    return static_cast<T>((this->m_ijk[0] * other->m_ijk[0]) + (this->m_ijk[1] * other->m_ijk[1]) + (this->m_ijk[2] * other->m_ijk[2]));
+    return static_cast<T>((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
 }
 
 template<typename T>
 T Vector3<T>::dot(const Vector3<T>& other) {
-    return ((this->m_ijk[0] * other->m_ijk[0]) + (this->m_ijk[1] * other->m_ijk[1]) + (this->m_ijk[2] * other->m_ijk[2]));
+    return ((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
 }
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector) {
-    os << '<' << vector.m_ijk[0] << ", "
-              << vector.m_ijk[1] << ", "
-              << vector.m_ijk[2] << '>';
+    os << '<' << vector.m_i << ", "
+              << vector.m_j << ", "
+              << vector.m_k << '>';
     return os;
+}
+
+template<typename T>
+Vector3<T>& Vector3<T>::operator=(Vector3<T> vec) noexcept {
+    std::swap(m_i, vec.m_i);
+    std::swap(m_j, vec.m_j);
+    std::swap(m_k, vec.m_k);
+    return *this;
+} // vec's destructor is called and will release memory formerly held by *this
+
+template<typename T>
+Vector3<T>& Vector3<T>::operator=(const Vector3<T>& vec) {
+    if(&vec == this)
+        return *this;
+    
+    this->m_i = vec.m_i;
+    this->m_j = vec.m_j;
+    this->m_k = vec.m_k;
+
+    return *this;
+}
+
+template<typename T>
+bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs) {
+    return (lhs.m_i == rhs.m_i) && (lhs.m_j == rhs.m_j) && (lhs.m_k == rhs.m_k);
+}
+
+template<typename T>
+template<typename U>
+Vector3<T>& Vector3<T>::operator=(const Vector3<U>& vec) {
+    if(&vec == this)
+        return *this;
+    
+    this->m_i = static_cast<T>(vec.m_i);
+    this->m_j = static_cast<T>(vec.m_j);
+    this->m_k = static_cast<T>(vec.m_k);
+
+    return *this;
+}
+
+template<typename T>
+Vector3<T>& operator+(Vector3<T> lhs, const Vector3<T>& rhs) {
+    lhs.m_i += rhs.m_i;
+    lhs.m_j += rhs.m_j;
+    lhs.m_k += rhs.m_k;
+    return lhs;
+}
+
+template<typename T>
+Vector3<T>& Vector3<T>::operator+=(const Vector3<T>& vec) {
+    this->m_i += vec.m_i;
+    this->m_j += vec.m_j;
+    this->m_k += vec.m_k;
+    return *this;
+}
+
+template<typename T>
+Vector3<T>& operator-(Vector3<T> lhs, const Vector3<T>& rhs) {
+    lhs.m_i -= rhs.m_i;
+    lhs.m_j -= rhs.m_j;
+    lhs.m_k -= rhs.m_k;
+    return lhs;
+}
+
+template<typename T>
+Vector3<T>& Vector3<T>::operator-=(const Vector3<T>& vec) {
+    this->m_i -= vec.m_i;
+    this->m_j -= vec.m_j;
+    this->m_k -= vec.m_k;
+    return *this;
+}
+
+template<typename T>
+const T& Vector3<T>::operator[](unsigned char idx) const {
+    switch(idx) {
+        case 0:
+            return m_i;
+        case 1:
+            return m_j;
+        case 2:
+            return m_k;
+    }
+
+    return 0;
 }
 
 template<typename T>
@@ -188,7 +267,7 @@ Quaternion<T> Quaternion<T>::operator/(const T& scalar) const {
 
 template<typename T>
 Quaternion<T>& Quaternion<T>::operator=(const Quaternion<T>& quat) const {
-    if(this == quat) // no self assignment please :)
+    if(this == &quat) // no self assignment please :)
         return *this;
 
     this->m_w = quat.m_w;
