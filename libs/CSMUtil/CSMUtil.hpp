@@ -4,6 +4,7 @@
 #include <bitset>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 namespace csmutil{
 
@@ -158,24 +159,42 @@ private:
     T m_c;
 };
 
+class PIDController {
+public:
+    PIDController(float kp, float ki, float kd);
+    PIDController(float kp, float ki, float kd, float maxOutput);
+    PIDController(float kp, float ki, float kd, float maxOutput, float minOutput);
+
+    void Update(float error, uint64_t dt);
+
+    // Set the accumulated integral value. Units are in error*time.
+    void setIntegral(float integralValue);
+    
+    // Invert the direction of the recieved output for PID controllers
+    // Producing positive feedback loops instead of negative ones
+    void invertFeedback(bool invert);
+
+    // Current output from the PID controller
+    float getOutput();
+private:
+    // Gains
+    float kp;
+    float ki;
+    float kd;
+
+    // Bounds
+    float maxOutput = 1;
+    float minOutput = -1;
+
+    // Saved values
+    float errorPrior = 0;
+    float integralPrior = 0;
+    float output = 0;
+
+    // Whether to invert the direction of the output
+    bool invertOutput = false;
 };
 
-class PIDController {
-    public:
-        PIDController() = default;
-        PIDController(float kp, float ki, float kd);
-
-        void Update(float error, float dt);
-        float output;
-    private:
-        // Gains
-        float kp = 0;
-        float ki = 0;
-        float kd = 0;
-
-        // 
-        float error_prior = 0;
-        float integral_prior = 0;
 };
 
 #endif // CSMUTIL_HPP
