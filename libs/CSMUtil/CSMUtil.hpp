@@ -160,4 +160,22 @@ private:
 
 };
 
+class PIDController {
+    public:
+        PIDController() = default;
+        PIDController(float kp, float ki, float kd);
+
+        void Update(float error, float dt);
+        float output;
+    private:
+        // Gains
+        float kp = 0;
+        float ki = 0;
+        float kd = 0;
+
+        // 
+        float error_prior = 0;
+        float integral_prior = 0;
+};
+
 #endif // CSMUTIL_HPP
