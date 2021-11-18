@@ -62,46 +62,12 @@ Vector3<T> Vector3<T>::toUnitVector() {
 }
 
 template<typename T>
-template<typename K>
-Vector3<T> Vector3<T>::cross(const Vector3<K>& other) {
-    return Vector3<T>(static_cast<T>((this->m_j * other->m_ijk[3]) - (this->m_k * other->m_j)),
-                      static_cast<T>((this->m_j * other->m_i) - (this->m_i * other->m_k)),
-                      static_cast<T>((this->m_i * other->m_j) - (this->m_j * other->m_i)));
-}
-
-template<typename T>
-Vector3<T> Vector3<T>::cross(const Vector3<T>& other) {
-    return Vector3<T>((this->m_j * other->m_ijk[3]) - (this->m_k * other->m_j),
-                      (this->m_j * other->m_i) - (this->m_i * other->m_k),
-                      (this->m_i * other->m_j) - (this->m_j * other->m_i));
-}
-
-template<typename T>
-template<typename K>
-T Vector3<T>::dot(const Vector3<K>& other) {
-    return static_cast<T>((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
-}
-
-template<typename T>
-T Vector3<T>::dot(const Vector3<T>& other) {
-    return ((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
-}
-
-template<typename T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector) {
     os << '<' << vector.m_i << ", "
               << vector.m_j << ", "
               << vector.m_k << '>';
     return os;
 }
-
-template<typename T>
-Vector3<T>& Vector3<T>::operator=(Vector3<T> vec) noexcept {
-    std::swap(m_i, vec.m_i);
-    std::swap(m_j, vec.m_j);
-    std::swap(m_k, vec.m_k);
-    return *this;
-} // vec's destructor is called and will release memory formerly held by *this
 
 template<typename T>
 Vector3<T>& Vector3<T>::operator=(const Vector3<T>& vec) {
@@ -121,19 +87,6 @@ bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs) {
 }
 
 template<typename T>
-template<typename U>
-Vector3<T>& Vector3<T>::operator=(const Vector3<U>& vec) {
-    if(&vec == this)
-        return *this;
-    
-    this->m_i = static_cast<T>(vec.m_i);
-    this->m_j = static_cast<T>(vec.m_j);
-    this->m_k = static_cast<T>(vec.m_k);
-
-    return *this;
-}
-
-template<typename T>
 Vector3<T>& operator+(Vector3<T> lhs, const Vector3<T>& rhs) {
     lhs.m_i += rhs.m_i;
     lhs.m_j += rhs.m_j;
@@ -150,14 +103,6 @@ Vector3<T>& Vector3<T>::operator+=(const Vector3<T>& vec) {
 }
 
 template<typename T>
-Vector3<T>& operator-(Vector3<T> lhs, const Vector3<T>& rhs) {
-    lhs.m_i -= rhs.m_i;
-    lhs.m_j -= rhs.m_j;
-    lhs.m_k -= rhs.m_k;
-    return lhs;
-}
-
-template<typename T>
 Vector3<T>& Vector3<T>::operator-=(const Vector3<T>& vec) {
     this->m_i -= vec.m_i;
     this->m_j -= vec.m_j;
@@ -166,17 +111,19 @@ Vector3<T>& Vector3<T>::operator-=(const Vector3<T>& vec) {
 }
 
 template<typename T>
-const T& Vector3<T>::operator[](unsigned char idx) const {
-    switch(idx) {
-        case 0:
-            return m_i;
-        case 1:
-            return m_j;
-        case 2:
-            return m_k;
-    }
+Vector3<T>& Vector3<T>::operator*=(T scalar) {
+    this->m_i *= scalar;
+    this->m_j *= scalar;
+    this->m_k *= scalar;
+    return *this;
+}
 
-    return 0;
+template<typename T>
+Vector3<T>& Vector3<T>::operator/=(T scalar) {
+    this->m_i /= scalar;
+    this->m_j /= scalar;
+    this->m_k /= scalar;
+    return *this;
 }
 
 template<typename T>
@@ -266,7 +213,7 @@ Quaternion<T> Quaternion<T>::operator/(const T& scalar) const {
 }
 
 template<typename T>
-Quaternion<T>& Quaternion<T>::operator=(const Quaternion<T>& quat) const {
+Quaternion<T>& Quaternion<T>::operator=(const Quaternion<T>& quat) {
     if(this == &quat) // no self assignment please :)
         return *this;
 
@@ -329,4 +276,22 @@ void PIDController::invertFeedback(bool invert) {
 
 float PIDController::getOutput() {
     return output;
+}
+
+NonLinearQuaternionController::NonLinearQuaternionController() :
+    m_Pq(0), m_Pw(0) {
+
+}
+
+NonLinearQuaternionController::NonLinearQuaternionController(float Pq, float Pw) {
+    m_Pq = Pq;
+    m_Pw = Pw;
+}
+
+Vector3f NonLinearQuaternionController::Update(Quaternionf qref, Quaternionf qm, Vector3f w) {
+    Quaternionf qerr = qref * qm.getConjugate();
+    Vector3f Axiserr = qerr.getVector();
+    Axiserr *= m_Pq;
+    w *= m_Pw;
+    return Axiserr - w;
 }

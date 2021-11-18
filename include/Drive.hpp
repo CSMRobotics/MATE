@@ -2,18 +2,47 @@
 #define DRIVE_HPP
 
 #include "Component.hpp"
-#include "Thruster.hpp"
 #include "Joystick.hpp"
 #include "IMU.hpp"
+#include "ServoDriver.hpp"
+
+#include "CSMUtil.hpp"
 
 #include <chrono>
 
 #define THRUSTER_NUM 8
 
+enum DriveState {
+    MANUAL = 0,
+    PID_ATTITUDE = 1,
+    AUTO = 2,
+};
+
+enum ModeState {
+    TRANSLATE = 0,
+    ROTATE = 1,
+};
+
+class Thruster {
+    public:
+        Thruster(int num, ServoDriver* driver);
+        
+        float calculateThrustAtPoint(float throttle);
+        void set(float throttle);
+    protected:
+
+    private:
+        int num;
+        float throttle;
+        ServoDriver* driver;
+        csmutil::Vector3f thrusterPosition;
+        csmutil::Vector3f thrusterThrust;
+};
+
 class Drive : public Component {
 public:
     Drive() = default;
-    Drive(Joystick* joystick, IMU* imu, Thruster* thrusters[]);
+    Drive(ServoDriver* driver, Joystick* joystick, IMU* imu);
     ~Drive();
 
     void Update();
@@ -28,13 +57,24 @@ private:
         return ms;
     }
 
-    uint64_t timeInitialMillis = millis();
-    uint64_t timeCurrentMillis = timeInitialMillis;
-    uint64_t timePreviousMillis = timeInitialMillis;
+    csmutil::Quaternionf createRef(Axes axes);
 
-    Thruster* thrusters[THRUSTER_NUM];
+    uint64_t timeCurrentMillis;
+    uint64_t timePreviousMillis;
+    uint64_t dt;
+
+    ServoDriver* driver;
+    csmutil::NonLinearQuaternionController pid;
+    csmutil::Vector3f torque;
+    csmutil::Quaternionf q_ref;
     Joystick* joystick;
+    Axes axes;
     IMU* imu;
+
+    bool activeComponent = false;
+
+    DriveState state = MANUAL;
+    ModeState modeState = TRANSLATE;
 };
 
 #endif // DRIVE_HPP

@@ -1,7 +1,6 @@
 #ifndef CSMUTIL_HPP
 #define CSMUTIL_HPP
 
-#include <bitset>
 #include <cmath>
 #include <iostream>
 #include <algorithm>
@@ -17,6 +16,7 @@ static R map(F value, F from_min, F from_max, T to_min, T to_max) {
     return (R)((value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min);
 }
 
+// TODO: replace quaternion and vector3 implementation with header-only version
 // templates are (not) fun :)
 template<typename T>
 class Vector3 {
@@ -40,12 +40,14 @@ public:
 
     // Vector math
     Vector3<T> toUnitVector();
-    template<typename K>
-    Vector3<T> cross(const Vector3<K>& other);
-    Vector3<T> cross(const Vector3<T>& other);
-    template<typename K>
-    T dot(const Vector3<K>& other);
-    T dot(const Vector3<T>& other);
+    Vector3<T> cross(const Vector3<T>& other) {
+        return Vector3<T>((this->m_j * other.m_k) - (this->m_k * other.m_j),
+                          (this->m_j * other.m_i) - (this->m_i * other.m_k),
+                          (this->m_i * other.m_j) - (this->m_j * other.m_i));
+    };
+    T dot(const Vector3<T>& other) {
+        return ((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
+    };
 
     // TODO:implement
     // operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) ) 
@@ -53,8 +55,6 @@ public:
     friend bool operator==(const Vector3<U>& lhs, const Vector3<U>& rhs);
 
     Vector3<T>& operator=(const Vector3<T>& vec);
-    template<typename U>
-    Vector3<T>& operator=(const Vector3<U>& vec);
 
     // component wise addition
     template<typename U> // NOTE: i used a different typename here. idk if it works like that
@@ -64,13 +64,25 @@ public:
 
     // component wise subtraction
     template<typename U>
-    friend Vector3<U>& operator-(Vector3<U> lhs, const Vector3<U>& rhs);
+    friend Vector3<U> operator-(Vector3<U> lhs, const Vector3<U>& rhs);
     Vector3<T>& operator-=(const Vector3<T>& vec);
-    
-    const T& operator[](unsigned char idx) const;
 
-    // copy and swap operator
-    Vector3<T>& operator=(Vector3<T> vec) noexcept;
+    // scalar compound multiplication/division
+    Vector3<T>& operator*=(T scalar);
+    Vector3<T>& operator/=(T scalar);
+    
+    T operator[](unsigned char idx) const {
+        switch(idx) {
+        case 0:
+            return m_i;
+        case 1:
+            return m_j;
+        case 2:
+            return m_k;
+        }
+
+        return 0;
+    }
 
     /* declare new typename to not step on T
     * and allow cout << Vector3<any>
@@ -78,9 +90,9 @@ public:
     template<typename Y>
     friend std::ostream& operator<<(std::ostream& os, const Vector3<Y>& vector);
 private:
-    T m_i;
-    T m_j;
-    T m_k;
+    T m_i = 0;
+    T m_j = 0;
+    T m_k = 0;
 };
 
 template<typename T>
@@ -89,7 +101,9 @@ bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs);
 template<typename T>
 Vector3<T>& operator+(Vector3<T> lhs, const Vector3<T>& rhs);
 template<typename T>
-Vector3<T>& operator-(Vector3<T> lhs, const Vector3<T>& rhs);
+Vector3<T> operator-(Vector3<T> lhs, const Vector3<T>& rhs) {
+    return Vector3<T>(lhs.m_i -= rhs.m_i, lhs.m_j -= rhs.m_j, lhs.m_k -= rhs.m_k);
+};
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector);
@@ -149,15 +163,19 @@ public:
     Quaternion<T> operator/(const T& scalar) const;
 
     // assign this quaternion's values to another
-    Quaternion<T>& operator=(const Quaternion<T>& quat) const;
+    Quaternion<T>& operator=(const Quaternion<T>& quat);
 
     // TODO: more advanced match functions? exponential, log, and power are very disgusting btw
 private:
-    T m_w;
-    T m_a;
-    T m_b;
-    T m_c;
+    T m_w = 0;
+    T m_a = 0;
+    T m_b = 0;
+    T m_c = 0;
 };
+
+// few handy quaternions
+typedef Quaternion<float> Quaternionf;
+typedef Quaternion<double> Quaterniond;
 
 class PIDController {
 public:
@@ -193,6 +211,23 @@ private:
 
     // Whether to invert the direction of the output
     bool invertOutput = false;
+};
+
+
+class NonLinearQuaternionController {
+public:
+    NonLinearQuaternionController();
+    NonLinearQuaternionController(float Pq, float Pw);
+
+    void setPq(float Pq) {this->m_Pq = Pq;};
+    void setPw(float Pw) {this->m_Pw = Pw;};
+
+    float getPq() {return this->m_Pq;};
+    float getPw() {return this->m_Pw;};
+
+    Vector3f Update(Quaternionf qref, Quaternionf qm, Vector3f w);
+private:
+    float m_Pq, m_Pw;
 };
 
 };
