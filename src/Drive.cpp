@@ -5,9 +5,7 @@ Drive::Drive(ServoDriver* driver, Joystick* joystick, IMU* imu) {
     this->joystick = joystick;
     this->imu = imu;
     
-    for(int i = 0; i < 6; i++) {
-        pids[i] = new csmutil::PIDController(0, 0, 0);
-    }
+    pid = csmutil::NonLinearQuaternionController(0, 0);
 
     uint64_t timeInitialMillis = millis();
     timeCurrentMillis = timeInitialMillis;

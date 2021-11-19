@@ -22,55 +22,143 @@ template<typename T>
 class Vector3 {
 public:
     Vector3() = default;
-    Vector3(T i, T j, T k);
-    // allow static_cast<T>(Vector3<Y>) to work NOTE: WILL NOT WORK FOR TYPES THAT FAIL static_cast<T>(Y);
+    Vector3(T i, T j, T k) {
+        m_i = i;
+        m_j = j;
+        m_k = k;
+    };
+    // allow static_cast<T>(Vector3<Y>) to work. NOTE: WILL NOT WORK FOR TYPES THAT FAIL static_cast<T>(Y);
     template<typename Y>
-    explicit Vector3(const Vector3<Y>& vector);
+    explicit Vector3(const Vector3<Y>& vector) {
+        m_i = static_cast<T>(vector.m_i);
+        m_j = static_cast<T>(vector.m_j);
+        m_k = static_cast<T>(vector.m_k);
+    };
     ~Vector3() = default;
 
-    // get the components as either type T or as pointer to array of type T
-    T getI();
-    T getJ();
-    T getK();
-    T getMagnitude();
+    T getI() {return m_i;};
+    T getJ() {return m_j;};
+    T getK() {return m_k;};
+    T getMagnitude() {return sqrt(m_i * m_i + m_j * m_j + m_k * m_k);};
     
-    // set components as either three distinct parameters or as pointer to array of type T
-    void setComponents(T i, T j, T k);
-    void setComponents(const T* ijk);
+    // set components as three distinct parameters
+    void setComponents(T i, T j, T k) {
+        m_i = i;
+        m_j = j;
+        m_k = k;
+    };
 
-    // Vector math
-    Vector3<T> toUnitVector();
+    // set a vector equal to an array[3] of type T
+    void setComponents(const T* ijk) {
+        m_i = ijk[0];
+        m_j = ijk[1];
+        m_k = ijk[2];
+    };
+
+    /* convert this vector to a unit vector
+     * NOTE: implementation does not make sense for vectors of types != float/double
+    */
+    Vector3<T> toUnitVector() {
+        T mag = getMagnitude();
+        return Vector3<T>(static_cast<T>(m_i / mag),
+                          static_cast<T>(m_j / mag),
+                          static_cast<T>(m_k / mag));
+    };
+
+    // scalar = Vector x Vector
     Vector3<T> cross(const Vector3<T>& other) {
         return Vector3<T>((this->m_j * other.m_k) - (this->m_k * other.m_j),
-                          (this->m_j * other.m_i) - (this->m_i * other.m_k),
+                          (this->m_k * other.m_i) - (this->m_i * other.m_k),
                           (this->m_i * other.m_j) - (this->m_j * other.m_i));
     };
+
+    // scalar = Vector (dot) Vector
     T dot(const Vector3<T>& other) {
-        return ((this->m_i * other->m_i) + (this->m_j * other->m_j) + (this->m_k * other->m_k));
+        return ((this->m_i * other.m_i) + (this->m_j * other.m_j) + (this->m_k * other.m_k));
     };
 
-    // TODO:implement
-    // operators (not going to make version for intercomparibility of different types of Vector3s because i dont want to :) ) 
+    // vector == vector component wise
     template<typename U>
-    friend bool operator==(const Vector3<U>& lhs, const Vector3<U>& rhs);
+    friend bool operator==(const Vector3<U>& lhs, const Vector3<U>& rhs) {
+        return (lhs.m_i == rhs.m_i) && (lhs.m_j == rhs.m_j) && (lhs.m_k == rhs.m_k);
+    };
 
-    Vector3<T>& operator=(const Vector3<T>& vec);
+    // allow vector = vector
+    Vector3<T>& operator=(const Vector3<T>& vec) {
+        if(&vec == this)
+            return *this;
+        
+        this->m_i = vec.m_i;
+        this->m_j = vec.m_j;
+        this->m_k = vec.m_k;
+
+        return *this;
+    };
 
     // component wise addition
-    template<typename U> // NOTE: i used a different typename here. idk if it works like that
-    friend Vector3<U>& operator+(Vector3<U> lhs, const Vector3<U>& rhs);
+    template<typename U>
+    friend Vector3<U> operator+(Vector3<U> lhs, const Vector3<U>& rhs) {
+        return Vector3<U>(lhs.m_i + rhs.m_i, lhs.m_j + rhs.m_j, lhs.m_k + rhs.m_k);
+    };
     // compound assignment
-    Vector3<T>& operator+=(const Vector3<T>& vec);
+    Vector3<T>& operator+=(const Vector3<T>& vec) {
+        this->m_i += vec.m_i;
+        this->m_j += vec.m_j;
+        this->m_k += vec.m_k;
+        return *this;
+    };
 
     // component wise subtraction
     template<typename U>
-    friend Vector3<U> operator-(Vector3<U> lhs, const Vector3<U>& rhs);
-    Vector3<T>& operator-=(const Vector3<T>& vec);
+    friend Vector3<U> operator-(Vector3<U> lhs, const Vector3<U>& rhs) {
+        return Vector3<U>(lhs.m_i - rhs.m_i, lhs.m_j - rhs.m_j, lhs.m_k - rhs.m_k);
+    };
+    Vector3<T>& operator-=(const Vector3<T>& vec) {
+        this->m_i -= vec.m_i;
+        this->m_j -= vec.m_j;
+        this->m_k -= vec.m_k;
+        return *this;
+    };
 
-    // scalar compound multiplication/division
-    Vector3<T>& operator*=(T scalar);
-    Vector3<T>& operator/=(T scalar);
+    // scalar multiplication
+    template<typename U, typename V>
+    friend Vector3<U> operator*(Vector3<U> vec, V scalar) {
+        return Vector3<U>(static_cast<U>(vec.m_i * scalar), static_cast<U>(vec.m_j * scalar), static_cast<U>(vec.m_k * scalar));
+    };
+
+    template<typename U, typename V>
+    friend Vector3<U> operator*(V scalar, Vector3<U> vec) {
+        return Vector3<U>(static_cast<U>(vec.m_i * scalar), static_cast<U>(vec.m_j * scalar), static_cast<U>(vec.m_k * scalar));
+    };
+
+    // scalar compound multiplication
+    Vector3<T>& operator*=(T scalar) {
+        this->m_i *= scalar;
+        this->m_j *= scalar;
+        this->m_k *= scalar;
+        return *this;
+    };
+
+    // scalar division
+    template<typename U, typename V>
+    friend Vector3<U> operator/(Vector3<U> vec, V scalar) {
+        return Vector3<U>(static_cast<U>(vec.m_i / scalar), static_cast<U>(vec.m_j / scalar), static_cast<U>(vec.m_k / scalar));
+    };
+
+    template<typename U, typename V>
+    friend Vector3<U> operator/(V scalar, Vector3<U> vec) {
+        return Vector3<U>(static_cast<U>(vec.m_i / scalar), static_cast<U>(vec.m_j / scalar), static_cast<U>(vec.m_k / scalar));
+    };
+
+    // scalar compound division
+    Vector3<T>& operator/=(T scalar) {
+        this->m_i /= scalar;
+        this->m_j /= scalar;
+        this->m_k /= scalar;
+        return *this;
+    };
     
+    // allow indexing this object
     T operator[](unsigned char idx) const {
         switch(idx) {
         case 0:
@@ -88,25 +176,17 @@ public:
     * and allow cout << Vector3<any>
     */
     template<typename Y>
-    friend std::ostream& operator<<(std::ostream& os, const Vector3<Y>& vector);
+    friend std::ostream& operator<<(std::ostream& os, const Vector3<Y>& vector) {
+        os << '<' << vector.m_i << ", "
+                  << vector.m_j << ", "
+                  << vector.m_k << '>';
+        return os;
+    };
 private:
     T m_i = 0;
     T m_j = 0;
     T m_k = 0;
 };
-
-template<typename T>
-bool operator==(const Vector3<T>& lhs, const Vector3<T>& rhs);
-
-template<typename T>
-Vector3<T>& operator+(Vector3<T> lhs, const Vector3<T>& rhs);
-template<typename T>
-Vector3<T> operator-(Vector3<T> lhs, const Vector3<T>& rhs) {
-    return Vector3<T>(lhs.m_i -= rhs.m_i, lhs.m_j -= rhs.m_j, lhs.m_k -= rhs.m_k);
-};
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const Vector3<T>& vector);
 
 // heres some handy ones
 typedef Vector3<int> Vector3i;
@@ -118,59 +198,167 @@ template<typename T>
 class Quaternion {
 public:
     Quaternion() = default;
-    Quaternion(T w, T i, T j, T k);
+    Quaternion(T w, T i, T j, T k) {
+        m_w = w;
+        m_i = i;
+        m_j = j;
+        m_k = k;
+    };
     // NOTE: expects radians
-    Quaternion(Vector3f axis, float angle);
+    Quaternion(Vector3f axis, float angle) {
+        float scalar = sinf(angle/2);
+        m_w = cosf(angle/2);
+        m_i = axis.getI() * scalar;
+        m_j = axis.getJ() * scalar;
+        m_k = axis.getK() * scalar;
+    };
     // allow static_cast<T>(Quaternion<Y>) to work NOTE: WILL NOT WORK FOR TYPES THAT FAIL static_cast<T>(Y);
     template<typename Y>
-    explicit Quaternion(const Quaternion<Y>& quaternion);
+    explicit Quaternion(const Quaternion<Y>& quaternion) {
+        m_w = static_cast<T>(quaternion.m_w);
+        m_i = static_cast<T>(quaternion.m_i);
+        m_j = static_cast<T>(quaternion.m_j);
+        m_k = static_cast<T>(quaternion.m_k);
+    };
 
     // get the components as either type T or as pointer to array of type T
     T getW() {return m_w;};
-    T getI() {return m_a;};
-    T getJ() {return m_b;};
-    T getK() {return m_c;};
+    T getI() {return m_i;};
+    T getJ() {return m_j;};
+    T getK() {return m_k;};
 
     // TODO: get euler angles, get axis angle, e.g. finish implementing -> https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Using_quaternions_as_rotations
-    T getScalar() {return m_a;};
-    Vector3<T> getVector() {return Vector3<T>(m_a, m_b, m_c);};
-    Quaternion<T> getConjugate() {return Quaternion<T>(m_w, -m_a, -m_b, -m_c);};
-    T getNorm() {return sqrt(m_w*m_w + m_a*m_a + m_b*m_b + m_c*m_c);};
+    T getScalar() {return m_i;};
+    Vector3<T> getVector() {return Vector3<T>(m_i, m_j, m_k);};
+    Quaternion<T> getConjugate() {return Quaternion<T>(m_w, -m_i, -m_j, -m_k);};
+    T getNorm() {return sqrt(m_w*m_w + m_i*m_i + m_j*m_j + m_k*m_k);};
     T getDistanceToQuat(const Quaternion<T> quat) {return (*this - quat).getNorm();};
     Quaternion<T> getAsUnit() {return (*this) / getNorm();}; // aka versor
     Quaternion<T> getReciprocal() {T norm = getNorm();return getConjugate() / (norm * norm);};
 
     bool isVectorQuat() {return m_w == 0;};
-    bool isScalarQuat() {return m_a == 0 && m_b == 0 && m_c == 0;};
+    bool isScalarQuat() {return m_i == 0 && m_j == 0 && m_k == 0;};
 
-    Quaternion<T> rotateQuat(const Quaternion<T> quat) const;
-
-    T getDotProduct(const Quaternion<T>& other) const;
-    Vector3<T> getCrossProduct(const Quaternion<T>& other) const;
-    T getCommutator(const Quaternion<T>& other) const;
+    Quaternion<T> rotateQuat(const Quaternion<T> quat) const {
+        return quat * (*this) * quat.getReciprocal();
+    };
 
     // component-wise addition
-    Quaternion<T> operator+(const Quaternion<T>& quat) const;
+    Quaternion<T> operator+(const Quaternion<T>& quat) const {
+        return Quaternion<T>(this->m_w + quat.m_w,
+                             this->m_i + quat.m_i,
+                             this->m_j + quat.m_j,
+                             this->m_k + quat.m_k);
+    };
+
     // component-wise subtraction
-    Quaternion<T> operator-(const Quaternion<T>& quat) const;
+    Quaternion<T> operator-(const Quaternion<T>& quat) const {
+        return Quaternion<T>(this->m_w - quat.m_w,
+                             this->m_i - quat.m_i,
+                             this->m_j - quat.m_j,
+                             this->m_k - quat.m_k);
+    };
+
     // scalar multiplication
-    Quaternion<T> operator*(const T& scalar) const;
+    Quaternion<T> operator*(const T& scalar) const {
+        return Quaternion<T>(this->m_w * scalar,
+                             this->m_i * scalar,
+                             this->m_j * scalar,
+                             this->m_k * scalar);
+    };
+
     // hamilton product (not commutative (unless real), but is associative)
-    Quaternion<T> operator*(const Quaternion<T>& quat) const;
-    // q/p != p/q because p*q^-1 != p^-1*q
-    Quaternion<T> operator/(const Quaternion<T>& quat) const;
+    Quaternion<T> operator*(const Quaternion<T>& quat) const {
+        return Quaternion<T>(this->m_w*quat.m_w - this->m_i*quat.m_i - this->m_j*quat.m_j - this->m_k*quat.m_k,
+                             this->m_w*quat.m_i + this->m_i*quat.m_w + this->m_j*quat.m_k - this->m_k*quat.m_j,
+                             this->m_w*quat.m_j - this->m_i*quat.m_k + this->m_j*quat.m_w + this->m_k*quat.m_i,
+                             this->m_w*quat.m_k + this->m_i*quat.m_j - this->m_j*quat.m_i + this->m_k*quat.m_w);
+    };
+
+    /* p * 1/q != 1/q * p because p*q^-1 != p^-1*q
+     * This implementation assumes p * 1/q
+    */
+    Quaternion<T> operator/(const Quaternion<T>& quat) const {
+        return (*this) * quat.getReciprocal();
+    };
+
     // scalar division
-    Quaternion<T> operator/(const T& scalar) const;
+    Quaternion<T> operator/(const T& scalar) const {
+        return Quaternion<T>(this->m_w / scalar,
+                             this->m_i / scalar,
+                             this->m_j / scalar,
+                             this->m_k / scalar);
+    };
 
     // assign this quaternion's values to another
-    Quaternion<T>& operator=(const Quaternion<T>& quat);
+    Quaternion<T>& operator=(const Quaternion<T>& quat) {
+        if(this == &quat) // no self assignment please :)
+            return *this;
+
+        this->m_w = quat.m_w;
+        this->m_i = quat.m_i;
+        this->m_j = quat.m_j;
+        this->m_k = quat.m_k;
+        return *this;
+    };
+
+    // compound operators
+    Quaternion<T> operator+=(Quaternion<T> quat) {
+        this->m_w += quat.m_w;
+        this->m_i += quat.m_i;
+        this->m_j += quat.m_j;
+        this->m_k += quat.m_k;
+        return *this;
+    };
+
+    Quaternion<T> operator-=(Quaternion<T> quat) {
+        this->m_w -= quat.m_w;
+        this->m_i -= quat.m_i;
+        this->m_j -= quat.m_j;
+        this->m_k -= quat.m_k;
+        return *this;
+    };
+
+    // hamilton product
+    Quaternion<T> operator*=(Quaternion<T> quat) {
+        this->m_w = this->m_w*quat.m_w - this->m_i*quat.m_i - this->m_j*quat.m_j - this->m_k*quat.m_k;
+        this->m_i = this->m_w*quat.m_i + this->m_i*quat.m_w + this->m_j*quat.m_k - this->m_k*quat.m_j;
+        this->m_j = this->m_w*quat.m_j - this->m_i*quat.m_k + this->m_j*quat.m_w + this->m_k*quat.m_i;
+        this->m_k = this->m_w*quat.m_k + this->m_i*quat.m_j - this->m_j*quat.m_i + this->m_k*quat.m_w;
+        return *this;
+    };
+
+    // scalar multiplication
+    Quaternion<T> operator*=(T scalar) {
+        this->m_w *= scalar;
+        this->m_i *= scalar;
+        this->m_j *= scalar;
+        this->m_k *= scalar;
+        return *this;
+    };
+
+    // assumes p * 1/q
+    Quaternion<T> operator/=(Quaternion<T> quat) {
+        (*this) = (*this) * quat.getReciprocal();
+        return *this;
+    };
+
+    // scalar division
+    Quaternion<T> operator/=(T scalar) {
+        this->m_w /= scalar;
+        this->m_i /= scalar;
+        this->m_j /= scalar;
+        this->m_k /= scalar;
+        return *this;
+    };
+
 
     // TODO: more advanced match functions? exponential, log, and power are very disgusting btw
 private:
     T m_w = 0;
-    T m_a = 0;
-    T m_b = 0;
-    T m_c = 0;
+    T m_i = 0;
+    T m_j = 0;
+    T m_k = 0;
 };
 
 // few handy quaternions
