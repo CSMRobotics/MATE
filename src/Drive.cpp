@@ -18,6 +18,10 @@ Drive::~Drive() {
 
 }
 
+csmutil::Quaternionf Drive::createRef(Axes axes) {
+    return csmutil::Quaternionf(0,0,0,0);
+}
+
 void Drive::Update() {
     // update modes
     ButtonPresses presses = joystick->getPresses();
@@ -45,7 +49,7 @@ void Drive::Update() {
     if(state == PID_ATTITUDE)
         q_ref = createRef(axes);
 
-    torque = pid.Update(q_ref, imu->getQuaternion(), imu->getGyro());
+    // torque = pid.Update(q_ref, imu->getQuaternion(), imu->getGyro());
 
     switch(state) {
         case MANUAL:

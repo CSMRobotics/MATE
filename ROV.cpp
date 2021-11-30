@@ -21,12 +21,21 @@ void init() {
 }
 
 void test() {
-    csmutil::Vector3f torque(0,0,1);
-    csmutil::Vector3f thrusterPos(1,0,0);
-    csmutil::Vector3f thrusterThrust(0,1,0);
+    csmutil::Quaternionf q(1,2,3,4);
+    csmutil::Quaternionf p(4,3,2,1);
 
-    float F = torque[0] / thrusterPos.cross(thrusterThrust)[0];
-    std::cout << F << std::endl;
+    std::cout << q << std::endl;
+    std::cout << p << std::endl;
+    csmutil::Quaternionf result(q*p);
+
+    std::cout << result << std::endl;
+    std::cout << result.getNorm() << std::endl;
+    std::cout << result.getAsUnit() << std::endl;
+    std::cout << result.getConjugate() << std::endl;
+    std::cout << result.getReciprocal() << std::endl;
+    std::pair<csmutil::Vector3f, float> axisangle = result.getAxisAngle();
+    std::cout << (axisangle.first) << ' ' << axisangle.second << std::endl;
+
     exit(0);
 }
 

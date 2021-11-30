@@ -16,7 +16,6 @@ static R map(F value, F from_min, F from_max, T to_min, T to_max) {
     return (R)((value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min);
 }
 
-// TODO: replace quaternion and vector3 implementation with header-only version
 // templates are (not) fun :)
 template<typename T>
 class Vector3 {
@@ -198,6 +197,12 @@ template<typename T>
 class Quaternion {
 public:
     Quaternion() = default;
+    Quaternion(const Quaternion<T>& quat) {
+        m_w = quat.m_w;
+        m_i = quat.m_i;
+        m_j = quat.m_j;
+        m_k = quat.m_k;
+    }
     Quaternion(T w, T i, T j, T k) {
         m_w = w;
         m_i = i;
@@ -228,13 +233,19 @@ public:
     T getK() {return m_k;};
 
     // TODO: get euler angles, get axis angle, e.g. finish implementing -> https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Using_quaternions_as_rotations
-    T getScalar() {return m_i;};
+    T getScalar() {return m_w;};
     Vector3<T> getVector() {return Vector3<T>(m_i, m_j, m_k);};
     Quaternion<T> getConjugate() {return Quaternion<T>(m_w, -m_i, -m_j, -m_k);};
     T getNorm() {return sqrt(m_w*m_w + m_i*m_i + m_j*m_j + m_k*m_k);};
     T getDistanceToQuat(const Quaternion<T> quat) {return (*this - quat).getNorm();};
     Quaternion<T> getAsUnit() {return (*this) / getNorm();}; // aka versor
     Quaternion<T> getReciprocal() {T norm = getNorm();return getConjugate() / (norm * norm);};
+    
+    // TODO: ensure this is valid at singularities of angle = 0,180
+    std::pair<Vector3<T>, T> getAxisAngle() {
+        Quaternion<T> q(this->getAsUnit());
+        return std::make_pair<Vector3<T>,T>(q.getVector(), static_cast<T>(2 * acos(q.m_w)));
+    }
 
     bool isVectorQuat() {return m_w == 0;};
     bool isScalarQuat() {return m_i == 0 && m_j == 0 && m_k == 0;};
@@ -352,14 +363,24 @@ public:
         return *this;
     };
 
+    template<typename U>
+    friend std::ostream& operator<<(std::ostream& os, const Quaternion<U>& quat) {
+        os << '[' << quat.m_w << ','
+                  << quat.m_i << ','
+                  << quat.m_j << ','
+                  << quat.m_k << ']';
+        return os;
+    }
 
-    // TODO: more advanced match functions? exponential, log, and power are very disgusting btw
+    // TODO: more advanced math functions? exponential, log, and power are very disgusting btw
 private:
     T m_w = 0;
     T m_i = 0;
     T m_j = 0;
     T m_k = 0;
 };
+
+
 
 // few handy quaternions
 typedef Quaternion<float> Quaternionf;
