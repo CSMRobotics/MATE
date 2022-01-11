@@ -277,7 +277,6 @@ struct BNO055_Offsets_t {
 class BNO055 {
 public:
     BNO055(int32_t sensorID = -1, uint8_t address = BNO055_ADDRESS_A);
-    BNO055();
     bool begin(BNO055_Opmode mode = BNO055_Opmode::NDOF);
     void setMode(BNO055_Opmode mode);
     void getRevInfo(BNO055_REV_Info_t* info);

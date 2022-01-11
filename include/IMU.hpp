@@ -2,7 +2,8 @@
 #define IMU_HPP
 
 #include "Component.hpp"
-#include "bno055.h"
+#include "CSMBNO055.hpp"
+#include "Vector3.hpp"
 #include <iostream>
 
 class IMU : public Component{
@@ -16,8 +17,7 @@ public:
     void Stop();
 
 private:
-    
-
+    BNO055 m_BNO;
 };
 
 #endif // IMU_HPP

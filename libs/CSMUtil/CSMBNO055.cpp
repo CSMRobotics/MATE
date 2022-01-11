@@ -5,7 +5,7 @@ BNO055::BNO055(int32_t sensorID, uint8_t address) {
     m_address = address;
     m_i2cChannel = 1;
 
-    const char* filename = "dev/i2c-1";
+    const char* filename = "/dev/i2c-1";
     m_fdBNO = open(filename, O_RDWR);
     if(m_fdBNO < 0) {
         perror("Failed to open I2c bus file");
