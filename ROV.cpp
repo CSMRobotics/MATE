@@ -20,6 +20,10 @@ void init() {
     server->start();
 }
 
+void stop() {
+    
+}
+
 int main() {
     // initialize ROV parts
     init();
