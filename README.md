@@ -1,5 +1,11 @@
-This project follows the standard modern cmake project structure. (except for having no /apps/ folder because that is stupid) 
-A bit about formatting:
-- Ensure all includes are absolute and not relative (helps ensure that you actually import the library/header you want)
-- Keep all .h files in include/ (yes this is a double edged sword but it will help with keeping the number of CMakeLists.txt down)
-- Place all external librarys in libs/ (make the library inside a subdirectory e.g. libs/libcv2/) (dont forget to link library in ./CMakeLists.txt)
+# Colorado School of Mines MATE ROV 2021-2022 Explorer Repository.
+
+See the [2022 Competition Manual](https://files.materovcompetition.org/2022/2022_EXPLORER_Manual_15_Dec_2021.pdf)
+
+## Dependencies
+- opencv-cuda (>=4.5.5)
+- pugixml (>=1.11.4)
+- i2c-dev
+- linux-headers
+  
+---
