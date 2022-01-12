@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION  3.16.3)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CXX_CUSTOM_FLAGS "-std=c++1z")
+
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${CXX_CUSTOM_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}")
+
 project(ROV)
 
 include_directories(
