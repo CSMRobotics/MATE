@@ -66,9 +66,9 @@ NonLinearQuaternionController::NonLinearQuaternionController(float Pq, float Pw)
     m_Pw = Pw;
 }
 
-Vector3f NonLinearQuaternionController::Update(Quaternionf qref, Quaternionf qm, Vector3f w) {
-    Quaternionf qerr = qref * qm.getConjugate();
-    Vector3f Axiserr = qerr.getVector();
+Vector3d NonLinearQuaternionController::Update(Quaterniond qref, Quaterniond qm, Vector3d w) {
+    Quaterniond qerr = qref * qm.getConjugate();
+    Vector3d Axiserr = qerr.getVector();
     Axiserr *= m_Pq;
     w *= m_Pw;
     return Axiserr - w;

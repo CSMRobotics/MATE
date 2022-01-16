@@ -3,6 +3,9 @@ add_library( CSMUtil STATIC
     CSMUtil.cpp
     CSMBNO055.hpp
     CSMBNO055.cpp
+    Quaternion.hpp
+    Vector3.hpp
+    Matrix.hpp
 )
 
 target_include_directories (CSMUtil PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
