@@ -1,3 +1,4 @@
 Refactor Manipulator (implement new controller code and update clamping)
 Implement new version of drive
 Implement Logging
+Make Matrix.hpp implement concepts correctly (more compile time errors please!!)
