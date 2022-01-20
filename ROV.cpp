@@ -29,6 +29,7 @@ int main() {
     init();
     
     while(true) {
+        js.updatePresses();
         for(Component* component : components) {
            component->Update();
         }
