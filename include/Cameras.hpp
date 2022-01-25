@@ -3,7 +3,7 @@
 
 #include <array>
 #include <mutex>
-#include "opencv4/opencv2/opencv.hpp"
+#include "opencv2/opencv.hpp"
 #include "Component.hpp"
 
 class Cameras : public Component{
