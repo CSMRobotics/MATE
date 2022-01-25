@@ -26,9 +26,9 @@ class Joystick;
 #define JOYSTICK_INDEX 0x1F000000
 #define METADATA 0x00FF0000
 #define DATA 0x0000FFFF
-
-#define MAT_HEADER 0xC
-#define STRING_HEADER 0xA
+#define MAT_HEADER (MSB | 0xC)
+const uint32_t MAT_HEADER_BUFFER[1] = {MAT_HEADER};
+#define BLANK_STRING_HEADER (MSB | 0xA)
 
 class TCP_Client {
 public:
@@ -39,14 +39,17 @@ public:
     void stop();
 
     void sendMessage(const std::string& message);
-    void sendMessage(const cv::Mat& image);
+    void sendMessage(cv::Mat* image);
 private:
+    std::queue<cv::Mat*> frameQueue;
+    const size_t FRAME_QUEUE_LIMIT = 5;
+    std::queue<std::string> messageQueue;
+    const size_t MESSAGE_QUEUE_LIMIT = 100;
     int sock;
     char buffer[32];
     struct sockaddr_in address;
     bool shouldThreadBeRunning = true;
     std::thread client;
-    std::priority_queue<uint32_t> sendQueue;
 
     void handleConnection(std::reference_wrapper<bool> running);
 };

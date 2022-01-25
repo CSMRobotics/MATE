@@ -145,28 +145,51 @@ void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
         getline(std::cin, userInput);
 
         // send to server
-        int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+        int sendResult;
         if(sendResult == -1) {
             std::cout << "Error occured while sending. Unable to deliver\r\n";
             continue;
         }
 
-        // wait for echo
-        memset(buffer, 0, 32);
-        int bytesReceived = recv(sock, buffer, 32, 0);
-        if(bytesReceived == -1) {
-            std::cout << "Error getting echo from server\r\n";
+        while(!frameQueue.empty()) { // send all queued frames first
+            cv::Mat* matBuffer = frameQueue.front(); // get the frame
+            // send the header
+            sendResult = send(sock, MAT_HEADER_BUFFER, sizeof(MAT_HEADER_BUFFER), 0);
+            send(sock, matBuffer, 921600, 0); // send whole frame to socket
+            if(sendResult == -1) {
+                std::cout << "Error occured while sending frame. Unable to deliver\r\n";
+                delete[] matBuffer;
+                frameQueue.pop();
+                continue;
+            }
+            delete[] matBuffer; // delete the frame
+            frameQueue.pop(); // remove dangling pointer
         }
-        else {
-            std::cout << "SERVER> " << std::string(buffer, bytesReceived) << "\r\n";
+
+        while(!messageQueue.empty()) { // send all queued strings second
+            std::string s = messageQueue.front(); // get the string
+            // construct the header
+            uint32_t header[1] = {BLANK_STRING_HEADER};
+            header[0] = (header[0] & static_cast<uint32_t>(s.length()));
+            sendResult = send(sock, header, sizeof(header), 0); // send header
+            if(sendResult == -1) {
+                std::cout << "Error occured while sending message. Unable to deliver\r\n";
+                messageQueue.pop();
+                continue;
+            }
+            send(sock, s.c_str(), s.size(), 0); // send string
+            messageQueue.pop(); // pop the message from the queue
         }
     }
 }
 
-void TCP_Client::sendMessage(const cv::Mat& image) {
-    static const inline uint32_t messageHeader = MSB | MAT_HEADER;
-    image.data; // guaranteed to be contiguous :)
-    // TODO:send
+void TCP_Client::sendMessage(cv::Mat* image) {
+    frameQueue.push(image);
+}
+
+// message's number of bytes should not exceed max representable by 24 bits
+void TCP_Client::sendMessage(const std::string& message) {
+    messageQueue.push(message);
 }
 
 void TCP_Client::stop() {
@@ -174,4 +197,3 @@ void TCP_Client::stop() {
     client.join();
     close(sock);
 }
-
