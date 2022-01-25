@@ -163,6 +163,12 @@ void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
     }
 }
 
+void TCP_Client::sendMessage(const cv::Mat& image) {
+    static const inline uint32_t messageHeader = MSB | MAT_HEADER;
+    image.data; // guaranteed to be contiguous :)
+    // TODO:send
+}
+
 void TCP_Client::stop() {
     shouldThreadBeRunning = false;
     client.join();

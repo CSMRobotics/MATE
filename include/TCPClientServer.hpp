@@ -14,6 +14,7 @@
 #include <bitset>
 
 #include "Joystick.hpp"
+#include "opencv2/opencv.hpp"
 
 class Joystick;
 
@@ -26,6 +27,9 @@ class Joystick;
 #define METADATA 0x00FF0000
 #define DATA 0x0000FFFF
 
+#define MAT_HEADER 0xC
+#define STRING_HEADER 0xA
+
 class TCP_Client {
 public:
     TCP_Client();
@@ -34,7 +38,8 @@ public:
     void start();
     void stop();
 
-    void sendMessage();
+    void sendMessage(const std::string& message);
+    void sendMessage(const cv::Mat& image);
 private:
     int sock;
     char buffer[32];
