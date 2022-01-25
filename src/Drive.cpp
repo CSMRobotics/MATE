@@ -33,14 +33,14 @@ void Drive::Update() {
     // m_angaccel = (m_orientationLast - m_orientation)
 
     // update modes
-    if(activeComponent && presses[1]) { // if mode switch button (button 1) is pressed, switch modes
+    if(m_isActive && presses[1]) { // if mode switch button (button 1) is pressed, switch modes
         modeState = ModeState(!modeState);
     }
 
     // TODO: implement state controller for components;
 
     if (presses[2]) { // if active component button is pressed, make this active component
-        if(activeComponent) {// if already active, switch state
+        if(m_isActive) {// if already active, switch state
             state = DriveState((state+1) %3); // switch between modes 0/1/2
         }
     }

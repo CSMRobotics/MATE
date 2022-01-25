@@ -17,6 +17,7 @@ Joystick js = Joystick(server); // create network joystick
 void init() {
     components[0] = new Drive();
     components[1] = new Manipulator(&js, servoDriver);
+    activeComponent = components[0];
     client->start();
     server->start();
 }

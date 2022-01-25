@@ -15,7 +15,7 @@ public:
     // Called to stop component and put the component in an idle mode (e.g. in event of E-Stop)
     virtual void Stop() = 0;
 
-private:
+protected:
     bool m_isActive;
 };
 

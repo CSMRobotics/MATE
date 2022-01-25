@@ -76,8 +76,6 @@ private:
     Joystick* m_joystick;
     IMU* m_imu;
 
-    bool activeComponent = false;
-
     DriveState state = MANUAL;
     ModeState modeState = TRANSLATE;
 };
