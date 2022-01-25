@@ -59,17 +59,22 @@ private:
 
     csmutil::Quaternionf createRef(Axes axes);
 
-    uint64_t timeCurrentMillis;
-    uint64_t timePreviousMillis;
-    uint64_t dt;
+    uint64_t m_timeCurrentMillis;
+    uint64_t m_timePreviousMillis;
+    uint64_t m_dt;
 
-    ServoDriver* driver;
-    csmutil::NonLinearQuaternionController pid;
-    csmutil::Vector3f torque;
-    csmutil::Quaternionf q_ref;
-    Joystick* joystick;
-    Axes axes;
-    IMU* imu;
+    ServoDriver* m_driver;
+    csmutil::NonLinearQuaternionController m_attitudePID;
+    csmutil::LinearPIDController m_throttlePID;
+    csmutil::Vector3d m_desiredTorque;
+    csmutil::Vector3d m_desiredForce;
+    csmutil::Quaterniond m_q_ref;
+    csmutil::Quaterniond m_orientation;
+    csmutil::Quaterniond m_orientationLast;
+    csmutil::Vector3d m_linaccel;
+    csmutil::Vector3d m_angaccel;
+    Joystick* m_joystick;
+    IMU* m_imu;
 
     bool activeComponent = false;
 

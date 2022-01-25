@@ -1,17 +1,18 @@
 #include "Drive.hpp"
 
 Drive::Drive(ServoDriver* driver, Joystick* joystick, IMU* imu) {
-    this->driver = driver;
-    this->joystick = joystick;
-    this->imu = imu;
+    this->m_driver = driver;
+    this->m_joystick = joystick;
+    this->m_imu = imu;
+    this->m_orientation = csmutil::Quaterniond();
     
-    pid = csmutil::NonLinearQuaternionController(0, 0);
+    m_attitudePID = csmutil::NonLinearQuaternionController(0, 0);
 
     uint64_t timeInitialMillis = millis();
-    timeCurrentMillis = timeInitialMillis;
-    timePreviousMillis = timeInitialMillis;
+    m_timeCurrentMillis = timeInitialMillis;
+    m_timePreviousMillis = timeInitialMillis;
 
-    dt = 0;
+    m_dt = 0;
 }
 
 Drive::~Drive() {
@@ -23,8 +24,15 @@ csmutil::Quaternionf Drive::createRef(Axes axes) {
 }
 
 void Drive::Update() {
+    // grab all data
+    ButtonPresses presses = m_joystick->getPresses();
+    Axes axes = m_joystick->getAxes();
+    m_linaccel = m_imu->m_NDOF_Data.linearaccel;
+    m_orientationLast = m_orientation;
+    m_orientation = m_imu->m_NDOF_Data.orientation;
+    // m_angaccel = (m_orientationLast - m_orientation)
+
     // update modes
-    ButtonPresses presses = joystick->getPresses();
     if(activeComponent && presses[1]) { // if mode switch button (button 1) is pressed, switch modes
         modeState = ModeState(!modeState);
     }
@@ -41,22 +49,22 @@ void Drive::Update() {
 
 
     // always get update from PID controller (even if you arent going to use it!)
-    timePreviousMillis = timeCurrentMillis;
-    timeCurrentMillis = millis();
-    dt = timeCurrentMillis - timePreviousMillis;
+    m_timePreviousMillis = m_timeCurrentMillis;
+    m_timeCurrentMillis = millis();
+    m_dt = m_timeCurrentMillis - m_timePreviousMillis;
 
-    axes = joystick->getAxes();
-    if(state == PID_ATTITUDE)
-        q_ref = createRef(axes);
+    if(state == PID_ATTITUDE) {
+        // m_q_ref = createRef(m_axes);
+    }
 
-    // torque = pid.Update(q_ref, imu->getQuaternion(), imu->getGyro());
+    // m_desiredTorque = pid.Update(q_ref, imu->getQuaternion(), imu->getGyro());
 
     switch(state) {
         case MANUAL:
 
             break;
         case PID_ATTITUDE:
-            // TODO: map torque to throttles
+            
             break;
         case AUTO:
             break;

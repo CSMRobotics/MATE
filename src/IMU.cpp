@@ -30,7 +30,7 @@ void IMU::Stop() {
 }
 
 void IMU::Calibrate() {
-    while(!m_NDOF_Data.fullyCalibrated) {
+    while(!m_NDOF_Data.fullyCalibrated) { // block until calibrated
         m_NDOF_Data.fullyCalibrated = m_BNO.isFullyCalibrated();
     }
 }

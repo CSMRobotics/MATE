@@ -2,25 +2,25 @@
 
 using namespace csmutil;
 
-PIDController::PIDController (float kp, float ki, float kd) {
+LinearPIDController::LinearPIDController (float kp, float ki, float kd) {
     this->kp = kp;
     this->ki = ki;
     this->kd = kd;
 }
 
-PIDController::PIDController (float kp, float ki, float kd, float maxOutput) {
-    PIDController(kp, ki, kd);
+LinearPIDController::LinearPIDController (float kp, float ki, float kd, float maxOutput) {
+    LinearPIDController(kp, ki, kd);
     this->maxOutput = maxOutput;
     this->minOutput = -maxOutput;
 }
 
-PIDController::PIDController (float kp, float ki, float kd, float maxOutput, float minOutput) {
-    PIDController(kp, ki, kd);
+LinearPIDController::LinearPIDController (float kp, float ki, float kd, float maxOutput, float minOutput) {
+    LinearPIDController(kp, ki, kd);
     this->maxOutput = maxOutput;
     this->minOutput = minOutput;
 }
 
-void PIDController::Update(float error, uint64_t dt) {
+void LinearPIDController::Update(float error, uint64_t dt) {
     // Compute integral term
     float integral = integralPrior + error*dt;
     float iTerm = integral*ki;
@@ -44,15 +44,15 @@ void PIDController::Update(float error, uint64_t dt) {
     integralPrior = integral;
 }
 
-void PIDController::setIntegral(float integralValue) {
+void LinearPIDController::setIntegral(float integralValue) {
     integralPrior = integralValue;
 }
 
-void PIDController::invertFeedback(bool invert) {
+void LinearPIDController::invertFeedback(bool invert) {
     invertOutput = invert;
 }
 
-float PIDController::getOutput() {
+float LinearPIDController::getOutput() {
     return output;
 }
 
