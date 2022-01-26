@@ -12,6 +12,7 @@
 #include <thread>
 #include <queue>
 #include <bitset>
+#include <mutex>
 
 #include "Joystick.hpp"
 #include "opencv2/opencv.hpp"
@@ -42,9 +43,11 @@ public:
     void sendMessage(cv::Mat* image);
 private:
     std::queue<cv::Mat*> frameQueue;
-    const size_t FRAME_QUEUE_LIMIT = 5;
+    const size_t FRAME_QUEUE_LIMIT = 15; // constrain queue to only be 13 MB
+    std::mutex frameLock;
     std::queue<std::string> messageQueue;
-    const size_t MESSAGE_QUEUE_LIMIT = 100;
+    const size_t MESSAGE_QUEUE_LIMIT = 100; // constrain queue to only hold 100 reasonably sized strings (technically no upper bound)
+    std::mutex messageLock;
     int sock;
     char buffer[32];
     struct sockaddr_in address;

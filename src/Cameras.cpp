@@ -14,6 +14,7 @@ void Cameras::poll(std::reference_wrapper<bool> shouldBeRunning, TCP_Client* cli
     cv::VideoCapture cameraBL = cv::VideoCapture(2);
     cv::VideoCapture cameraBR = cv::VideoCapture(3);
     
+    // create contiguous spaces in memory to hold the frames
     cv::Mat TL = cv::Mat(240, 320, CV_8UC3);
     cv::Mat TR = cv::Mat(240, 320, CV_8UC3);
     cv::Mat BL = cv::Mat(240, 320, CV_8UC3);
@@ -36,12 +37,12 @@ void Cameras::poll(std::reference_wrapper<bool> shouldBeRunning, TCP_Client* cli
         cv::hconcat(BL, BR, HALFFRAMEBOT);
         cv::vconcat(HALFFRAMETOP, HALFFRAMEBOT, FRAME);
         // copy frame to array in heap
-        cv::Mat* toSend = new cv::Mat(480, 640, CV_8UC3);
+        cv::Mat* toSend = new cv::Mat(480, 640, CV_8UC3); // I think I have solved the memory leak. but this is where I would look if there is one
         FRAME.copyTo(*toSend);
         // send frame to Driver Station
         client->sendMessage(toSend);
         finish = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> timeItTook = (start-finish);
-        std::cout << timeItTook.count() << std::endl;
+        std::chrono::duration<double, std::milli> timeItTook = (start-finish); // count how long it took to send a frame
+        std::cout << "This number should be less than 33.33! " << timeItTook.count() << std::endl;
     }
 }
