@@ -19,7 +19,8 @@
 
 class Joystick;
 
-#define NETWORK_PORT 7777
+#define SERVER_PORT 7777
+#define CLIENT_PORT 7778
 #define DRIVERSTATION_ADDRESS "10.0.0.1"
 
 #define MSB 0x80000000
@@ -27,8 +28,7 @@ class Joystick;
 #define JOYSTICK_INDEX 0x1F000000
 #define METADATA 0x00FF0000
 #define DATA 0x0000FFFF
-#define MAT_HEADER (MSB | 0xC)
-const uint32_t MAT_HEADER_BUFFER[1] = {MAT_HEADER};
+const uint32_t MAT_HEADER = MSB | 0xC;
 #define BLANK_STRING_HEADER (MSB | 0xA)
 
 class TCP_Client {

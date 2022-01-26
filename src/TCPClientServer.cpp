@@ -10,7 +10,7 @@ TCP_Server::TCP_Server() {
 
     // fill sockaddr_in
     address.sin_family = AF_INET;
-    address.sin_port = htons(NETWORK_PORT);
+    address.sin_port = htons(SERVER_PORT);
     inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
 
     // bind socket to port
@@ -34,7 +34,7 @@ void TCP_Server::handleConnection(std::reference_wrapper<bool> running) {
     listen(listeningSocket, SOMAXCONN);
 
     // wait for connection
-    std::cout << "Listening for connections on 0.0.0.0:" << NETWORK_PORT << std::endl;
+    std::cout << "Listening for connections on 0.0.0.0:" << SERVER_PORT << std::endl;
     clientSocket = accept(listeningSocket, (sockaddr*)&client, &clientSize);
 
     memset(host, 0, NI_MAXHOST);
@@ -116,7 +116,7 @@ TCP_Client::TCP_Client() {
 
     // create address structure for server we are connecting to
     address.sin_family = AF_INET;
-    address.sin_port = htons(NETWORK_PORT);
+    address.sin_port = htons(CLIENT_PORT);
     inet_pton(AF_INET, DRIVERSTATION_ADDRESS, &address.sin_addr);
 }
 
@@ -130,32 +130,19 @@ void TCP_Client::start() {
 
 void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
     // connect to server
-    std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << NETWORK_PORT << std::endl;
+    std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << CLIENT_PORT << std::endl;
     int connectionResult = -1;
     do {
         connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
     } while(connectionResult == -1);
 
-    // TESTING ONLY BELOW THIS LINE
-    // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT
-    std::string userInput;
+    int sendResult;
     while(running.get()) {
-        // get input from user
-        std::cout << "> ";
-        getline(std::cin, userInput);
-
-        // send to server
-        int sendResult;
-        if(sendResult == -1) {
-            std::cout << "Error occured while sending. Unable to deliver\r\n";
-            continue;
-        }
-
         while(!frameQueue.empty()) { // send all queued frames first
             frameLock.lock();
             cv::Mat* matBuffer = frameQueue.front(); // get the frame
             // send the header
-            sendResult = send(sock, MAT_HEADER_BUFFER, sizeof(MAT_HEADER_BUFFER), 0);
+            sendResult = send(sock, &MAT_HEADER, sizeof(MAT_HEADER), 0);
             send(sock, matBuffer, 921600, 0); // send whole frame to socket
             if(sendResult == -1) {
                 std::cout << "Error occured while sending frame. Unable to deliver\r\n";
