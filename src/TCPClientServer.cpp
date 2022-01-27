@@ -150,24 +150,6 @@ void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
             std::cout << "Error occured while sending. Unable to deliver\r\n";
             continue;
         }
-
-        while(!messageQueue.empty()) { // send all queued strings second
-            messageLock.lock();
-            std::string s = messageQueue.front(); // get the string
-            // construct the header
-            uint32_t header[1] = {BLANK_STRING_HEADER};
-            header[0] = (header[0] & static_cast<uint32_t>(s.length()));
-            sendResult = send(sock, header, sizeof(header), 0); // send header
-            if(sendResult == -1) {
-                std::cout << "Error occured while sending message. Unable to deliver\r\n";
-                messageQueue.pop();
-                messageLock.unlock();
-                continue; 
-            }
-            send(sock, s.c_str(), s.size(), 0); // send string
-            messageQueue.pop(); // pop the message from the queue
-            messageLock.unlock();
-        }
     }
 }
 
