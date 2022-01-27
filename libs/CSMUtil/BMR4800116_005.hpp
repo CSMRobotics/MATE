@@ -1,0 +1,13 @@
+#ifndef CSMUTIL_BMR4800116_005_HPP
+#define CSMUTIL_BMR4800116_005_HPP
+
+#define BMR4800116_005_ADDRESS (0x55)
+
+class BMR4800116_005 {
+public:
+    BMR4800116_005();
+private:
+    int m_fd;
+};
+
+#endif // CSMUTIL_BMR4800116_005_HPP
