@@ -1,4 +1,4 @@
-add_library( CSMUtil STATIC
+add_library(CSMUtil STATIC
     CSMUtil.hpp
     CSMUtil.cpp
     CSMBNO055.hpp
