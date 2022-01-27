@@ -34,6 +34,8 @@ private:
     int32_t P;
     uint8_t model;
 
+    int m_fd;
+
     float m_density;
 
     void calculate();
@@ -41,6 +43,9 @@ private:
     std::chrono::time_point<std::chrono::system_clock> m_lastUpdated;
 
     uint8_t crc4(uint16_t n_prom[]);
+
+    uint8_t readByte(uint8_t address);
+    signed int writeByte(uint8_t address, uint8_t byte);
 };
 
 };
