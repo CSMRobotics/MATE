@@ -8,6 +8,7 @@
 #include <limits.h>
 #include <iostream>
 #include <cstring>
+#include <iostream>
 extern "C" {
     #include <linux/i2c-dev.h>
     #include <i2c/smbus.h>
@@ -146,13 +147,23 @@ struct PowerStats {
     uint16_t outputCurrent;
     uint16_t temp1;
     uint16_t temp2;
+
+    friend std::ostream& operator<<(std::ostream& os, const PowerStats& ps) {
+        os << "Input Voltage: " << ps.inputVoltage << " V\n"
+            << "Output Voltage: " << ps.outputVoltage << " V\n"
+            << "Output Current: " << ps.outputCurrent << " A\n"
+            << "Temperature 1: " << ps.temp1 << " C\n"
+            << "Temperature 2: " << ps.temp2 << " C\n";
+        return os;
+    }
 };
 
 class BMR4800116_005 {
 public:
-    BMR4800116_005(uint8_t operationMode=0x84);
+    BMR4800116_005();
+    bool begin(uint8_t operationMode=0x84);
 
-    PowerStats getPowerStats();
+    bool getPowerStats(PowerStats* ps);
 private:
     int m_fd;
 

@@ -1,7 +1,7 @@
 #include "BMR4800116_005.hpp"
 
 
-BMR4800116_005::BMR4800116_005(uint8_t operationMode=0x84) {
+BMR4800116_005::BMR4800116_005() {
     const char* filename = "/dev/i2c-1";
     m_fd = open(filename, O_RDWR);
     if(m_fd < 0) {
@@ -11,23 +11,23 @@ BMR4800116_005::BMR4800116_005(uint8_t operationMode=0x84) {
     if(ioctl(m_fd, I2C_SLAVE, BMR4800116_005_ADDRESS) < 0) {
         perror("Failed to open I2C bus");
         exit(1);
-    }
+    }    
+}
 
-    usleep(50000); // wait for stable connection
-
+bool BMR4800116_005::begin(uint8_t operationMode) {
+    usleep(5000);
     // setup device in valid state
     // Enabled, Nominal output voltage, ignore faults
     writeByte(BMR4800116_005_OPERATION, operationMode);
 }
 
-PowerStats BMR4800116_005::getPowerStats() {
-    PowerStats toRet;
-    toRet.inputVoltage = readWord(BMR4800116_005_READ_VIN);
-    toRet.outputVoltage = readWord(BMR4800116_005_READ_VOUT);
-    toRet.outputCurrent = readWord(BMR4800116_005_READ_IOUT);
-    toRet.temp1 = readWord(BMR4800116_005_READ_TEMPERATURE_1);
-    toRet.temp2 = readWord(BMR4800116_005_READ_TEMPERATURE_2);
-    return toRet;
+bool BMR4800116_005::getPowerStats(PowerStats* ps) {
+    ps->inputVoltage = readWord(BMR4800116_005_READ_VIN);
+    ps->outputVoltage = readWord(BMR4800116_005_READ_VOUT);
+    ps->outputCurrent = readWord(BMR4800116_005_READ_IOUT);
+    ps->temp1 = readWord(BMR4800116_005_READ_TEMPERATURE_1);
+    ps->temp2 = readWord(BMR4800116_005_READ_TEMPERATURE_2);
+    return true;
 }
 
 
