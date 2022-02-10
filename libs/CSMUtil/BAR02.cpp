@@ -12,7 +12,7 @@ extern "C" {
     #include <i2c/smbus.h>
 }
 
-csmutil::MS5837::MS5837() {
+csmutil::MS5837::MS5837(int address) {
     // create fd to i2c file
     const char* filename = "/dev/i2c-1";
     m_fd = open(filename, O_RDWR);
@@ -40,8 +40,8 @@ void csmutil::MS5837::Stop() {
     return;
 }
 
-float csmutil::MS5837::pressure(float conversion=1.0f) {
-
+float csmutil::MS5837::pressure(float conversion) {
+    
 }
 
 float csmutil::MS5837::temperature() {

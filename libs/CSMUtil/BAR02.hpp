@@ -1,6 +1,9 @@
 #ifndef BAR02_HPP
 #define BAR02_HPP
 
+// TODO: Double Check
+#define BAR02_ADDRESS (0x76)
+
 #include <cstdint>
 #include <chrono>
 
@@ -15,7 +18,7 @@ static const float mbar = 1.0f;
 
 class MS5837 : public Component {
 public:
-    MS5837();
+    MS5837(int address = BAR02_ADDRESS);
 
     void Update();
     void AutoUpdate();
