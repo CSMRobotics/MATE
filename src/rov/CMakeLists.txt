@@ -24,11 +24,12 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_executable(joystick src/Joystick.cpp)
-ament_target_dependencies(joystick rclcpp std_msgs joy)
+ament_target_dependencies(joystick rclcpp std_msgs)
 target_include_directories(joystick PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+# install nodes
 install(TARGETS joystick
   DESTINATION lib/${PROJECT_NAME})
 

@@ -31,9 +31,6 @@
 *.out
 *.app
 
-# build files
-build/
-
 # vscode
 .vscode/
 
@@ -49,8 +46,6 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 *.ini
-
-./Logs/
 
 # ros doo dads
 install/

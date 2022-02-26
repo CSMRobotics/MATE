@@ -1,6 +1,19 @@
 FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
 
+# RUN echo "Hello!"
+
 RUN apt-get clean
+RUN apt-get update
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y 'ppa:deadsnakes/ppa'
 RUN apt-get update && apt-get install build-essential -y
-RUN apt-get install \
+RUN apt-get install -y \
     git python3.9
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz
+RUN tar -xzvf cmake-3.23.0-rc2.tar.gz
+RUN cd cmake-3.23.0-rc2 && cmake . && \
+    make && \
+    make install && \
+    rm -rf cmake-3.23.0-rc2.tar.gz && \
+    rm -rf cmake-3.23.0-rc2
