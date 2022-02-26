@@ -1,0 +1,6 @@
+FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
+
+RUN apt-get clean
+RUN apt-get update && apt-get install build-essential -y
+RUN apt-get install \
+    git python3.9
