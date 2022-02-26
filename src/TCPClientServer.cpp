@@ -155,7 +155,6 @@ void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
             frameQueue.pop(); // remove dangling pointer
             frameLock.unlock();
         }
-
         while(!messageQueue.empty()) { // send all queued strings second
             messageLock.lock();
             std::string s = messageQueue.front(); // get the string
