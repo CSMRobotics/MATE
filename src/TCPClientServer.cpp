@@ -10,7 +10,7 @@ TCP_Server::TCP_Server() {
 
     // fill sockaddr_in
     address.sin_family = AF_INET;
-    address.sin_port = htons(NETWORK_PORT);
+    address.sin_port = htons(SERVER_PORT);
     inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
 
     // bind socket to port
@@ -34,7 +34,7 @@ void TCP_Server::handleConnection(std::reference_wrapper<bool> running) {
     listen(listeningSocket, SOMAXCONN);
 
     // wait for connection
-    std::cout << "Listening for connections on 0.0.0.0:" << NETWORK_PORT << std::endl;
+    std::cout << "Listening for connections on 0.0.0.0:" << SERVER_PORT << std::endl;
     clientSocket = accept(listeningSocket, (sockaddr*)&client, &clientSize);
 
     memset(host, 0, NI_MAXHOST);
@@ -116,7 +116,7 @@ TCP_Client::TCP_Client() {
 
     // create address structure for server we are connecting to
     address.sin_family = AF_INET;
-    address.sin_port = htons(NETWORK_PORT);
+    address.sin_port = htons(CLIENT_PORT);
     inet_pton(AF_INET, DRIVERSTATION_ADDRESS, &address.sin_addr);
 }
 
@@ -130,36 +130,71 @@ void TCP_Client::start() {
 
 void TCP_Client::handleConnection(std::reference_wrapper<bool> running) {
     // connect to server
-    std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << NETWORK_PORT << std::endl;
+    std::cout << "Connecting to " << DRIVERSTATION_ADDRESS << ":" << CLIENT_PORT << std::endl;
     int connectionResult = -1;
     do {
         connectionResult = connect(sock, (sockaddr*)&address, sizeof(address));
     } while(connectionResult == -1);
 
-    // TESTING ONLY BELOW THIS LINE
-    // TODO: REPLACE WITH PROPER SENDING TO DRIVERSTATION CLIENT
-    std::string userInput;
+    int sendResult;
     while(running.get()) {
-        // get input from user
-        std::cout << "> ";
-        getline(std::cin, userInput);
+        while(!frameQueue.empty()) { // send all queued frames first
+            frameLock.lock();
+            cv::Mat* matBuffer = frameQueue.front(); // get the frame
+            // send the header
+            sendResult = send(sock, &MAT_HEADER, sizeof(MAT_HEADER), 0);
+            send(sock, matBuffer, 921600, 0); // send whole frame to socket
+            if(sendResult == -1) {
+                std::cout << "Error occured while sending frame. Unable to deliver\r\n";
+                delete[] matBuffer; // delete the error frame
+                frameQueue.pop(); // remove dangling pointer
+                frameLock.unlock();
+                continue;
+            }
+            delete[] matBuffer; // delete the frame
+            frameQueue.pop(); // remove dangling pointer
+            frameLock.unlock();
+        }
+        while(!messageQueue.empty()) { // send all queued strings second
+            messageLock.lock();
+            std::string s = messageQueue.front(); // get the string
+            // construct the header
+            uint32_t header[1] = {BLANK_STRING_HEADER};
+            header[0] = (header[0] & static_cast<uint32_t>(s.length()));
+            sendResult = send(sock, header, sizeof(header), 0); // send header
+            if(sendResult == -1) {
+                std::cout << "Error occured while sending message. Unable to deliver\r\n";
+                messageQueue.pop();
+                messageLock.unlock();
+                continue;
+            }
+            send(sock, s.c_str(), s.size(), 0); // send string
+            messageQueue.pop(); // pop the message from the queue
+            messageLock.unlock();
+        }
+    }
+}
 
-        // send to server
-        int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-        if(sendResult == -1) {
-            std::cout << "Error occured while sending. Unable to deliver\r\n";
-            continue;
-        }
+/*
+* Pushes a message onto the message queue. 
+* If this message results in a queue greater than FRAME_QUEUE_LIMIT, 
+* queue.pop() is called
+*/
+void TCP_Client::sendMessage(cv::Mat* image) {
+    frameQueue.push(image); 
+    if(frameQueue.size() > FRAME_QUEUE_LIMIT) {
+        const std::lock_guard<std::mutex> lock(frameLock);
+        cv::Mat* DELETE_THIS = frameQueue.front();
+        delete[] DELETE_THIS;
+        frameQueue.pop();
+    }
+}
 
-        // wait for echo
-        memset(buffer, 0, 32);
-        int bytesReceived = recv(sock, buffer, 32, 0);
-        if(bytesReceived == -1) {
-            std::cout << "Error getting echo from server\r\n";
-        }
-        else {
-            std::cout << "SERVER> " << std::string(buffer, bytesReceived) << "\r\n";
-        }
+// message's number of bytes should not exceed max representable by 24 bits
+void TCP_Client::sendMessage(const std::string& message) {
+    messageQueue.push(message);
+    if(messageQueue.size() > MESSAGE_QUEUE_LIMIT) {
+        messageQueue.pop();
     }
 }
 
@@ -168,4 +203,3 @@ void TCP_Client::stop() {
     client.join();
     close(sock);
 }
-

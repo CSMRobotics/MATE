@@ -19,11 +19,12 @@ static R map(F value, F from_min, F from_max, T to_min, T to_max) {
     return (R)((value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min);
 }
 
-class PIDController {
+class LinearPIDController {
 public:
-    PIDController(float kp, float ki, float kd);
-    PIDController(float kp, float ki, float kd, float maxOutput);
-    PIDController(float kp, float ki, float kd, float maxOutput, float minOutput);
+    LinearPIDController() = default;
+    LinearPIDController(float kp, float ki, float kd);
+    LinearPIDController(float kp, float ki, float kd, float maxOutput);
+    LinearPIDController(float kp, float ki, float kd, float maxOutput, float minOutput);
 
     void Update(float error, uint64_t dt);
 
@@ -67,7 +68,7 @@ public:
     float getPq() {return this->m_Pq;};
     float getPw() {return this->m_Pw;};
 
-    Vector3f Update(Quaternionf qref, Quaternionf qm, Vector3f w);
+    Vector3d Update(Quaterniond qref, Quaterniond qm, Vector3d w);
 private:
     float m_Pq, m_Pw;
 };

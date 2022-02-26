@@ -31,7 +31,6 @@ private:
 
     bool m_isChicken = false;
     bool m_isClamping = false;
-    bool m_isActive = false;
 
     float m_elbowAngle = 90;
     float m_elbowAngle2 = 90;

@@ -6,34 +6,45 @@
 #include "ServoDriver.hpp"
 #include "IMU.hpp"
 
-Component* components[1];
-// TCP_Client* client = new TCP_Client();
-// TCP_Server* server = new TCP_Server();
-// ServoDriver* servoDriver = new ServoDriver();
-// Joystick js = Joystick(server); // create network joystick
-// Joystick js = Joystick("/dev/input/by-id/usb-Logitech_Extreme_3D_pro_00000000002A-joystick"); // local joystick
+Component* components[2];
+Component* activeComponent; // which component should listen to joystick?
+TCP_Client* client = new TCP_Client();
+TCP_Server* server = new TCP_Server();
+ServoDriver* servoDriver = new ServoDriver();
+Joystick js = Joystick(server); // create network joystick
+// Joystick js = Joystick("/dev/input/by-id/usb-Logitech_Extreme_3D_pro_00000000002A-joystick");
 
 void init() {
-    // components[0] = new Drive();
-    // components[0] = new Manipulator(&js, servoDriver);
-    components[0] = new IMU();
-    // server->start();
-    // client->start();
-}
-
-void wait() {
-
+    components[0] = new Drive();
+    components[1] = new Manipulator(&js, servoDriver);
+    activeComponent = components[0];
+    client->start();
+    server->start();
 }
 
 void stop() {
-
+    
 }
 
 int main() {
     // initialize ROV parts
     init();
+    ButtonPresses presses;
     
     while(true) {
+        js.updatePresses();
+
+        // update active component
+        presses = js.getPresses();
+        activeComponent->setActive(false);
+        if(presses[2]) { // see JoystickMap.md for full list
+            activeComponent = components[0];
+        } else if(presses[3]) {
+            activeComponent = components[1];
+        }
+        activeComponent->setActive(true);
+        
+        // Update each component
         for(Component* component : components) {
            component->Update();
         }

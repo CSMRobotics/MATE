@@ -12,12 +12,15 @@
 #include <thread>
 #include <queue>
 #include <bitset>
+#include <mutex>
 
 #include "Joystick.hpp"
+#include "opencv2/opencv.hpp"
 
 class Joystick;
 
-#define NETWORK_PORT 7777
+#define SERVER_PORT 7777
+#define CLIENT_PORT 7778
 #define DRIVERSTATION_ADDRESS "10.0.0.1"
 
 #define MSB 0x80000000
@@ -25,6 +28,8 @@ class Joystick;
 #define JOYSTICK_INDEX 0x1F000000
 #define METADATA 0x00FF0000
 #define DATA 0x0000FFFF
+const uint32_t MAT_HEADER = MSB | 0xC;
+#define BLANK_STRING_HEADER (MSB | 0xA)
 
 class TCP_Client {
 public:
@@ -34,14 +39,20 @@ public:
     void start();
     void stop();
 
-    void sendMessage();
+    void sendMessage(const std::string& message);
+    void sendMessage(cv::Mat* image);
 private:
+    std::queue<cv::Mat*> frameQueue;
+    const size_t FRAME_QUEUE_LIMIT = 15; // constrain queue to only be 13 MB
+    std::mutex frameLock;
+    std::queue<std::string> messageQueue;
+    const size_t MESSAGE_QUEUE_LIMIT = 100; // constrain queue to only hold 100 reasonably sized strings (technically no upper bound)
+    std::mutex messageLock;
     int sock;
     char buffer[32];
     struct sockaddr_in address;
     bool shouldThreadBeRunning = true;
     std::thread client;
-    std::priority_queue<uint32_t> sendQueue;
 
     void handleConnection(std::reference_wrapper<bool> running);
 };
