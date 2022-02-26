@@ -7,6 +7,7 @@ See the [2022 Competition Manual](https://files.materovcompetition.org/2022/2022
 - pugixml (>=1.11.4)
 - i2c-dev
 - linux-headers
+- eigen (>=3.4)
   
 ---
 
