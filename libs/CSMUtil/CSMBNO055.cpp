@@ -7,7 +7,7 @@ BNO055::BNO055(int32_t sensorID, uint8_t address) {
     m_sensorID = sensorID;
     m_address = address;
     m_i2cChannel = 1;
-
+    
     const char* filename = "/dev/i2c-1";
     m_fdBNO = open(filename, O_RDWR);
     if(m_fdBNO < 0) {
