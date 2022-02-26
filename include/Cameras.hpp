@@ -1,23 +1,24 @@
 #ifndef CAMERAS_HPP
 #define CAMERAS_HPP
 
+#include <chrono>
 #include <array>
-#include "opencv2/opencv.hpp"
-#include "Component.hpp"
+#include <thread>
 
-class Cameras : public Component{
+#include "opencv2/opencv.hpp"
+
+#include "TCPClientServer.hpp"
+
+class Cameras {
 
 public:
     Cameras();
-    ~Cameras();
 
-    void Update();
-    void AutoUpdate();
-    void Stop();
-
+    void stop();
 private:
-    std::array<cv::VideoCapture, 4> cameras;
-    
+    void poll(std::reference_wrapper<bool> shouldBeRunning, TCP_Client*);
+    bool m_shouldBeRunning = false;
+    std::thread m_cameraPollingThread;
 };
 
 #endif // CAMERAS_HPP

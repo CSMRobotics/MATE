@@ -15,16 +15,24 @@ Manipulator::Manipulator(Joystick* joystick, ServoDriver* driver) {
 }
 
 void Manipulator::Update() {
+    // check if this component should listen to joystick
+    if(!m_isActive) {
+        return;
+    }
+
+    // get button presses
+    ButtonPresses presses = joystick->getPresses();
+
     // update velocities based on pitch and roll joystick axes
     m_levelVelocity = joystick->getAxes()[1];
     m_wristVelocity = joystick->getAxes()[0];
     // std::cout << m_wristVelocity << std::endl;
 
-    if(joystick->getPresses()[m_clampButton]) {
+    if(presses[m_clampButton]) {
         m_isClamping = !m_isClamping;
 	std::cout << "clamp toggled to " << m_isClamping << std::endl;
     }
-    if(joystick->getPresses()[m_chickenButton]) {
+    if(presses[m_chickenButton]) {
         m_isChicken = !m_isChicken;
 	std::cout << "chicken toggled to " << m_isChicken << std::endl;
     }
