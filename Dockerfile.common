@@ -1,19 +1,30 @@
 FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
 
-# RUN echo "Hello!"
-
-RUN apt-get clean
+# add apt repository for GCC/G++ compiler
+RUN apt-get update && apt-get install build-essential -y software-properties-common
+RUN add-apt-repository -y 'ppa:ubuntu-toolchain-r/test'
 RUN apt-get update
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y 'ppa:deadsnakes/ppa'
-RUN apt-get update && apt-get install build-essential -y
-RUN apt-get install -y \
-    git python3.9
+RUN apt-get install -y gcc-11 g++-11 gdb
 
+# Ensure CMake is updated :)
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz
 RUN tar -xzvf cmake-3.23.0-rc2.tar.gz
 RUN cd cmake-3.23.0-rc2 && cmake . && \
-    make && \
+    make -j 12 && \
     make install && \
     rm -rf cmake-3.23.0-rc2.tar.gz && \
     rm -rf cmake-3.23.0-rc2
+
+# add apt repository for python
+RUN add-apt-repository -y 'ppa:deadsnakes/ppa'
+RUN apt-get update
+
+# install dependencies
+RUN apt-get clean
+RUN apt-get update
+RUN apt-get install -y \ 
+    git python3.9 python3.9-distutils
+
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3.9 get-pip.py && \
+    rm -rf get-pip.py
