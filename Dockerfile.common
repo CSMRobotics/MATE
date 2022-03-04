@@ -25,6 +25,7 @@ RUN apt-get update
 RUN apt-get install -y \ 
     git python3.9 python3.9-distutils
 
+# ensure python3.9 has most up to date version of pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.9 get-pip.py && \
     rm -rf get-pip.py

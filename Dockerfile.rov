@@ -22,6 +22,11 @@ WORKDIR /opt/ros/CSM_MATE_WS
 #     colcon build \
 #     --merge-install
 
+# ROV specific dependencies
+RUN apt-get update
+RUN apt-get install -y \
+    libi2c-dev linux-headers-$(uname -r) libpugixml-dev libeigen3-dev
+
 COPY src .
 COPY launch .
 
