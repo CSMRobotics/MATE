@@ -1,0 +1,4 @@
+[submodule "src/external/joystick_drivers"]
+	path = src/external/joystick_drivers
+	url = https://github.com/Colorado-School-of-Mines-Robotics-Club/joystick_drivers
+	branch = foxy-devel
