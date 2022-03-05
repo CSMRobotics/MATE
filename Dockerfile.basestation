@@ -1,0 +1,39 @@
+FROM csmmaterobotics/common
+
+# Location where source files will be copied in and built
+# By default, this is root, which makes colcon build not work at all
+WORKDIR /opt/ros/CSM_MATE_WS
+
+# Base station specific dependencies
+# python3.9-dev dependencies are necessary to build pip packages for arm64 platform
+RUN apt-get install -y \
+    python3.9-venv python3.9-dev 
+
+     
+# Create Base VENV
+# Probably don't use VENV. Colcon has a rough time with it and it's not worth it
+# RUN python3.9 -m venv /BASE_VENV
+
+RUN python3.9 -m pip install --upgrade pip
+# Do these separated because wheel and setuptools appear to be funky dependencies for evdev and Jetson.GPIO
+RUN python3.9 -m pip install --upgrade setuptools wheel distlib
+RUN python3.9 -m pip install opencv-python numpy flask evdev Jetson.GPIO
+# Dependency for colcon (which uses python3.6)
+RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py &&\
+    python3.6 get-pip.py
+RUN python3.6 -m pip install distlib
+
+COPY setup/99-gpio.rules /etc/udev/rules.d
+RUN groupadd -f -r gpio && \
+    usermod -a -G gpio $(id -u -n)
+# udevadm control --reload rules has a non-zero exit status (https://www.reddit.com/r/docker/comments/jeaw9c/comment/g9g8buu)
+RUN udevadm control --reload-rules || echo 'rules reloaded'
+RUN udevadm trigger
+
+COPY src .
+COPY launch launch
+
+RUN pwd
+
+RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    colcon build
