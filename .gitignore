@@ -54,3 +54,8 @@ build/
 
 # my doo dads
 scripts/
+
+# documentation with jekyll
+_posts/
+_site/
+.jekyll-cache/
