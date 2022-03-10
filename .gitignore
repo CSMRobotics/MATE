@@ -50,6 +50,7 @@ _deps
 # ros doo dads
 install/
 log/
+build/
 
 # my doo dads
 scripts/
