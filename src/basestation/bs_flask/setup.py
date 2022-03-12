@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'flask'
+package_name = 'bs_flask'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'flask = flask.flask:main'
+            'bs_flask = bs_flask.bs_flask:main'
         ],
     },
 )
