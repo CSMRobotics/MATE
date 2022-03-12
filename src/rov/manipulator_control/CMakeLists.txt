@@ -20,11 +20,15 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rov_interfaces REQUIRED)
 
 add_executable(ManipulatorControl src/ManipulatorControl.cpp)
 target_include_directories(ManipulatorControl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(ManipulatorControl rclcpp rov_interfaces)
 
 install(TARGETS ManipulatorControl
   DESTINATION lib/${PROJECT_NAME})
