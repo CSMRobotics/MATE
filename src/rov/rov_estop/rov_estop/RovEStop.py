@@ -1,15 +1,22 @@
 import Jetson.GPIO as GPIO
 import dbus
+import rclpy
+from rclpy import Node
 
-def main():
-    # setup GPIO names in Board mode
-    GPIO.setmode(GPIO.BOARD)
-    CHANNEL = 12
-    GPIO.setup(CHANNEL, GPIO.IN)
-    print("GPIO setup")
-    try:
-        while True:
-            pinVoltage = GPIO.input(CHANNEL)
+class RovEStop(Node):
+    def __init__(self):
+        super().__init__(node_name="rovestop")
+
+        # setup GPIO names in Board mode
+        GPIO.setmode(GPIO.BOARD)
+        self.CHANNEL = 12
+        GPIO.setup(self.CHANNEL, GPIO.IN)
+        
+        self.create_timer(0.01, self.main)
+    
+    def main(self):
+        try:
+            pinVoltage = GPIO.input(self.CHANNEL)
             if (pinVoltage == GPIO.HIGH):
                 #shutdown
                 sys_bus = dbus.SystemBus()
@@ -17,8 +24,17 @@ def main():
                                             '/org/freedesktop/login1')
                 ck_iface = dbus.Interface(ck_srv, 'org.freedesktop.login1.Manager')
                 ck_iface.get_dbus_method("PowerOff")(False)
-    finally:
-        GPIO.cleanup(CHANNEL)
+        except:
+            # maybe log this
+            pass
 
-if __name__ == '__main__':
+def main(args=None):
+    rclpy.init(args=args)
+    
+    eStop = RovEStop()
+    rclpy.spin(eStop)
+
+    rclpy.shutdown()
+
+if __name__ == "__main__":
     main()
