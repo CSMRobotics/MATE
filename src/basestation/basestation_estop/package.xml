@@ -1,16 +1,13 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rov</name>
-  <version>0.0.1</version>
-  <description>ROV</description>
-  <maintainer email="zac71113@gmail.com">Zac Stanton (yameat)</maintainer>
-  <license>MIT</license>
+  <name>basestation_estop</name>
+  <version>0.0.0</version>
+  <description>Emergency Stop handling for the basestation side of things</description>
+  <maintainer email="lucas@birdseyerobotics.com">hermanoid</maintainer>
+  <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>rclcpp</depend>
-  <depend>std_msgs</depend>
-  <depend>joystick_ros2</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

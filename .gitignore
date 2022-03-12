@@ -50,6 +50,12 @@ _deps
 # ros doo dads
 install/
 log/
+build/
 
 # my doo dads
 scripts/
+
+# documentation with jekyll
+_posts/
+_site/
+.jekyll-cache/

@@ -5,23 +5,12 @@ FROM csmmaterobotics/common
 WORKDIR /opt/ros/CSM_MATE_WS
 
 # Base station specific dependencies
-# python3.9-dev dependencies are necessary to build pip packages for arm64 platform
-RUN apt-get install -y \
-    python3.9-venv python3.9-dev 
-
-     
-# Create Base VENV
 # Probably don't use VENV. Colcon has a rough time with it and it's not worth it
-# RUN python3.9 -m venv /BASE_VENV
+# RUN python3.6 -m venv /BASE_VENV
 
-RUN python3.9 -m pip install --upgrade pip
 # Do these separated because wheel and setuptools appear to be funky dependencies for evdev and Jetson.GPIO
-RUN python3.9 -m pip install --upgrade setuptools wheel distlib
-RUN python3.9 -m pip install opencv-python numpy flask evdev Jetson.GPIO
-# Dependency for colcon (which uses python3.6)
-RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py &&\
-    python3.6 get-pip.py
-RUN python3.6 -m pip install distlib
+RUN python3.6 -m pip install --upgrade setuptools wheel distlib
+RUN python3.6 -m pip install opencv-python numpy flask evdev Jetson.GPIO
 
 COPY setup/99-gpio.rules /etc/udev/rules.d
 RUN groupadd -f -r gpio && \
@@ -33,7 +22,13 @@ RUN udevadm trigger
 COPY src .
 COPY launch launch
 
-RUN pwd
-
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build
+
+# Copy over initial run stuff.
+# Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
+# CMD is the "go" button, and can be overriden
+COPY setup/ros_entrypoint.sh ros_entrypoint.sh
+COPY launch/basestation_launch.py basestation_launch.py
+ENTRYPOINT [ "ros_entrypoint.sh" ]
+CMD ["ros2", "launch", "basestation_launch.py"]
