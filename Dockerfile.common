@@ -23,9 +23,15 @@ RUN apt-get update
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get install -y \ 
-    git python3.9 python3.9-distutils
+    git python3.6
 
 # ensure python3.9 has most up to date version of pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3.9 get-pip.py && \
+RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && \
+    python3.6 get-pip.py && \
     rm -rf get-pip.py
+
+# python3.6-dev dependencies are necessary for pip to build packages for arm64 platform
+RUN apt-get install -y \
+    python3.6-dev 
+# Dependency for colcon 
+RUN python3.6 -m pip install distlib
