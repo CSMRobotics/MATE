@@ -15,12 +15,12 @@ setup(
     zip_safe=True,
     maintainer='hermanoid',
     maintainer_email='lucas@birdseyerobotics.com',
-    description='Controller for robot 'flight', or 'swimming', or whatever word you prefer. Takes in orientation information and translate/rotate commands to converts them to create smooth, controlled motion through the water.  Or at least, that's the idea',
+    description="Controller for robot 'flight', or 'swimming', or whatever word you prefer. Takes in orientation information and translate/rotate commands to converts them to create smooth, controlled motion through the water.  Or at least, that's the idea",
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'FlightController = flight_controller.FlightController:main'
+            'flightcontroller = flight_controller.flightcontroller:main'
         ],
     },
 )
