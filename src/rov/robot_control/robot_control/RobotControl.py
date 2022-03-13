@@ -1,3 +1,6 @@
+import rclpy
+from rclpy import Node
+
 def main():
     print('Hi from robot_control.')
 
