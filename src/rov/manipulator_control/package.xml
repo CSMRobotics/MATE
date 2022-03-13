@@ -3,7 +3,7 @@
 <package format="3">
   <name>manipulator_control</name>
   <version>0.0.0</version>
-  <description>Interface to control manipulator with the joystick</description>
+  <description>Subscribes to a setpoint topic and computes IK to determine how to move servos</description>
   <maintainer email="lucas@birdseyerobotics.com">hermanoid</maintainer>
   <license>TODO: License declaration</license>
 
