@@ -23,8 +23,11 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Setpoints.msg"
+  "msg/ManipulatorSetpoints.msg"
+  "msg/ThrusterSetpoints.msg"
   "msg/PWM.msg"
+  "srv/CreateContinuousServo.srv"
+  "srv/CreateServo.srv"
 )
 
 if(BUILD_TESTING)
