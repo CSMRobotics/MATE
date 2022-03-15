@@ -3,9 +3,13 @@ import dbus
 import rclpy
 from rclpy import Node
 
+from std_msgs.msg import Bool
+
 class RovEStop(Node):
     def __init__(self):
         super().__init__(node_name="rovestop")
+
+        self.publisher = self.create_publisher(Bool, "leak", 10)
 
         # setup GPIO names in Board mode
         GPIO.setmode(GPIO.BOARD)
@@ -18,6 +22,12 @@ class RovEStop(Node):
         try:
             pinVoltage = GPIO.input(self.CHANNEL)
             if (pinVoltage == GPIO.HIGH):
+                # notify subscribers that there is a leak
+                msg = Bool()
+                msg.data = True
+                self.publisher.publish(msg)
+                # TODO: Do we wait to ensure this message is sent over network??
+                # sleep(0.1)
                 #shutdown
                 sys_bus = dbus.SystemBus()
                 ck_srv = sys_bus.get_object('org.freedesktop.login1',
