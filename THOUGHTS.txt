@@ -1,0 +1,4 @@
+consider using IPC rclcpp::NodeOptions().use_intra_process_comms(true)
+    to reduce communication times and have zero copy transfers
+    might be REALLY useful for visual processing -> control
+    see https://docs.ros.org/en/foxy/Tutorials/Intra-Process-Communication.html
