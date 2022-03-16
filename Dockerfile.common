@@ -35,3 +35,6 @@ RUN apt-get install -y \
     python3.6-dev 
 # Dependency for colcon 
 RUN python3.6 -m pip install distlib
+
+
+RUN apt-get install -y apt-utils
