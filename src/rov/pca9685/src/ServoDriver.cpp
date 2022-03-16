@@ -113,7 +113,7 @@ bool ServoDriver::isChannelInUse(int channel){
 
 bool ServoDriver::isChannelNotInUse(int channel){
     return !isChannelInUse(channel);
-};
+}
 
 bool ServoDriver::isServoChannelInUse(int channel){
     if(this->isChannelInUse(channel)) {
