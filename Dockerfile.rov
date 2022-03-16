@@ -1,4 +1,4 @@
-FROM csmmaterobotics/common
+FROM csmmaterobotics/commonv8
 
 # Location where source files will be copied in and built
 WORKDIR /opt/ros/CSM_MATE_WS
