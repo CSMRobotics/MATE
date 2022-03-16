@@ -6,7 +6,7 @@ WORKDIR /opt/ros/CSM_MATE_WS
 # ROV specific dependencies
 RUN apt-get update
 RUN apt-get install -y \
-    libi2c-dev libpugixml-dev libeigen3-dev
+    libpugixml-dev libeigen3-dev
 
 COPY src .
 COPY launch .
