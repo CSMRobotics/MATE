@@ -22,6 +22,9 @@ RUN udevadm trigger
 COPY src .
 COPY launch launch
 
+# fix numpy illegal instruction due to compiler-reordered code https://github.com/numpy/numpy/issues/18131
+RUN export OPENBLAS_CORETYPE=ARMV8
+
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build
 
