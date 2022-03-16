@@ -10,7 +10,10 @@ WORKDIR /opt/ros/CSM_MATE_WS
 
 # Do these separated because wheel and setuptools appear to be funky dependencies for evdev and Jetson.GPIO
 RUN python3.6 -m pip install --upgrade setuptools wheel distlib
-RUN python3.6 -m pip install opencv-python numpy flask evdev Jetson.GPIO
+# fix numpy illegal instruction due to compiler-reordered code https://github.com/numpy/numpy/issues/18131
+RUN export OPENBLAS_CORETYPE=ARMV8
+RUN python3.6 -m pip install numpy==1.19.5
+RUN python3.6 -m pip install opencv-python flask evdev Jetson.GPIO
 
 COPY setup/99-gpio.rules /etc/udev/rules.d
 RUN groupadd -f -r gpio && \
@@ -21,9 +24,6 @@ RUN udevadm trigger
 
 COPY src .
 COPY launch launch
-
-# fix numpy illegal instruction due to compiler-reordered code https://github.com/numpy/numpy/issues/18131
-RUN export OPENBLAS_CORETYPE=ARMV8
 
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build
