@@ -29,6 +29,7 @@ class RovEStop(Node):
                 # TODO: Do we wait to ensure this message is sent over network??
                 # sleep(0.1)
                 #shutdown
+                # TODO: does this work inside docker container
                 sys_bus = dbus.SystemBus()
                 ck_srv = sys_bus.get_object('org.freedesktop.login1',
                                             '/org/freedesktop/login1')
