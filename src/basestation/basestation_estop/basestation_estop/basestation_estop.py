@@ -34,7 +34,7 @@ class BaseEStop(Node):
 def main(args=None):
     rclpy.init()
 
-    estop = BaseEStop
+    estop = BaseEStop()
     rclpy.spin(estop)
 
     rclpy.shutdown()
