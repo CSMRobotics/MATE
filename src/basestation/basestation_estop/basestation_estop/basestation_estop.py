@@ -21,6 +21,7 @@ class BaseEStop(Node):
             # TODO: LOG
             # Cut power
             GPIO.output(self.CHANNEL, GPIO.HIGH)
+            self.get_logger().info("LEAK!!")
             # Shutdown
             # sys_bus = dbus.SystemBus()
             # ck_srv = sys_bus.get_object('org.freedesktop.login1',
@@ -39,7 +40,6 @@ def main(args=None):
 
     rclpy.shutdown()
     pass
-
 
 if __name__ == '__main__':
     main()
