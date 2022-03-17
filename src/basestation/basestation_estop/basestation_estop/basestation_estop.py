@@ -20,9 +20,9 @@ class BaseEStop(Node):
     def leak(self, msg : Bool):
         if(msg.data):
             # TODO: LOG
+            self.get_logger().info("LEAK!!")
             # Cut power
             GPIO.output(self.CHANNEL, GPIO.HIGH)
-            self.get_logger().info("LEAK!!")
             # Shutdown
             # sys_bus = dbus.SystemBus()
             # ck_srv = sys_bus.get_object('org.freedesktop.login1',
