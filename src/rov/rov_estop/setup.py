@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rov_estop = rov_estop.rov_estop:main'
+            'rov_estop = rov_estop.RovEStop:main'
         ],
     },
 )

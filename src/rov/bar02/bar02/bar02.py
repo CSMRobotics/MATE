@@ -2,7 +2,7 @@ from time import sleep
 import ms5837
 
 import rclpy
-from rclpy import Node
+from rclpy.node import Node
 
 from rov_interfaces.msg import bar02_data
 

@@ -1,7 +1,7 @@
 import Jetson.GPIO as GPIO
 import dbus
 import rclpy
-from rclpy import Node
+from rclpy.node import Node
 
 from std_msgs.msg import Bool
 
