@@ -46,3 +46,10 @@ RUN python3.6 -m pip install opencv-python Jetson.GPIO
 
 # common apt dependencies
 RUN apt-get install -y apt-utils libi2c-dev i2c-tools
+
+# Jetson.GPIO dependencies
+RUN groupadd -f -r gpio
+RUN usermod -a -G gpio $USER
+RUN cp lib/python/Jetson/GPIO/99-gpio.rules /etc/udev/rules.d/
+RUN cp venv/lib/pythonNN/site-packages/Jetson/GPIO/99-gpio.rules /etc/udev/rules.d/
+RUN udevadm control --reload-rules && sudo udevadm trigger
