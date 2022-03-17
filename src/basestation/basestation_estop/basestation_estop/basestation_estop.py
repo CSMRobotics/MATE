@@ -13,6 +13,7 @@ class BaseEStop(Node):
         GPIO.setmode(GPIO.BOARD)
         self.CHANNEL = 12
         GPIO.setup(self.CHANNEL, GPIO.OUT)
+        GPIO.output(self.CHANNEL, GPIO.LOW)
 
         self.subscription = self.create_subscription(Bool, "leak", self.leak, 10)
     
