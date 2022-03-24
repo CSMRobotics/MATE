@@ -12,7 +12,7 @@ COPY src .
 COPY launch .
 
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    colcon build
+    colcon build --packages-ignore sdl2_vendor joy
 
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
