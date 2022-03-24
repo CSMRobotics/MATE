@@ -2,6 +2,6 @@
 	path = src/external/joystick_drivers
 	url = https://github.com/Colorado-School-of-Mines-Robotics-Club/joystick_drivers
 	branch = foxy-devel
-[submodule "external/bno055"]
+[submodule "src/external/bno055"]
 	path = src/external/bno055
 	url = https://github.com/flynneva/bno055
