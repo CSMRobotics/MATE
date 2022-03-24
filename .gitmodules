@@ -5,3 +5,7 @@
 [submodule "src/external/bno055"]
 	path = src/external/bno055
 	url = https://github.com/flynneva/bno055
+[submodule "src/external/SMACC2"]
+	path = src/external/SMACC2
+	url = https://github.com/robosoft-ai/SMACC2.git
+	branch = foxy
