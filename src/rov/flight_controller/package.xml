@@ -3,16 +3,19 @@
 <package format="3">
   <name>flight_controller</name>
   <version>0.0.0</version>
-  <description>Controller for robot 'flight', or 'swimming', or whatever word you prefer. Takes in orientation information and translate/rotate commands to converts them to create smooth, controlled motion through the water.  Or at least, that's the idea</description>
-  <maintainer email="lucas@birdseyerobotics.com">hermanoid</maintainer>
+  <description>TODO: Package description</description>
+  <maintainer email="zac71113@gmail.com">yameat</maintainer>
   <license>TODO: License declaration</license>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rov_interfaces</depend>
+  <depend>rclcpp</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
