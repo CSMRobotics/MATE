@@ -9,7 +9,8 @@ class RovEStop(Node):
     def __init__(self):
         super().__init__(node_name="rovestop")
 
-        self.publisher = self.create_publisher(Bool, "leak", 10)
+        self.leak_publisher = self.create_publisher(Bool, "leak", 10)
+        self.estop_publisher = self.create_publisher(Bool, "estop", 10)
 
         # setup GPIO names in Board mode
         GPIO.setmode(GPIO.BOARD)
@@ -25,7 +26,8 @@ class RovEStop(Node):
                 # notify subscribers that there is a leak
                 msg = Bool()
                 msg.data = True
-                self.publisher.publish(msg)
+                self.leak_publisher.publish(msg)
+                self.estop_publisher.publish(msg)
                 # TODO: Do we wait to ensure this message is sent over network??
                 # sleep(0.1)
                 #shutdown

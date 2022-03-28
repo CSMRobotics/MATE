@@ -16,12 +16,12 @@ class BaseEStop(Node):
         GPIO.output(self.CHANNEL, GPIO.LOW)
 
         self.subscription = self.create_subscription(Bool, "leak", self.leak, 10)
+        self.subscription = self.create_subscription(Bool, "estop", self.estop, 10)
     
-    def leak(self, msg : Bool):
+    def leak(self, msg : Bool) -> None:
         if(msg.data):
-            # TODO: LOG
-            self.get_logger().info("LEAK!!")
             # Cut power
+            self.get_logger().fatal("LEAK!!")
             GPIO.output(self.CHANNEL, GPIO.HIGH)
             # Shutdown
             # sys_bus = dbus.SystemBus()
@@ -31,7 +31,17 @@ class BaseEStop(Node):
             # ck_iface.get_dbus_method("PowerOff")(False)
         else:
             # how did we get here?????
+            self.get_logger().error("Unknown leak message received")
             pass
+    
+    def estop(self, msg: Bool) -> None:
+        if(msg.data):
+            # fatal estop, cut power
+            self.get_logger().fatal("ESTOP Received")
+            GPIO.output(self.CHANNEL, GPIO.HIGH)
+        else:
+            # non fatal estop, send stop message to ROV
+            self.get_logger().warning("ESTOP Received")
     
 def main(args=None):
     rclpy.init()
