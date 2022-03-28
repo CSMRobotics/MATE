@@ -1,0 +1,7 @@
+state_machine_rosparam_ws: /RovControl
+success_switch:
+   - type: state_reached
+     state_name: "rov_control::State2"
+failure_switch:
+   - type: timeout
+     duration: 10.0 # sec
