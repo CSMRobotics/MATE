@@ -34,12 +34,14 @@ private:
             std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Response> response) {
         servoDriver.addContinuousServo(request->channel);
         response->result = true;
+        response->channel = request->channel;
     }
 
     void create_servo(const std::shared_ptr<rov_interfaces::srv::CreateServo_Request> request, 
             std::shared_ptr<rov_interfaces::srv::CreateServo_Response> response) {
         servoDriver.addServo(request->channel);
         response->result = true;
+        response->channel = request->channel;
     }
 
     ServoDriver servoDriver;
