@@ -20,7 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_executable(flight_controller src/flight_controller.cpp include/PID.hpp src/PID.cpp)
+add_executable(flight_controller src/flight_controller.cpp src/PID.hpp src/PID.cpp)
 target_include_directories(flight_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
