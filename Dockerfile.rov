@@ -10,9 +10,12 @@ RUN apt-get install -y \
 
 COPY src .
 COPY launch .
+COPY setup/ros_entrypoint.sh .
 
+# ensure dependencies are updated, and build
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    colcon build --packages-ignore sdl2_vendor joy
+    rosdep install --ignore-src --from-paths external/SMACC2 -y -r && \
+    colcon build --packages-skip 
 
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
@@ -20,7 +23,5 @@ RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
 COPY setup/ros_entrypoint.sh ros_entrypoint.sh
 COPY launch/rov_launch.py rov_launch.py
 ENTRYPOINT [ "ros_entrypoint.sh" ]
-CMD ["ros2", "launch", "rov_launch.py"]
-
-
-
+# CMD ["ros2", "launch", "rov_launch.py"]
+CMD ["/bin/bash"]
