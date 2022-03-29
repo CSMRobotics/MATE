@@ -11,7 +11,7 @@ LinearPID::LinearPID(float kp, float ki, float kd, float kfb) {
 }
 
 float LinearPID::Update(long long dt_us) {
-    if(dt_us == NULL) { // if no supplied time, use chrono clock :)
+    if(dt_us == 0) { // if no supplied time, use chrono clock :)
         if (this->timelast == this->initTime) {
             this->dt_us = 10; // default to 10 micro seconds since last update for first update
             this->error = 0; // default to 0 error
@@ -29,7 +29,7 @@ float LinearPID::Update(long long dt_us) {
 }
 
 float LinearPID::calcError() {
-    this->setpoint + ((this->doInvertFeedback - 1) * 2 + 1) * feedback();
+    return this->setpoint + ((this->doInvertFeedback - 1) * 2 + 1) * feedback();
 }
 
 float LinearPID::calcProportional() {

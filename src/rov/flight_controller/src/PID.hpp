@@ -9,7 +9,7 @@ public:
     LinearPID(float kp = 0.0, float ki = 0.0, float kd = 0.0, float kfb = 1.0);
 
     // Update the controller optional argument dt_us for artificial time
-    float Update(long long dt_us = NULL);
+    float Update(long long dt_us = 0);
 
     // Set the accumulated integral value. Units are in error*time.
     void setIntegral(float integralValue) {this->integral = integralValue;};
