@@ -45,4 +45,4 @@ RUN python3.6 -m pip install numpy==1.19.4
 RUN python3.6 -m pip install opencv-python Jetson.GPIO
 
 # common apt dependencies
-RUN apt-get install -y apt-utils libi2c-dev i2c-tools
+RUN apt-get install -y apt-utils libi2c-dev i2c-tools libboost-all-dev
