@@ -62,3 +62,12 @@ _site/
 
 # ccls cache
 .ccls-cache/
+
+# no virtual environments
+.venv/
+
+# no vscode shenanigans
+.vscode/
+
+# no submodule shenanigans
+src/external/
