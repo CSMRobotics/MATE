@@ -41,10 +41,10 @@ RUN python3.6 -m pip install --upgrade setuptools wheel distlib
 RUN export OPENBLAS_CORETYPE=ARMV8
 RUN python3.6 -m pip install numpy==1.19.4
 
-# common python dependencies
+# some python dependencies
 RUN python3.6 -m pip install opencv-python Jetson.GPIO
 
-# common apt dependencies
+# some apt dependencies
 RUN apt-get install -y apt-utils libi2c-dev i2c-tools apt-utils python3-colcon-common-extensions python3-vcstool
 
 # boooost
@@ -58,30 +58,5 @@ RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_
     cd .. && \
     rm -rf boost_1_78_0
 
-# autoware-auto
-# RUN apt-get install -y nvidia-container-toolkit && \
-#     cd /usr/local/bin && \
-#     wget https://gitlab.com/ApexAI/ade-cli/-/jobs/1859684349/artifacts/raw/dist/ade+aarch64 && \
-#     mv ade+aarch64 ade && \
-#     chmod +x ade && \
-#     ./ade update-cli
-# RUN mkdir -p /adehome && \
-#     cd /adehome && \
-#     touch .adehome && \
-#     git clone https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto.git && \
-#     cd AutowareAuto && \
-#     ade start --update --enter && \
-#     cd AutowareAuto && \
-#     rm -rf build/ install/ log/ src/external/ && \
-#     git pull && \
-#     vcs import < autoware.auto.$ROS_DISTRO.repos
-# RUN export COLCON_DEFAULTS_FILE=/adehome/AutowareAuto/tools/ade_image/colcon-defaults.yaml
-RUN python3.6 -m pip install -U colcon-common-extensions vcstool
-RUN source /opt/ros/$ROS_DISTRO/install/setup.bash && \
-    apt-get update && \
-    rosdep update && \
-    git clone https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto.git && \
-    cd AutowareAuto && \
-    vcs import < autoware.auto.$ROS_DISTRO.repos && \
-    export ROS_VERSION=2 && \
-    rosdep install -y -i --from-paths src
+# python dependencies
+RUN python3.6 -m pip install dbus-python
