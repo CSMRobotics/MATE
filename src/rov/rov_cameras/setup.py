@@ -1,8 +1,6 @@
-import os
 from setuptools import setup
-from glob import glob
 
-package_name = 'bs_flask'
+package_name = 'rov_cameras'
 
 setup(
     name=package_name,
@@ -12,10 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/static/', glob("static/*")),
-        ('share/' + package_name, ["default.jpg","stylesheet.css"])
-
-    ].__add__([('share/' + package_name + '/' + directory, [os.path.join(directory, file) for file in files]) for directory, _, files in os.walk("templates")]),
+    ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='yameat',
@@ -25,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'bs_flask = bs_flask.bs_flask:main'
+            'rov_cameras = rov_cameras.rov_cameras:main'
         ],
     },
 )

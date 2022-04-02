@@ -1,0 +1,21 @@
+<table id="camera-viewport-table" class="viewport-container">
+	<colgroup>
+		<col span="1" style="width:50%">
+	</colgroup>
+	<tr style="height:50%">
+		<td id="camera-1-td" class="camera-viewport-td">
+			<img id="camera-1-img" src="{{ url_for('camera_1_video_feed') }}" class="camera-viewport-img">
+		</td>
+		<td id="camera-2-td" class="camera-viewport-td">
+			<img id="camera-2-img" src="{{ url_for('camera_2_video_feed') }}" class="camera-viewport-img">
+		</td>
+	</tr>
+	<tr>
+		<td id="camera-3-td" class="camera-viewport-td">
+			<img id="camera-3-img" src="{{ url_for('camera_3_video_feed') }}" class="camera-viewport-img">
+		</td>
+		<td id="camera-4-td" class="camera-viewport-td">
+			<img id="camera-4-img" src="{{ url_for('camera_4_video_feed') }}" class="camera-viewport-img">
+		</td>
+	</tr>
+</table>

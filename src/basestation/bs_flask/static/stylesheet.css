@@ -1,0 +1,48 @@
+.camera-viewport-td {
+}
+
+.camera-viewport-img {
+	border: 1px solid #2eb398;
+	height: 100%;
+	width: 100%;
+}
+
+.p5canvas {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.ui-widget-content {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.viewport-container {
+	border: 0px;
+	margin: 0px;
+	height: 100%;
+	padding: 0px;
+	width: 100%;
+}
+
+#root {
+	height: 100vh;
+	width: 100vw;
+}
+
+body {
+	background: #262626;
+	border: 0px;
+	color: white;
+	font-family: "Noto Sans";
+	margin: 0px;
+	padding: 0px;
+}
+
+div, img, table, tr, td {
+	border: 0px;
+	margin: 0px;
+	padding: 0px;
+}
