@@ -33,12 +33,10 @@ public:
     BNO055_Node() : Node("bno055_node"), bno(-1, BNO055_ADDRESS_A) {
         this->bno_publisher = this->create_publisher<rov_interfaces::msg::BNO055Data>("bno055_data", 10);
 
-        std::cout << "test" << std::endl;
         if(!this->bno.begin()) {
             RCLCPP_FATAL(this->get_logger(), "Unable to start bno055, node exiting");
             exit(1);
         }
-        std::cout << "started" << std::endl;
 
         bno_timer = this->create_wall_timer(100ms, std::bind(&BNO055_Node::bno_callback, this));
     }
@@ -46,7 +44,6 @@ public:
 private:
     // Create and send new BNO055 Data msg
     void bno_callback() {
-        std::cout << "update" << std::endl;
         auto msg = rov_interfaces::msg::BNO055Data();
         msg.accelerometer = toVectorDMSG(this->bno.getVector(Vector_Type::ACCELEROMETER));
         msg.euler = toVectorDMSG(this->bno.getVector(Vector_Type::EULER));
@@ -56,7 +53,6 @@ private:
         msg.magnetometer = toVectorDMSG(this->bno.getVector(Vector_Type::MAGNETOMETER));
         msg.orientation = toQuatDMSG(this->bno.getQuat());
         msg.temp = this->bno.getTemp();
-        std::cout << this->bno.getVector(Vector_Type::EULER);
         this->bno_publisher->publish(msg);
     }
 
