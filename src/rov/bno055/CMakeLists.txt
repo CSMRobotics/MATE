@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(rov_interfaces)
+project(bno055)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,23 +17,26 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(rov_interfaces REQUIRED)
+find_package(rclcpp REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Bar02Data.msg"
-  "msg/ManipulatorSetpoints.msg"
-  "msg/ThrusterSetpoints.msg"
-  "msg/PWM.msg"
-  "msg/JetsonNanoStatistics.msg"
-  "msg/QuaternionD.msg"
-  "msg/VectorD.msg"
-  "msg/BNO055Data.msg"
-  "srv/CreateContinuousServo.srv"
-  "srv/CreateServo.srv"
+add_executable(bno055_node src/bno055_node.cpp src/CSMBNO055.cpp)
+target_include_directories(bno055_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(
+  bno055_node
+  "rov_interfaces"
+  "rclcpp"
 )
+
+target_link_libraries(bno055_node i2c)
+
+install(TARGETS bno055_node
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

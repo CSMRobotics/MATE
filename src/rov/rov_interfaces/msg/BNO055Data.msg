@@ -1,0 +1,8 @@
+rov_interfaces/QuaternionD orientation
+rov_interfaces/VectorD accelerometer
+rov_interfaces/VectorD magnetometer
+rov_interfaces/VectorD gyroscope
+rov_interfaces/VectorD euler
+rov_interfaces/VectorD linearaccel
+rov_interfaces/VectorD gravity
+int8 temp
