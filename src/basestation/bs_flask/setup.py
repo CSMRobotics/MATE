@@ -13,7 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/static/', glob("static/*")),
-        ('share/' + package_name, ["default.jpg","stylesheet.css"])
+        ('share/' + package_name, ["default.jpg","stylesheet.css","frozen.jpg"])
 
     ].__add__([('share/' + package_name + '/' + directory, [os.path.join(directory, file) for file in files]) for directory, _, files in os.walk("templates")]),
     install_requires=['setuptools'],

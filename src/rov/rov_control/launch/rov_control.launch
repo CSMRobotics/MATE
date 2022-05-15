@@ -1,5 +1,0 @@
-<launch>
-  <node pkg="rov_control" exec="rov_control_node" name="rov_control" output="screen">
-    <param from="$(find-pkg-share rov_control)/config/rov_control_config.yaml" />
-  </node>
-</launch>

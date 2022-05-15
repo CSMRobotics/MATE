@@ -1,4 +1,4 @@
-FROM csmmaterobotics/commonv8
+FROM csmmaterobotics/commonv8:latest
 
 # Location where source files will be copied in and built
 WORKDIR /opt/ros/CSM_MATE_WS
@@ -8,20 +8,33 @@ RUN apt-get update
 RUN apt-get install -y \
     libpugixml-dev libeigen3-dev
 
+RUN python3.8 -m pip install transitions
+
 COPY src .
-COPY launch .
-COPY setup/ros_entrypoint.sh .
+COPY setup/rov_entrypoint.sh .
 
 # ensure dependencies are updated, and build
+# RUN rosdep update && \
+#     rosdep install --ignore-src -y src/rov/
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    rosdep install --ignore-src --from-paths external/SMACC2 -y -r && \
-    colcon build --packages-skip 
+    colcon build --symlink-install --packages-select \
+    bar02 \
+    bno055 \
+    flight_controller \
+    manipulator_control \
+    pca9685_node \
+    rov_cameras \
+    rov_estop \
+    rov_interfaces \
+    rov_launch \
+    rov_statistics \
+    --cmake-args -DPID=true --no-warn-unused-cli
 
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
 # CMD is the "go" button, and can be overriden
-COPY setup/ros_entrypoint.sh ros_entrypoint.sh
-COPY launch/rov_launch.py rov_launch.py
-ENTRYPOINT [ "ros_entrypoint.sh" ]
-# CMD ["ros2", "launch", "rov_launch.py"]
+COPY setup/rov_entrypoint.sh rov_entrypoint.sh
+RUN chmod +x rov_entrypoint.sh
+ENTRYPOINT [ "rov_entrypoint.sh" ]
+# CMD ["ros2", "launch", "rov_launch", "rov.launch.py"]
 CMD ["/bin/bash"]

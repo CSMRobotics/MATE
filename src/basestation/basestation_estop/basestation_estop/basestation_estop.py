@@ -2,6 +2,7 @@ import Jetson.GPIO as GPIO
 import dbus
 import rclpy
 from rclpy.node import Node
+from time import sleep
 
 from std_msgs.msg import Bool
 
@@ -15,33 +16,31 @@ class BaseEStop(Node):
         GPIO.setup(self.CHANNEL, GPIO.OUT)
         GPIO.output(self.CHANNEL, GPIO.LOW)
 
-        self.subscription = self.create_subscription(Bool, "leak", self.leak, 10)
         self.subscription = self.create_subscription(Bool, "estop", self.estop, 10)
     
     def leak(self, msg : Bool) -> None:
-        if(msg.data):
-            # Cut power
-            self.get_logger().fatal("LEAK!!")
-            GPIO.output(self.CHANNEL, GPIO.HIGH)
-            # Shutdown
-            # sys_bus = dbus.SystemBus()
-            # ck_srv = sys_bus.get_object('org.freedesktop.login1',
-            #                             '/org/freedesktop/login1')
-            # ck_iface = dbus.Interface(ck_srv, 'org.freedesktop.login1.Manager')
-            # ck_iface.get_dbus_method("PowerOff")(False)
-        else:
-            # how did we get here?????
-            self.get_logger().error("Unknown leak message received")
-            pass
+        # Cut power
+        self.get_logger().fatal("LEAK!!")
+        self.get_logger().fatal("UNSAFE SHUTDOWN MAY OCCUR, VERIFY INTEGRITY OF FILESYSTEM")
+        GPIO.output(self.CHANNEL, GPIO.HIGH)
+        # ensure shutdown pin is pulled high
+        sleep(0.1)
+        # Shutdown (might be enough time with caps to safely shutdown)
+        sys_bus = dbus.SystemBus()
+        ck_srv = sys_bus.get_object('org.freedesktop.login1',
+                                    '/org/freedesktop/login1')
+        ck_iface = dbus.Interface(ck_srv, 'org.freedesktop.login1.Manager')
+        ck_iface.get_dbus_method("PowerOff")(False)
+
     
     def estop(self, msg: Bool) -> None:
+        self.get_logger().warning("ESTOP Received by BaseStation")
         if(msg.data):
             # fatal estop, cut power
-            self.get_logger().fatal("ESTOP Received")
-            GPIO.output(self.CHANNEL, GPIO.HIGH)
+            self.leak()
         else:
-            # non fatal estop, send stop message to ROV
-            self.get_logger().warning("ESTOP Received")
+            # non fatal estop
+            pass
     
 def main(args=None):
     rclpy.init()
@@ -50,7 +49,6 @@ def main(args=None):
     rclpy.spin(estop)
 
     rclpy.shutdown()
-    pass
 
 if __name__ == '__main__':
     main()

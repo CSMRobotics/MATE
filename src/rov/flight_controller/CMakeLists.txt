@@ -1,26 +1,41 @@
 cmake_minimum_required(VERSION 3.5)
 project(flight_controller)
 
+add_compile_options(-g)
+
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++20
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# do we build with or without PID?
+if(${PID})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PID=true")
+  message(WARNING "Compiling with PID")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PID=false")
+  message(WARNING "Compiling without PID")
+endif()
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-add_executable(flight_controller src/flight_controller.cpp src/PID.hpp src/PID.cpp)
+add_executable(flight_controller src/flight_controller.cpp src/Thruster.cpp)
 target_include_directories(flight_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -28,10 +43,16 @@ ament_target_dependencies(
   flight_controller
   "rov_interfaces"
   "rclcpp"
+  "message_filters"
 )
+
+target_link_libraries(flight_controller Eigen3::Eigen)
 
 install(TARGETS flight_controller
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

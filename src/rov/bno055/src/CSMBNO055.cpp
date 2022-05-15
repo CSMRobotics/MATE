@@ -176,24 +176,24 @@ Eigen::Vector3d BNO055::getVector(Vector_Type type) {
     */
     switch(type) {
         case Vector_Type::MAGNETOMETER:
-            return Eigen::Vector3d(static_cast<double>(i) / 16.0,
+            return rotation * Eigen::Vector3d(static_cast<double>(i) / 16.0,
                                    static_cast<double>(j) / 16.0,
                                    static_cast<double>(k) / 16.0);
         break;
         case Vector_Type::GYROSCOPE:
-            return Eigen::Vector3d(static_cast<double>(i) / 900.0,
+            return rotation * Eigen::Vector3d(static_cast<double>(i) / 900.0,
                                    static_cast<double>(j) / 900.0,
                                    static_cast<double>(k) / 900.0);
         break;
         case Vector_Type::EULER:
-            return Eigen::Vector3d(static_cast<double>(i) / 16.0,
+            return rotation * Eigen::Vector3d(static_cast<double>(i) / 16.0,
                                    static_cast<double>(j) / 16.0,
                                    static_cast<double>(k) / 16.0);
         break;
         case Vector_Type::ACCELEROMETER:
         case Vector_Type::LINEARACCEL:
         case Vector_Type::GRAVITY:
-            return Eigen::Vector3d(static_cast<double>(i) / 100.0,
+            return rotation * Eigen::Vector3d(static_cast<double>(i) / 100.0,
                                    static_cast<double>(j) / 100.0,
                                    static_cast<double>(k) / 100.0);
         break;
@@ -220,7 +220,7 @@ Eigen::Quaterniond BNO055::getQuat() {
 
     // Use magic number from data sheet to convert unsigned short data to double
     const double scale = (1.0 / (1<<14));
-    return Eigen::Quaterniond(scale * w, scale * i, scale * j, scale * k);
+    return rotation * Eigen::Quaterniond(scale * w, scale * i, scale * j, scale * k);
 }
 
 /*

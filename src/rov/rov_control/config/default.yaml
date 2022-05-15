@@ -1,0 +1,39 @@
+rov_control:
+  ros__parameters:
+    mapping:
+      trigger: 0
+      thumb: 1
+      button_3: 2
+      button_4: 3
+      button_5: 4
+      button_6: 5
+      button_7: 6
+      button_8: 7
+      button_9: 8
+      button_10: 9
+      button_11: 10
+      button_12: 11
+      roll: 0
+      pitch: 1
+      yaw: 2
+      throttle: 3
+      hat_x: 4
+      hat_y: 5
+    chicken_speed: 10
+    wrist_speed: 10
+    level_min: -90
+    level_initial: 0
+    level_max: 90
+    elbow_min: -90
+    elbow_initial: 0
+    elbow_max: 90
+    wrist_min: -90
+    wrist_initial: 0
+    wrist_max: 90
+    clamp_initial: True
+
+    translate_speed: 0.2
+    rotate_speed: 1
+    deadzone: 0
+    joy_update_hz: 10
+    joy_timeout: 0.5

@@ -1,10 +1,11 @@
-.camera-viewport-td {
+.camera-viewport-div {
 }
 
 .camera-viewport-img {
-	border: 1px solid #2eb398;
-	height: 100%;
-	width: 100%;
+	border: 1px solid #137a7f;
+	height: 360px;
+	width: 480px;
+	margin: 5%;
 }
 
 .p5canvas {
@@ -27,15 +28,68 @@
 	width: 100%;
 }
 
+.joy-axis-cell {
+	padding: 5%;
+}
+.joy-axis-bar-container {
+	width: 100%;
+	height: 32px;
+	background-color: #e12885;
+}
+
+.joy-axis-bar {
+	width: 100%;
+	height: 100%;
+	background-color: #86cecb;
+	border: 1px solid #373b3e;
+}
+
+.joy-axis-label {
+	color: #373b3e;
+	font-family: "Noto Sans";
+	display: flex;
+	justify-content: center;
+}
+
+.joy-button-cell {
+	padding: 2.5%;
+}
+
+.joy-button-indicator {
+	width: 32px;
+	height: 32px;
+	background-color: #137a7f;
+	display: flex;
+	justify-content: center;
+	border: 1px solid #373b3e;
+}
+
+.joy-button-label {
+	color: #373b3e;
+	font-family: "Noto Sans";
+	display: flex;
+	justify-content: center;
+}
+
 #root {
 	height: 100vh;
 	width: 100vw;
 }
 
+#camera-viewport-table {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+#info-tabs-container {
+	height: 100%;
+	width: 100%;
+}
+
 body {
-	background: #262626;
+	background: #bec8d1;
 	border: 0px;
-	color: white;
+	color: #373b3e;
 	font-family: "Noto Sans";
 	margin: 0px;
 	padding: 0px;
