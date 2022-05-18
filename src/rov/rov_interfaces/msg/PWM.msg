@@ -1,3 +1,2 @@
-bool is_continuous_servo
 int32 channel
 float32 angle_or_throttle

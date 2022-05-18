@@ -23,11 +23,10 @@ public:
 
 private:
     void topic_callback(const rov_interfaces::msg::PWM::SharedPtr msg) {
-        if(msg->is_continuous_servo) {
-            servoDriver.setThrottle(msg->channel, msg->angle_or_throttle);
-        } else {
-            servoDriver.setAngle(msg->channel, msg->angle_or_throttle);
-        }
+    #ifndef NDEBUG
+        std::cout << "Channel " << msg->channel << " set to value " << msg->angle_or_throttle << std::endl;
+    #endif
+        servoDriver.setOutput(msg->channel, msg->angle_or_throttle);
     }
 
     void create_continuous_servo(const std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Request> request, 

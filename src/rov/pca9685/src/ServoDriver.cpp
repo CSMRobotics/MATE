@@ -1,6 +1,5 @@
 #include "ServoDriver.hpp"
 #include <iostream>
-#include <cassert>
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
     return ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
@@ -8,7 +7,9 @@ static int f2imap(float value, float from_min, float from_max, int to_min, int t
 
 ServoDriver::ServoDriver(){
     this->driver_board = PCA9685();
-    assert(("Failed to open PCA9685", this->driver_board.openPCA9685()));
+    if(!this->driver_board.openPCA9685()) {
+        throw std::runtime_error("Failed to open PCA9685");
+    }
     this->driver_board.setAllPWM(0,0);
     this->driver_board.reset();
     this->setPWMFrequency(this->driver_board_frequency);
@@ -36,7 +37,7 @@ void ServoDriver::addContinuousServo(int channel){
         new_servo.setpoint_minimum = -1.0f;
         new_servo.setpoint_maximum = 1.0f;
         this->servos[channel] = new_servo;
-        this->setPWMBounds(channel, 500, 2500);
+        this->setPWMBounds(channel, 1100, 1900);
     }
 }
 
@@ -55,19 +56,40 @@ void ServoDriver::removeContinuousServo(int channel){
 void ServoDriver::setAngle(int channel, float angle){
     if(this->isServoChannelInUse(channel)){
         Servo* working_servo = &this->servos[channel];
-	assert(("Servo angle" + std::to_string(angle) + " is not in range [" + std::to_string(working_servo->setpoint_minimum) + ", " + std::to_string(working_servo->setpoint_maximum) + "]", angle >= working_servo->setpoint_minimum && angle <= working_servo->setpoint_maximum));
+        if(!(angle >= working_servo->setpoint_minimum && angle <= working_servo->setpoint_maximum)) {
+            throw std::domain_error("Servo angle" + std::to_string(angle) + " is not in range [" + std::to_string(working_servo->setpoint_minimum) + ", " + std::to_string(working_servo->setpoint_maximum) + "]");
+        }
         working_servo->setpoint = angle;
         this->setPWM(channel, f2imap(working_servo->setpoint, working_servo->setpoint_minimum, working_servo->setpoint_maximum, working_servo->pwm_minimum, working_servo->pwm_maximum));
+    } else {
+        std::cerr << "[ERROR] Attempted to set an angle for a continuous servo" << std::endl;
     }
 }
 
 void ServoDriver::setThrottle(int channel, float throttle){
     if(this->isContinuousServoChannelInUse(channel)){
         Servo* working_servo = &this->servos[channel];
-	assert(("Servo angle " + std::to_string(throttle) + "is not in range [" + std::to_string(working_servo->setpoint_minimum) + ", " + std::to_string(working_servo->setpoint_maximum) + "]", throttle >= working_servo->setpoint_minimum && throttle <= working_servo->setpoint_maximum));
+	    if(!(throttle >= working_servo->setpoint_minimum && throttle <= working_servo->setpoint_maximum)) {
+            throw std::domain_error("Servo angle " + std::to_string(throttle) + "is not in range [" + std::to_string(working_servo->setpoint_minimum) + ", " + std::to_string(working_servo->setpoint_maximum) + "]");
+        }
         working_servo->setpoint = throttle;
         this->setPWM(channel, f2imap(working_servo->setpoint, working_servo->setpoint_minimum, working_servo->setpoint_maximum, working_servo->pwm_minimum, working_servo->pwm_maximum));
 	
+    } else {
+        std::cerr << "[ERROR] Attempted to set a throttle for a positional servo" << std::endl;
+    }
+}
+
+void ServoDriver::setOutput(int channel, float value) {
+    if(isChannelInUse(channel)) {
+        switch(servos[channel].type) {
+            case ServoType::CONTINUOUS:
+                setThrottle(channel, value);
+            break;
+            case ServoType::POSITIONAL:
+                setAngle(channel, value);
+            break;
+        }
     }
 }
 
@@ -91,13 +113,16 @@ void ServoDriver::setPWMBounds(int channel, int minimum_us, int maximum_us){
     if(this->isChannelInUse(channel)){
         Servo* working_servo = &this->servos[channel];
         float counts_per_microsecond = this->getCountsPerMicrosecond();
-	working_servo->pwm_minimum = minimum_us * counts_per_microsecond;
+	    working_servo->pwm_minimum = minimum_us * counts_per_microsecond;
         working_servo->pwm_maximum = maximum_us * counts_per_microsecond;
     }
 }
 
 void ServoDriver::setPWM(int channel, int value){
     if(this->isChannelInUse(channel)){
+        #ifndef NDEBUG
+        std::cout << "Setting channel " << channel << " to pwm " << value << std::endl;
+        #endif
         this->driver_board.setPWM(channel, 0, value);
     }
 }
@@ -107,7 +132,9 @@ void ServoDriver::setPWMFrequency(float frequency){
 }
 
 bool ServoDriver::isChannelInUse(int channel){
-    assert(("Channel number " + std::to_string(channel) + " is not in range [0, 15]", channel >= 0 && channel <= 15 ));
+    if(!(channel >= 0 && channel <= 15)) {
+        throw std::domain_error("Channel number " + std::to_string(channel) + " is not in range [0, 15]");
+    }
     return this->servos[channel].initialized;
 }
 
@@ -117,7 +144,9 @@ bool ServoDriver::isChannelNotInUse(int channel){
 
 bool ServoDriver::isServoChannelInUse(int channel){
     if(this->isChannelInUse(channel)) {
-        assert(("Channel number " + std::to_string(channel) + " is not a Servo", this->servos[channel].type == ServoType::POSITIONAL));
+        if(servos[channel].type != ServoType::POSITIONAL) {
+            throw std::logic_error("Requested servo is already initialized as continuous");
+        }
         return true;
     }else{
         return false;
@@ -126,7 +155,9 @@ bool ServoDriver::isServoChannelInUse(int channel){
 
 bool ServoDriver::isContinuousServoChannelInUse(int channel){
     if(this->isChannelInUse(channel)) {
-        assert(("Channel number " + std::to_string(channel) + " is not a Continuous Servo", this->servos[channel].type == ServoType::CONTINUOUS));
+        if(servos[channel].type != ServoType::CONTINUOUS) {
+            throw std::logic_error("Requested servo is already initialized as positional");
+        }
         return true;
     } else {
         return false;
