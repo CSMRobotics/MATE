@@ -143,7 +143,7 @@ private:
                 sensor_msgs::msg::CompressedImage msg;
                 std_msgs::msg::Header header = std_msgs::msg::Header();
                 header.set__stamp(this->now());
-                cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, image);
+                cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::RGBA8, image);
                 img_bridge.toCompressedImageMsg(msg);
                 this->image_publishers[camera]->publish(msg);
             } else { // this could probably be put into a function since its 99% repeated code, but whateva
