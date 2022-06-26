@@ -72,3 +72,6 @@ _site/
 
 # no submodule shenanigans
 src/external/
+
+# no python shenanigans
+*.pyc

@@ -37,13 +37,15 @@ public:
             RCLCPP_FATAL(this->get_logger(), "Unable to start bno055, node exiting");
             exit(1);
         }
-
+    
         bno_timer = this->create_wall_timer(100ms, std::bind(&BNO055_Node::bno_callback, this));
     }
 
 private:
     // Create and send new BNO055 Data msg
     void bno_callback() {
+        uint8_t sys, gyro, accel, mag;
+        uint8_t calib;
         auto msg = rov_interfaces::msg::BNO055Data();
         msg.accelerometer = toVectorDMSG(this->bno.getVector(Vector_Type::ACCELEROMETER));
         msg.euler = toVectorDMSG(this->bno.getVector(Vector_Type::EULER));
@@ -53,6 +55,12 @@ private:
         msg.magnetometer = toVectorDMSG(this->bno.getVector(Vector_Type::MAGNETOMETER));
         msg.orientation = toQuatDMSG(this->bno.getQuat());
         msg.temp = this->bno.getTemp();
+        this->bno.getCalibration(&sys, &gyro, &accel, &mag);
+        calib = sys;
+        calib = (calib << 2) | gyro;
+        calib = (calib << 2) | accel;
+        calib = (calib << 2) | mag;
+        msg.calibration = calib;
         this->bno_publisher->publish(msg);
     }
 

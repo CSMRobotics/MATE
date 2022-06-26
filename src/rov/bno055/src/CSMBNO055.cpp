@@ -1,5 +1,11 @@
 #include "bno055/CSMBNO055.hpp"
 
+// constants for this translation unit only
+namespace {
+    const uint8_t CHOSEN_AXIS_MAP_CONFIG = 0x06;
+    const uint8_t CHOSEN_AXIS_MAP_SIGN = 0x01;
+}
+
 /*
 * Construct new BNO055 with specified ID and at an I2C address
 */
@@ -51,6 +57,21 @@ bool BNO055::begin(BNO055_Opmode mode) {
     write8(BNO055_Registers_Page_0::PAGE_ID, 0);
 
     write8(BNO055_Registers_Page_0::SYS_TRIGGER, 0x0);
+    usleep(10000);
+
+    /*
+    * remap axes (see data sheet for specifics)
+    * z = x, y = y, x = -z
+    */
+    write8(BNO055_Registers_Page_0::AXIS_MAP_CONFIG, CHOSEN_AXIS_MAP_CONFIG);
+    usleep(10000);
+    write8(BNO055_Registers_Page_0::AXIS_MAP_SIGN, CHOSEN_AXIS_MAP_SIGN);
+    usleep(10000);
+
+    if(read8(BNO055_Registers_Page_0::AXIS_MAP_CONFIG) != CHOSEN_AXIS_MAP_CONFIG) {
+        throw std::runtime_error("Axis configuration invalid");
+    }
+
     usleep(10000);
 
     // Set requested mode
@@ -176,24 +197,24 @@ Eigen::Vector3d BNO055::getVector(Vector_Type type) {
     */
     switch(type) {
         case Vector_Type::MAGNETOMETER:
-            return rotation * Eigen::Vector3d(static_cast<double>(i) / 16.0,
+            return Eigen::Vector3d(static_cast<double>(i) / 16.0,
                                    static_cast<double>(j) / 16.0,
                                    static_cast<double>(k) / 16.0);
         break;
         case Vector_Type::GYROSCOPE:
-            return rotation * Eigen::Vector3d(static_cast<double>(i) / 900.0,
+            return Eigen::Vector3d(static_cast<double>(i) / 900.0,
                                    static_cast<double>(j) / 900.0,
                                    static_cast<double>(k) / 900.0);
         break;
         case Vector_Type::EULER:
-            return rotation * Eigen::Vector3d(static_cast<double>(i) / 16.0,
+            return Eigen::Vector3d(static_cast<double>(i) / 16.0,
                                    static_cast<double>(j) / 16.0,
                                    static_cast<double>(k) / 16.0);
         break;
         case Vector_Type::ACCELEROMETER:
         case Vector_Type::LINEARACCEL:
         case Vector_Type::GRAVITY:
-            return rotation * Eigen::Vector3d(static_cast<double>(i) / 100.0,
+            return Eigen::Vector3d(static_cast<double>(i) / 100.0,
                                    static_cast<double>(j) / 100.0,
                                    static_cast<double>(k) / 100.0);
         break;
@@ -220,7 +241,7 @@ Eigen::Quaterniond BNO055::getQuat() {
 
     // Use magic number from data sheet to convert unsigned short data to double
     const double scale = (1.0 / (1<<14));
-    return rotation * Eigen::Quaterniond(scale * w, scale * i, scale * j, scale * k);
+    return Eigen::Quaterniond(scale * w, scale * i, scale * j, scale * k);
 }
 
 /*

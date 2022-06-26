@@ -30,6 +30,7 @@ class ServoDriver{
         void removeContinuousServo(int channel);
         void setAngle(int channel, float angle);
         void setThrottle(int channel, float throttle);
+        void setOutput(int channel, float value);
         void setAngleBounds(int channel, float minimum_angle, float maximum_angle);
         void setThrottleBounds(int channel, float minimum_throttle, float maximum_throttle);
         void setPWMBounds(int channel, int minimum_us, int maximum_us);
