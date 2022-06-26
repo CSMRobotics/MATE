@@ -6,3 +6,4 @@ rov_interfaces/VectorD euler
 rov_interfaces/VectorD linearaccel
 rov_interfaces/VectorD gravity
 int8 temp
+uint8 calibration
