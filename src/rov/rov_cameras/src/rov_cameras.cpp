@@ -25,11 +25,11 @@
 using namespace std::chrono_literals;
 
 // Testing Pipeline
-// const std::string pipeline = std::string("videotestsrc ! video/x-raw,format=RGBA ! appsink");
+const std::string pipeline = std::string("v4l2src device=/dev/video0 io-mode=2 ! video/x-raw,format=YUY2,width=320,height=240,framerate=30/1 ! videoconvert ! appsink");
 
 // Release Pipeline
 // IF YOU TOUCH THIS I WILL KILL YOU
-const std::string pipeline = std::string("v4l2src device=%s io-mode=2 ! image/jpeg,framerate=30/1,width=320,height=240 ! nvv4l2decoder mjpeg=1 ! nvvidconv ! video/x-raw(memory:NVMM),format=NV12 ! nvvidconv ! video/x-raw,format=RGBA ! videoconvert ! video/x-raw,format=BGR ! videoconvert ! appsink");
+// const std::string pipeline = std::string("v4l2src device=%s io-mode=2 ! image/jpeg,framerate=30/1,width=320,height=240 ! nvv4l2decoder mjpeg=1 ! nvvidconv ! video/x-raw(memory:NVMM),format=NV12 ! nvvidconv ! video/x-raw,format=RGBA ! videoconvert ! video/x-raw,format=BGR ! videoconvert ! appsink");
 
 
 template<typename ... Args>
@@ -143,7 +143,7 @@ private:
                 sensor_msgs::msg::CompressedImage msg;
                 std_msgs::msg::Header header = std_msgs::msg::Header();
                 header.set__stamp(this->now());
-                cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::RGBA8, image);
+                cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, image);
                 img_bridge.toCompressedImageMsg(msg);
                 this->image_publishers[camera]->publish(msg);
             } else { // this could probably be put into a function since its 99% repeated code, but whateva
