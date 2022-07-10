@@ -12,50 +12,39 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /tmp
 
-# change the locale from POSIX to UTF-8
-RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-ENV LANG=en_US.UTF-8
-ENV PYTHONIOENCODING=utf-8
-
+# install essential apt commands and utility packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        apt-transport-https \
         apt-utils \
         build-essential \
-        software-properties-common \
+		ca-certificates \
+        curl \
+        file \
         git \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# 
-# add the ROS deb repo to the apt sources list
-#
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-		curl \
-		wget \
+        gnupg \
 		gnupg2 \
 		lsb-release \
-		ca-certificates \
+        software-properties-common \
+        vim \
+		wget \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
 # add apt repository for GCC/G++ compiler and debugger
-RUN add-apt-repository -y 'ppa:ubuntu-toolchain-r/test'
-RUN apt-get update
-RUN apt-get install -y gdb libssl-dev gcc-8 g++-8
+RUN add-apt-repository -y 'ppa:ubuntu-toolchain-r/test' && \
+    apt-get update && \
+    apt-get install -y gdb libssl-dev gcc-8 g++-8 && \
 # install to update alternatives for easy switching
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1
-RUN update-alternatives --set g++ /usr/bin/g++-8 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 && \
+    update-alternatives --set g++ /usr/bin/g++-8 && \
     update-alternatives --set gcc /usr/bin/gcc-8
 
 # install cmake
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz
-RUN tar -xzvf cmake-3.23.0-rc2.tar.gz
-RUN cd cmake-3.23.0-rc2 && ./bootstrap -- -DCMAKE_BUILD_TYPE=Release && \
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz && \
+    tar -xzf cmake-3.23.0-rc2.tar.gz && \
+    cd cmake-3.23.0-rc2 && ./bootstrap -- -DCMAKE_BUILD_TYPE=Release && \
     make -j 12 && \
     make install && \
     rm -rf cmake-3.23.0-rc2.tar.gz && \
@@ -63,48 +52,58 @@ RUN cd cmake-3.23.0-rc2 && ./bootstrap -- -DCMAKE_BUILD_TYPE=Release && \
 
 ### python3.8
 # add apt repository for python
-RUN add-apt-repository -y 'ppa:deadsnakes/ppa'
-RUN apt-get update
-
+RUN apt-get clean && \
+    add-apt-repository -y 'ppa:deadsnakes/ppa' && \
+    apt-get update && \
 # install dependencies
 # python3.8-dev dependencies are necessary for pip to build packages for arm64 platform
-RUN apt-get clean
-RUN apt-get update
-RUN apt-get install -y libdbus-1-3 libdbus-1-dev
-RUN apt-get install -y \
-    git python3.8 python3.8-distutils python3.8-dev
+    apt-get install -y \
+    libdbus-1-3 libdbus-1-dev \
+    python3.8 python3.8-distutils python3.8-dev && \
 # ensure python3.8 has most up to date version of pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.8 get-pip.py && \
-    rm -rf get-pip.py
-
+    rm -rf get-pip.py && \
 # set defaults
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 0 && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 0 && \
     update-alternatives --set python3 /usr/bin/python3.8
 
-# Dependency for colcon
+# change the locale from POSIX to UTF-8 (ROS dependency)
+RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+
+# 
+# add the ROS deb repo to the apt sources list
+#
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+## Dependency for colcon
 # Do these separated because wheel and setuptools appear to be funky dependencies for evdev and Jetson.GPIO
 RUN python3 -m pip install --upgrade setuptools wheel distlib
 # fix numpy illegal instruction due to compiler-reordered code https://github.com/numpy/numpy/issues/18131
-RUN export OPENBLAS_CORETYPE=ARMV8
-RUN python3 -m pip install numpy==1.19.4 Jetson.GPIO dbus-next
+RUN export OPENBLAS_CORETYPE=ARMV8 && \
+    python3 -m pip install numpy==1.19.4 Jetson.GPIO dbus-next
 
 # some colcon apt dependencies
-RUN apt-get install -y \
-    python3-colcon-common-extensions \
-    python3-flake8 \
-    python3-pip \
-    python3-numpy \
-    python3-pytest-cov \
-    python3-rosdep \
-    python3-setuptools \
-    python3-vcstool \
-    python3-rosinstall-generator \
-    libbullet-dev \
-    libasio-dev \
-    libtinyxml2-dev \
-    libcunit1-dev
-
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3-colcon-common-extensions \
+        python3-flake8 \
+        python3-pip \
+        python3-numpy \
+        python3-pytest-cov \
+        python3-rosdep \
+        python3-setuptools \
+        python3-vcstool \
+        python3-rosinstall-generator \
+        libbullet-dev \
+        libasio-dev \
+        libtinyxml2-dev \
+        libcunit1-dev && \
+    rm -rf /var/lib/apt/lists/* \
+    apt-get clean
 # install some pip packages needed for testing
 RUN python3 -m pip install -U \
     argcomplete \
@@ -123,7 +122,9 @@ RUN python3 -m pip install -U \
 
 ### opencv
 # install gstreamer
-RUN apt-get install -y libgstreamer1.0-0 \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgstreamer1.0-0 \
     libgstreamer1.0-0-dbg \
     libgstreamer1.0-dev \
     libgstreamer-plugins-bad1.0-0 \
@@ -133,10 +134,10 @@ RUN apt-get install -y libgstreamer1.0-0 \
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
     libgtk-3-dev \
-    gstreamer1.0-x
+    gstreamer1.0-x && \
 # install v4l2
-RUN apt-get install -y libv4l-dev v4l-utils
-RUN apt-get install -y libopenjp2-7 \
+    apt-get install -y libv4l-dev v4l-utils && \
+    apt-get install -y libopenjp2-7 \
     libopenjp2-7-dev \
     libglew-dev \
     libtiff5-dev \
@@ -159,70 +160,63 @@ RUN apt-get install -y libopenjp2-7 \
     libtesseract4 \
     unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-# we need gcc 8 to build for cuda 10.2
-RUN update-alternatives --set g++ /usr/bin/g++-8 && \
-    update-alternatives --set gcc /usr/bin/gcc-8
-RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.5.1.zip && \
+    && apt-get clean && \
+# we need gcc 8 to build for cuda 10.2 (maximum supported compiler)
+    update-alternatives --set g++ /usr/bin/g++-8 && \
+    update-alternatives --set gcc /usr/bin/gcc-8 && \
+    wget -O opencv.zip https://github.com/opencv/opencv/archive/4.5.1.zip && \
     wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.5.1.zip && \
     unzip opencv.zip && \
     unzip opencv_contrib.zip && \
-    mkdir -p build
-RUN rm -rf opencv.zip && \
-    rm -rf opencv_contrib.zip
+    mkdir -p build && \
+    rm -rf opencv.zip && \
+    rm -rf opencv_contrib.zip && \
 # see https://forums.developer.nvidia.com/t/cudnn-8-0-of-jp4-4p-recognized-under-7-5-version-by-opencv4-2-and-4-3/128167
-RUN sed -i 's/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn.h" CUDNN_H_CONTENTS)/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn_version.h" CUDNN_H_CONTENTS)/' opencv-4.5.1/cmake/FindCUDNN.cmake
-RUN export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-RUN export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
-
-RUN cd build && \
+    sed -i 's/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn.h" CUDNN_H_CONTENTS)/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn_version.h" CUDNN_H_CONTENTS)/' opencv-4.5.1/cmake/FindCUDNN.cmake && \
+    export PATH=/usr/local/cuda/bin${PATH:+:${PATH}} && \
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH} && \
+# build it
+    cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
-    -D CMAKE_INSTALL_PREFIX=/usr \
-    -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib-4.5.1/modules \
-    -D EIGEN_INCLUDE_PATH=/usr/include/eigen3 \
-    -D WITH_OPENCL=OFF \
-    -D WITH_CUDA=ON \
-    -D CUDA_ARCH_BIN=5.3 \
-    -D CUDA_ARCH_PTX="" \
-    -D WITH_CUDNN=ON \
-    -D WITH_CUBLAS=ON \
-    -D ENABLE_FAST_MATH=ON \
-    -D CUDA_FAST_MATH=ON \
-    -D OPENCV_DNN_CUDA=ON \
-    -D ENABLE_NEON=ON \
-    -D WITH_QT=OFF \
-    -D WITH_OPENMP=ON \
-    -D WITH_OPENGL=ON \
-    -D BUILD_TIFF=ON \
-    -D WITH_FFMPEG=ON \
-    -D WITH_GSTREAMER=ON \
-    -D WITH_TBB=ON \
-    -D BUILD_TBB=ON \
-    -D BUILD_TESTS=OFF \
-    -D WITH_EIGEN=ON \
-    -D WITH_V4L=ON \
-    -D WITH_LIBV4L=ON \
-    -D OPENCV_ENABLE_NONFREE=ON \
-    -D INSTALL_C_EXAMPLES=OFF \
-    -D INSTALL_PYTHON_EXAMPLES=OFF \
-    -D BUILD_NEW_PYTHON_SUPPORT=ON \
-    -D BUILD_opencv_python3=TRUE \
-    -D OPENCV_GENERATE_PKGCONFIG=ON \
-    -D BUILD_EXAMPLES=OFF ../opencv-4.5.1
-RUN cd build && \
-    make -j 12 && \
+        -D CMAKE_INSTALL_PREFIX=/usr \
+        -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib-4.5.1/modules \
+        -D EIGEN_INCLUDE_PATH=/usr/include/eigen3 \
+        -D WITH_OPENCL=OFF \
+        -D WITH_CUDA=ON \
+        -D CUDA_ARCH_BIN=5.3 \
+        -D CUDA_ARCH_PTX="" \
+        -D WITH_CUDNN=ON \
+        -D WITH_CUBLAS=ON \
+        -D ENABLE_FAST_MATH=ON \
+        -D CUDA_FAST_MATH=ON \
+        -D OPENCV_DNN_CUDA=ON \
+        -D ENABLE_NEON=ON \
+        -D WITH_QT=OFF \
+        -D WITH_OPENMP=ON \
+        -D WITH_OPENGL=ON \
+        -D BUILD_TIFF=ON \
+        -D WITH_FFMPEG=ON \
+        -D WITH_GSTREAMER=ON \
+        -D WITH_TBB=ON \
+        -D BUILD_TBB=ON \
+        -D BUILD_TESTS=OFF \
+        -D WITH_EIGEN=ON \
+        -D WITH_V4L=ON \
+        -D WITH_LIBV4L=ON \
+        -D OPENCV_ENABLE_NONFREE=ON \
+        -D INSTALL_C_EXAMPLES=OFF \
+        -D INSTALL_PYTHON_EXAMPLES=OFF \
+        -D BUILD_NEW_PYTHON_SUPPORT=ON \
+        -D BUILD_opencv_python3=TRUE \
+        -D OPENCV_GENERATE_PKGCONFIG=ON \
+        -D BUILD_EXAMPLES=OFF ../opencv-4.5.1 && \
+    make -j 9 && \
     make install && \
-    cd .. && rm -rf build
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        software-properties-common \
-        apt-transport-https \
-        ca-certificates \
-        gnupg \
-        lsb-release \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# clean up, clean up, everybody everywhere
+    cd .. && \
+    rm -rf build \
+    opencv-4.5.1 \
+    opencv_contrib-4.5.1
 
 ###yaml-cpp
 ## compile yaml-cpp-0.6, which some ROS packages may use (but is not in the 18.04 apt repo)
@@ -237,8 +231,8 @@ RUN git clone --branch yaml-cpp-0.6.0 https://github.com/jbeder/yaml-cpp yaml-cp
 
 ### ROS
 # download/build ROS from source
-RUN python3 -m pip install distro
-RUN mkdir -p ${ROS_ROOT}/src && \
+RUN python3 -m pip install distro && \
+    mkdir -p ${ROS_ROOT}/src && \
     cd ${ROS_ROOT} && \
     # https://answers.ros.org/question/325245/minimal-ros2-installation/?answer=325249#post-id-325249
     rosinstall_generator --deps --rosdistro ${ROS_DISTRO} ${ROS_PKG} \
@@ -319,16 +313,6 @@ RUN sed -i \
     cat /ros_entrypoint.sh
 
 RUN echo 'source ${ROS_ROOT}/install/setup.bash' >> /root/.bashrc
-
-
-# clean up because i forgot to do it earlier and dont want to rebuild the entire image :(
-RUN rm -rf \
-    cmake-3.23.0-rc2 \
-    cmake-3.23.0-rc2.tar.gz \
-    opencv-4.5.1 \
-    opencv_contrib-4.5.1 \
-    yaml-cpp-0.6
-    
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
