@@ -9,6 +9,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 #include "rov_interfaces/msg/bno055_data.hpp"
 #include "rov_interfaces/msg/thruster_setpoints.hpp"
@@ -52,7 +53,7 @@ public:
             thruster_geometry.col(i) << temp[i];
         }
         
-        // compute the pseudo inverse of the thruster geometry
+        // compute the penrose pseudo inverse of the thruster geometry
         this->thruster_geometry_pseudo_inverse = this->thruster_geometry.transpose() * (this->thruster_geometry*this->thruster_geometry.transpose()).inverse();
         this->thruster_coefficient_matrix.diagonal() << 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0; // thrusters are identical T200s running at ~12V
         this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix * this->thruster_geometry_pseudo_inverse;
@@ -63,6 +64,7 @@ public:
         // create ros subscriptions and publishers
         thruster_setpoint_subscription = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::setpoint_callback, this, std::placeholders::_1));
         bno_data_subscription = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
+        estop_subscription = this->create_subscription<std_msgs::msg::Bool>("estop", 10, std::bind(&FlightController::stop, this, std::placeholders::_1));
         
         _publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
@@ -73,6 +75,36 @@ public:
         pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), std::bind(&FlightController::updateSimple, this));
 #endif
     }
+
+    // e-stop
+    void stop([[maybe_unused]] const std_msgs::msg::Bool::SharedPtr estop_data) {
+        // stop the update loops
+        {
+            std::lock_guard<std::mutex>(this->running);
+            shouldBeRunning = false;
+        }
+
+        // wait 10 ms to ensure update loop PWM values are not being published
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // publish zerod PWM values
+        for(int i = 0; i < NUM_THRUSTERS; i++) {
+            rov_interfaces::msg::PWM msg;
+            msg.angle_or_throttle = 0.0f;
+            msg.channel = thruster_index_to_PWM_pin.at(i);
+            _publisher->publish(msg);
+        }
+    }
+
+    // does not need to be called after construction unless node has been stopped with stop()
+    void start() {
+        // stop the update loops
+        {
+            std::lock_guard<std::mutex>(this->running);
+            shouldBeRunning = false;
+        }
+    }
+
 private:
     void registerThrusters() {
         // create service client
@@ -129,14 +161,19 @@ private:
     }
 
     void updateSimple() {
+        // Allow for E-Stop with node still running
+        {
+            std::lock_guard<std::mutex>(this->running);
+            if(!this->shouldBeRunning) return;
+        }
+
         // this is direct mapping from velocities to output force
-        // warning: no proportional controller; might be unweildy to use
-        Eigen::Matrix<double, 6, 1> desired_throttles;
-        desired_throttles << translation_setpoints, attitude_setpoints;
+        // warning: no proportional controller; might be unwieldy to use
+        Eigen::Matrix<double, 6, 1> forcesAndTorques;
+        forcesAndTorques << translation_setpoints, attitude_setpoints; // TODO: check format of these messages to ensure operability
 
         // scale thrusters to account for large thrust demands on a single thruster
-        // TODO: implement
-        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles;
+        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = control_allocation(forcesAndTorques);
 
         // publish PWM values
         for(int i = 0; i < NUM_THRUSTERS; i++) {
@@ -148,6 +185,12 @@ private:
     }
 
     void update() {
+        // Allow for E-Stop with node still running
+        {
+            std::lock_guard<std::mutex>(this->running);
+            if(!this->shouldBeRunning) return;
+        }
+
         Eigen::Vector3d desired_force;
         Eigen::Vector3d desired_torque;
 
@@ -226,7 +269,7 @@ private:
 
         // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
         // while scaling thrusters to account for large thrust demands on a single thruster
-        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = thrust2throttle((this->thruster_coefficient_matrix_times_geometry) * forcesAndTorques);
+        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = control_allocation(forcesAndTorques);
 
         // publish PWM values
         for(int i = 0; i < NUM_THRUSTERS; i++) {
@@ -237,7 +280,8 @@ private:
         }
     }
 
-    Eigen::Matrix<double,NUM_THRUSTERS,1> thrust2throttle(Eigen::Matrix<double, NUM_THRUSTERS, 1> thrust) {
+    Eigen::Matrix<double,NUM_THRUSTERS,1> control_allocation(Eigen::Matrix<double, 6, 1> forcesAndTorques) {
+        Eigen::Matrix<double, NUM_THRUSTERS, 1> thrust  = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
         Eigen::Index loc;
         thrust.minCoeff(&loc);
         double ratioA = std::abs(MIN_THRUST_VALUE / std::min(thrust(loc), MIN_THRUST_VALUE));
@@ -250,6 +294,8 @@ private:
         }
 
         // inverse thrust function
+        // desired thrust -> required throttle using T200 data from Blue Robotics
+        //      TODO: in house testing for more accurate curves with our power supply?
         Eigen::Matrix<double,NUM_THRUSTERS,1> toret;
         for(int i = 0; i < NUM_THRUSTERS; i++) {
             if(thrust(i,0) < MIN_THROTTLE_CUTOFF) {
@@ -266,6 +312,8 @@ private:
         return toret;
     }
 
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr estop_subscription;
+
     rclcpp::Subscription<rov_interfaces::msg::ThrusterSetpoints>::SharedPtr thruster_setpoint_subscription;
     rclcpp::Subscription<rov_interfaces::msg::BNO055Data>::SharedPtr bno_data_subscription;
     rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr _publisher;
@@ -278,9 +326,11 @@ private:
 
     rov_interfaces::msg::BNO055Data bno_data;
     std::mutex bno_mutex;
+
     Eigen::Vector3d translation_setpoints = Eigen::Vector3d(3,1);
     Eigen::Vector3d attitude_setpoints = Eigen::Vector3d(3,1);
     std::mutex setpoint_mutex;
+
     Eigen::Quaterniond quaternion_reference;
     Eigen::Vector3d linear_accel_last;
     Eigen::Vector3d linear_integral;
@@ -293,6 +343,9 @@ private:
     Eigen::DiagonalMatrix<double, NUM_THRUSTERS> thruster_coefficient_matrix;
     Eigen::Matrix<double, NUM_THRUSTERS, 6> thruster_coefficient_matrix_times_geometry;
     std::unordered_map<int, int> thruster_index_to_PWM_pin;
+
+    bool shouldBeRunning = true;
+    std::mutex running;
 
     double Pq = 1.0, Pw = 1.0; // TODO: tune these gain constants
     double kp = 1.0, ki = 1.0, kd = 1.0;
