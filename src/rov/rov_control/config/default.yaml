@@ -32,8 +32,6 @@ rov_control:
     wrist_max: 90
     clamp_initial: True
 
-    translate_speed: 0.2
-    rotate_speed: 1
     deadzone: 0
     joy_update_hz: 10
     joy_timeout: 0.5
