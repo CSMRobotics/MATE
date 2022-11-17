@@ -1,69 +1,14 @@
-from fnmatch import translate
-from typing import Dict
 import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Bool
-from sensor_msgs.msg import Joy
+from rov.rov_control.rov_control.JoySubscriber import JoySubscriber
+from JoySubscriber import ParsedJoy
 from rov_interfaces.msg import ManipulatorSetpoints, ThrusterSetpoints
 from transitions import Machine
 from std_msgs.msg import String
 
 from enum import Enum
-
-
-class Buttons:
-    def __init__(self):
-        self.trigger = False
-        self.thumb = False
-        self.button_3 = False
-        self.button_4 = False
-        self.button_5 = False
-        self.button_6 = False
-        self.button_7 = False
-        self.button_8 = False
-        self.button_9 = False
-        self.button_10 = False
-        self.button_11 = False
-        self.button_12 = False
-        self.hat_up = False
-        self.hat_down = False
-        self.hat_left = False
-        self.hat_right = False
-
-
-class ParsedJoy(Buttons):
-    def __init__(self, msg: Joy, mapping: Dict[str, str], deadzone: float = 0):
-        super().__init__()
-        self.trigger = bool(msg.buttons[mapping["trigger"]])
-        self.thumb = bool(msg.buttons[mapping["thumb"]])
-        self.button_3 = bool(msg.buttons[mapping["button_3"]])
-        self.button_4 = bool(msg.buttons[mapping["button_4"]])
-        self.button_5 = bool(msg.buttons[mapping["button_5"]])
-        self.button_6 = bool(msg.buttons[mapping["button_6"]])
-        self.button_7 = bool(msg.buttons[mapping["button_7"]])
-        self.button_8 = bool(msg.buttons[mapping["button_8"]])
-        self.button_9 = bool(msg.buttons[mapping["button_9"]])
-        self.button_10 = bool(msg.buttons[mapping["button_10"]])
-        self.button_11 = bool(msg.buttons[mapping["button_11"]])
-        self.button_12 = bool(msg.buttons[mapping["button_12"]])
-        # Parse the button pushes for the dpad
-        self.hat_up = msg.axes[mapping["hat_y"]] > 0
-        self.hat_down = msg.axes[mapping["hat_y"]] < 0
-        self.hat_left = msg.axes[mapping["hat_x"]] < 0
-        self.hat_right = msg.axes[mapping["hat_x"]] > 0
-        self.roll = self.deadzone(msg.axes[mapping["roll"]], deadzone)
-        self.pitch = self.deadzone(msg.axes[mapping["pitch"]], deadzone)
-        self.yaw = self.deadzone(msg.axes[mapping["yaw"]], deadzone)
-        self.throttle = self.deadzone(msg.axes[mapping["throttle"]], deadzone)
-        self.hat_x = self.deadzone(msg.axes[mapping["hat_x"]], deadzone)
-        self.hat_y = self.deadzone(msg.axes[mapping["hat_y"]], deadzone)
-
-    def deadzone(self, value, deadzone):
-        if abs(value) < deadzone:
-            return 0
-        else:
-            return value
 
 
 class States(Enum):
@@ -91,9 +36,7 @@ class ROV_Control(Node):
         )
         self.last_joy_time = 0
         self.last_update_time = 0
-        self.toggled_buttons = Buttons()
-        self.last_joy = None
-        self.joy_subscription = self.create_subscription(Joy, "joy", self.joystick_callback, 2)
+        self.joy_subscriber = JoySubscriber(self, self.mapping, 0.02)
         self.create_timer(1 / self.get_parameter("joy_update_hz").value, self.joy_update)
         self.manipulator_setpoint_pub = self.create_publisher(ManipulatorSetpoints, "manipulator_setpoints", 2)
         self.thruster_setpoint_pub = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 2)
@@ -114,40 +57,15 @@ class ROV_Control(Node):
     def now_seconds(self):
         return self.get_clock().now().nanoseconds / 1000000000.0
 
-    def joystick_callback(self, msg: Joy):
-        # self.joystick = ParsedJoy(msg)
-        joystick = ParsedJoy(msg, self.mapping, deadzone=self.get_parameter("deadzone").value)
-
-        for button in dir(self.toggled_buttons):
-            # Here, we raise our middle fingers to the Python gods in our
-            # religious pursuit of avoiding code duplication, and pray that
-            # their retribution is mild
-            if button[0] == "_":
-                continue
-            # Set this button to "Toggled" if
-            # A) it's pushed now and
-            # B) it wasn't pushed before
-            if getattr(joystick, button) and not getattr(self.last_joy, button):
-                setattr(self.toggled_buttons, button, True)
-
-        # self.current_joy = msg
-        self.last_joy_time = self.now_seconds()
-        self.last_joy = joystick
-
     def joy_update(self):
-        if not self.last_joy:
+        if self.joy_subscriber.joy_timeout(self.get_parameter("joy_timeout").value):
             return
-
-        current_sec = self.now_seconds()
-        if self.last_joy_time == 0 or (current_sec - self.last_joy_time) > self.get_parameter("joy_timeout").value:
-            return
-        delta_time = min(current_sec - self.last_update_time, 0.2)
-
-        # joystick = ParsedJoy(self.current_joy, self.mapping, self.last_joy, )
-        joystick = self.last_joy
+        delta_time = self.joy_subscriber.delta_time()
+        joystick = self.joy_subscriber.latest_joy
+        toggled_buttons = self.joy_subscriber.toggled_buttons
 
         # if mode switch button has been pressed, toggle the mode if you are in teleop
-        if self.state in [States.teleop_manip, States.teleop_drive] and self.toggled_buttons.button_8:
+        if self.state in [States.teleop_manip, States.teleop_drive] and toggled_buttons.button_8:
             self.teleop_mode_switch()
 
         # update teleop modes
@@ -158,14 +76,14 @@ class ROV_Control(Node):
             self.do_thrust_setpoint_update(joystick)
             self.manipulator_setpoint_pub.publish(self.last_manip)
 
-        self.last_joy_time = current_sec
-        self.last_joy = joystick
-        self.toggled_buttons = Buttons()
-
     def param_clamp(self, value, name):
         return min(max(value, float(self.get_parameter(name + "_min").value)), float(self.get_parameter(name + "_max").value))
 
     def do_manip_setpoint_update(self, joystick: ParsedJoy, delta_time: float):
+        # NOTE: As of 10/19/22, we're looking into redoing the manipulator, so this is probably useless
+        # ALSO TODO: Since we changed the control organization a little so that most logic related to thrust is done in the flight_controller,
+        # ... we should also move all logic related to manipulation into the manipulator node, and only send raw joystick values (meaning [-1, 1])
+        # Also TODO: When doing that last thing don't forget to change estop handling to match. (look below)
         manip_setpoints = self.last_manip
         chicken_speed = self.get_parameter("chicken_speed").value
         manip_setpoints.elbow += joystick.pitch * chicken_speed * delta_time
@@ -188,20 +106,19 @@ class ROV_Control(Node):
         self.last_manip = manip_setpoints
 
     def do_thrust_setpoint_update(self, joystick: ParsedJoy):
+        # All values default to zero
         thrust_setpoints = ThrusterSetpoints()
-        translate_speed = self.get_parameter("translate_speed").value
-        rotate_speed = self.get_parameter("rotate_speed").value
 
         if joystick.thumb:
             # Rotation mode
-            thrust_setpoints.omegax = -joystick.pitch * rotate_speed
-            thrust_setpoints.omegay = -joystick.roll * rotate_speed
-            thrust_setpoints.omegaz = -joystick.yaw * rotate_speed
+            thrust_setpoints.omegax = -joystick.pitch
+            thrust_setpoints.omegay = -joystick.roll
+            thrust_setpoints.omegaz = -joystick.yaw
         else:
             # Translation mode
-            thrust_setpoints.vx = -joystick.roll * translate_speed
-            thrust_setpoints.vy = joystick.pitch * translate_speed
-            thrust_setpoints.vz = joystick.throttle * translate_speed
+            thrust_setpoints.vx = -joystick.roll
+            thrust_setpoints.vy = joystick.pitch
+            thrust_setpoints.vz = joystick.throttle
 
         self.thruster_setpoint_pub.publish(thrust_setpoints)
 
@@ -211,13 +128,20 @@ class ROV_Control(Node):
         else:
             self.estop_normal()
 
+    def stop_all_motors(self):
+        self.thruster_setpoint_pub.publish(ThrusterSetpoints())  # All values will default to zero
+        # Manipulator values are position-based, so we just stop writing new values to cause it to stop
+        # "Not writing new values" is accomplished by changing state, which has already happened now that we've entered 'paused'
+
     def on_enter_paused(self):
         # Stop motors and all that
+        self.stop_all_motors()
         self.get_logger().warn("ROV_Control has entered the paused state")
         pass
 
     def on_enter_shutdown(self):
         # The sky is falling and we're all going to die
+        self.stop_all_motors()
         self.get_logger().fatal("ROV_Control has entered emergency shutdown")
         pass
 
