@@ -19,23 +19,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# do we build with or without PID?
-if(${PID})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PID=true")
-  message(WARNING "Compiling with PID")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PID=false")
-  message(WARNING "Compiling without PID")
-endif()
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(std_srvs REQUIRED)
 
-add_executable(flight_controller src/flight_controller.cpp src/Thruster.cpp)
+add_executable(flight_controller src/flight_controller.cpp)
 target_include_directories(flight_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -44,6 +36,7 @@ ament_target_dependencies(
   "rov_interfaces"
   "rclcpp"
   "message_filters"
+  "std_srvs"
 )
 
 target_link_libraries(flight_controller Eigen3::Eigen)

@@ -2,51 +2,63 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <functional>
 #include <memory>
+#include <sstream>
 
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
+#include <std_srvs/srv/empty.hpp>
 
+#include "flight_controller/Thruster.hpp"
 #include "rov_interfaces/msg/bno055_data.hpp"
 #include "rov_interfaces/msg/thruster_setpoints.hpp"
 #include "rov_interfaces/msg/pwm.hpp"
 #include "rov_interfaces/srv/create_continuous_servo.hpp"
 
-#include "flight_controller/Thruster.hpp"
-
 #define NUM_THRUSTERS 8
 
-#define MIN_THRUST_VALUE -28.44
-#define MAX_THRUST_VALUE 36.4
-#define MIN_THROTTLE_CUTOFF -0.3
-#define MAX_THROTTLE_CUTOFF 0.4
+namespace {
+void declare_params(rclcpp::Node* node) {
+    std::stringstream ss;
+    std::string s;
+    for(int i = 0; i < 8; i++) {
+        ss.clear();
+        ss << "Thruster";
+        ss << i;
+        node->declare_parameter(ss.str());
+    }
+}
+}
 
 class FlightController : public rclcpp::Node {
 public:
     FlightController() : Node(std::string("flight_controller")) {
-        // define thrusters TODO: replace with a config file? (temp values atm)
-        float x = sqrt(2)/2;
-        thrusters[0] = Thruster(Eigen::Vector3d(1,    1,    0),  Eigen::Vector3d( 0,  0,  1), 0);
-        thrusters[1] = Thruster(Eigen::Vector3d(1,   -1,    0),  Eigen::Vector3d( 0,  0,  1), 1);
-        thrusters[2] = Thruster(Eigen::Vector3d(1,   -0.5,  0),  Eigen::Vector3d( x,  x,  0), 2);
-        thrusters[3] = Thruster(Eigen::Vector3d(1,    0.5,  0),  Eigen::Vector3d( x, -x,  0), 3);
-        thrusters[4] = Thruster(Eigen::Vector3d(-1,   1,    0),  Eigen::Vector3d( 0,  0,  1), 12);
-        thrusters[5] = Thruster(Eigen::Vector3d(-1,  -1,    0),  Eigen::Vector3d( 0,  0,  1), 13);
-        thrusters[6] = Thruster(Eigen::Vector3d(-1,  -0.5,  0),  Eigen::Vector3d(-x,  x,  0), 14);
-        thrusters[7] = Thruster(Eigen::Vector3d(-1,   0.5,  0),  Eigen::Vector3d(-x, -x,  0), 15);
+        declare_params(this);
 
+        std::stringstream ss;
         std::array<Eigen::VectorXd, NUM_THRUSTERS> temp;
         for(int i = 0; i < NUM_THRUSTERS; i++) {
-            Thruster t = thrusters[i];
+            ss.clear();
+            ss << "Thruster" << i << "\\";
+            // Construct internal thruster data type from ROS parameter
+            Thruster t = {
+                Eigen::Vector3d(this->get_parameter(ss.str()+"Position").as_double_array().data()),
+                Eigen::Vector3d(this->get_parameter(ss.str()+"Thrust").as_double_array().data()),
+                this->get_parameter(ss.str()+"Pin").as_int()
+            };
+            thrusters[i] = t;
             // calculate linear and rotation contribution
             Eigen::Vector3d linear_contribution(t.thrust * MAX_THRUST_VALUE);
             Eigen::Vector3d rotation_contribution(t.position.cross(t.thrust * MAX_THRUST_VALUE));
+
+            // add the PWM pin to the thruster index map
             this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
 
-            // concatenate them
+            // add the thruster's geometry to the thruster geometry matrix
             temp[i] = Eigen::VectorXd(6);
             temp[i] << linear_contribution, rotation_contribution;
             thruster_geometry.col(i) << temp[i];
@@ -66,12 +78,14 @@ public:
         
         _publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
-        // about 60 hz update rate
-#if(USE_PID == true)
-        pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), std::bind(&FlightController::update, this));
-#else
-        pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), std::bind(&FlightController::updateSimple, this));
-#endif
+        // about 60 hz update rate FIXME: make this dynamically choosable through a service :)
+        pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), FlightController::_update);
+// #if(USE_PID == true)
+//         pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), std::bind(&FlightController::updatePID, this));
+// #else
+//         pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), std::bind(&FlightController::updateSimple, this));
+// #endif
+        toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", std::bind(&FlightController::toggle_PID, this, std::placeholders::_1, std::placeholders::_2));
     }
 private:
     void registerThrusters() {
@@ -81,7 +95,14 @@ private:
         for(int i=0; i < NUM_THRUSTERS; i++) {
             // create continuous servo creation requests on channels 0 -> NUM_THRUSTERS
             auto req = std::make_shared<rov_interfaces::srv::CreateContinuousServo_Request>();
-            req->channel = i;
+            try {
+                req->channel = thruster_index_to_PWM_pin.at(i);
+            } catch (std::out_of_range const& e) {
+                constexpr size_t LENGTH = 34 + NUM_THRUSTERS;
+                char s[LENGTH];
+                sprintf(s, "%i not found in thruster PWM pin map", i);
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Thruster pin");
+            }
             // ensure service is not busy
             while(!pca9685->wait_for_service(std::chrono::milliseconds(100))) {
                 if (!rclcpp::ok()) {
@@ -103,7 +124,7 @@ private:
                 if(res->result) {
                     RCLCPP_INFO(this->get_logger(), "Successfully registered continuous servo on channel %i", res->channel);
                 } else {
-                    RCLCPP_ERROR(this->get_logger(), "Unsuccessfully registered continuous servo on channel %i", res->channel);
+                    RCLCPP_ERROR(this->get_logger(), "Could not register continuous servo on channel %i", res->channel);
                 }
             } else {
                 i--;
@@ -112,15 +133,27 @@ private:
         }
     }
 
+    void toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, 
+            std_srvs::srv::Empty_Response::SharedPtr response) {
+        typedef void (fntype)(void);
+        fntype** ptr = _update.target<fntype*>();
+        if(ptr == nullptr) {
+            RCLCPP_ERROR(this->get_logger(), "Flight Controller update target is nullptr");
+            return;
+        } else {
+            std::swap(_update, _update2);
+        }
+    }
+
     void setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
         std::lock_guard<std::mutex>(this->setpoint_mutex);
         std::lock_guard<std::mutex>(this->stall_mutex);
-        translation_setpoints(0,0) = setpoints->vx;
-        translation_setpoints(1,0) = setpoints->vy;
-        translation_setpoints(2,0) = setpoints->vz;
-        attitude_setpoints(0,0) = setpoints->omegax;
-        attitude_setpoints(1,0) = setpoints->omegay;
-        attitude_setpoints(2,0) = setpoints->omegaz;
+        translation_setpoints(0,0) = setpoints->vx; // [-1,1]
+        translation_setpoints(1,0) = setpoints->vy; // ^
+        translation_setpoints(2,0) = setpoints->vz; // ^
+        attitude_setpoints(0,0) = setpoints->omegax; // [-1,1]
+        attitude_setpoints(1,0) = setpoints->omegay; // ^
+        attitude_setpoints(2,0) = setpoints->omegaz; // ^
     }
 
     void bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data) {
@@ -128,26 +161,42 @@ private:
         this->bno_data = *bno_data.get();
     }
 
-    void updateSimple() {
-        // this is direct mapping from velocities to output force
-        // warning: no proportional controller; might be unweildy to use
-        Eigen::Matrix<double, 6, 1> desired_throttles;
-        desired_throttles << translation_setpoints, attitude_setpoints;
-
-        // scale thrusters to account for large thrust demands on a single thruster
-        // TODO: implement
-        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles;
-
-        // publish PWM values
-        for(int i = 0; i < NUM_THRUSTERS; i++) {
-            rov_interfaces::msg::PWM msg;
-            msg.angle_or_throttle = static_cast<float>(throttles(i,0)); // this is a source of noise in output signals, may cause system instability??
-            msg.channel = thruster_index_to_PWM_pin.at(i);
-            _publisher->publish(msg);
-        }
+    Eigen::Vector3d map1(Eigen::Vector3d joystick_vals, float MAX_THRUST = MAX_THRUST_VALUE, float MIN_THRUST = MIN_THRUST_VALUE) {
+        auto temp = (((MAX_THRUST - MIN_THRUST) / (2)) * Eigen::Vector3d(joystick_vals.x() + 1, joystick_vals.y() + 1, joystick_vals.z() + 1));
+        return Eigen::Vector3d(temp.x() + MIN_THRUST, temp.y() + MIN_THRUST, temp.z() + MIN_THRUST);
     }
 
-    void update() {
+    Eigen::Vector3d map2(Eigen::Vector3d joystick_vals, float MAX_VELOCITY = MAX_VELOCITY_VALUE, float MIN_VELOCITY = MIN_VELOCITY_VALUE) {
+        auto temp = (((MAX_VELOCITY - MIN_VELOCITY) / (2)) * Eigen::Vector3d(joystick_vals.x() + 1, joystick_vals.y() + 1, joystick_vals.z() + 1));
+        return Eigen::Vector3d(temp.x() + MIN_VELOCITY, temp.y() + MIN_VELOCITY, temp.z() + MIN_VELOCITY);
+    }
+
+    Eigen::Vector3d map3(Eigen::Vector3d joystick_vals, float MAX_OMEGA = MAX_OMEGA_VALUE, float MIN_OMEGA = MIN_OMEGA_VALUE) {
+        auto temp = (((MAX_OMEGA- MIN_OMEGA) / (2)) * Eigen::Vector3d(joystick_vals.x() + 1, joystick_vals.y() + 1, joystick_vals.z() + 1));
+        return Eigen::Vector3d(temp.x() + MIN_OMEGA, temp.y() + MIN_OMEGA, temp.z() + MIN_OMEGA);
+    }
+
+    // TODO: Implement eqs on photo
+    void updateSimple() {
+        Eigen::Matrix<double, NUM_THRUSTERS, 1> thrust_and_torque = Eigen::Matrix<double, NUM_THRUSTERS, 1>::Zero();
+        for(int i = 0; i < NUM_THRUSTERS; i++) {
+            //FIXME: eq on photo how?
+
+        }
+
+        //TODO:fix
+        // Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = thrust2throttle(thrust_and_torque);
+
+        // // publish PWM values
+        // for(int i = 0; i < NUM_THRUSTERS; i++) {
+        //     rov_interfaces::msg::PWM msg;
+        //     msg.angle_or_throttle = static_cast<float>(throttles(i,0)); // this is a source of noise in output signals, may cause system instability??
+        //     msg.channel = thruster_index_to_PWM_pin.at(i);
+        //     _publisher->publish(msg);
+        // }
+    }
+
+    void updatePID() {
         Eigen::Vector3d desired_force;
         Eigen::Vector3d desired_torque;
 
@@ -224,51 +273,40 @@ private:
         Eigen::Matrix<double, 6, 1> forcesAndTorques;
         forcesAndTorques << desired_force, desired_torque;
 
+        //TODO:fix
         // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
         // while scaling thrusters to account for large thrust demands on a single thruster
-        Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = thrust2throttle((this->thruster_coefficient_matrix_times_geometry) * forcesAndTorques);
+        // Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = thrust2throttle((this->thruster_coefficient_matrix_times_geometry) * forcesAndTorques);
 
-        // publish PWM values
-        for(int i = 0; i < NUM_THRUSTERS; i++) {
-            rov_interfaces::msg::PWM msg;
-            msg.angle_or_throttle = static_cast<float>(throttles(i,0)); // this is a source of noise in output signals, may cause system instability??
-            msg.channel = thruster_index_to_PWM_pin.at(i);
-            _publisher->publish(msg);
-        }
+        // // publish PWM values
+        // for(int i = 0; i < NUM_THRUSTERS; i++) {
+        //     rov_interfaces::msg::PWM msg;
+        //     msg.angle_or_throttle = static_cast<float>(throttles(i,0)); // this is a source of noise in output signals, may cause system instability??
+        //     msg.channel = thruster_index_to_PWM_pin.at(i);
+        //     _publisher->publish(msg);
+        // }
     }
 
-    Eigen::Matrix<double,NUM_THRUSTERS,1> thrust2throttle(Eigen::Matrix<double, NUM_THRUSTERS, 1> thrust) {
+    void normalizethrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
         Eigen::Index loc;
-        thrust.minCoeff(&loc);
-        double ratioA = std::abs(MIN_THRUST_VALUE / std::min(thrust(loc), MIN_THRUST_VALUE));
-        thrust.maxCoeff(&loc);
-        double ratioB = std::abs(MAX_THRUST_VALUE / std::max(thrust(loc), MAX_THRUST_VALUE));
-        if(ratioA > ratioB) {
-            thrust = thrust * ratioA;
+        throttles->minCoeff(&loc);
+        double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0));
+        throttles->maxCoeff(&loc);
+        double ratioB = std::abs(1.0 / std::max((*throttles)(loc), 1.0));
+        if(ratioA < ratioB) {
+            *throttles = *throttles * ratioA;
         } else {
-            thrust = thrust * ratioB;
+            *throttles = *throttles * ratioB;
         }
-
-        // inverse thrust function
-        Eigen::Matrix<double,NUM_THRUSTERS,1> toret;
-        for(int i = 0; i < NUM_THRUSTERS; i++) {
-            if(thrust(i,0) < MIN_THROTTLE_CUTOFF) {
-                // see documentation to understand origin of this equation
-                toret(i,0) = std::max(-0.0991 + 0.0505 * thrust(i,0) + 1.22e-3 * pow(thrust(i,0),2) + 1.91e-5 * pow(thrust(i,0),3),-1.0);
-            } else if (toret(i,0) > MAX_THROTTLE_CUTOFF) {
-                // see documentation to understand origin of this equation
-                toret(i,0) = std::min(0.0986 + 0.0408 * thrust(i,0) + -8.14e-4 * pow(thrust(i,0),2) + 1.01e-5 * pow(thrust(i,0),3),1.0);
-            } else {
-                toret(i,0) = 0;
-            }
-        }
-
-        return toret;
     }
 
     rclcpp::Subscription<rov_interfaces::msg::ThrusterSetpoints>::SharedPtr thruster_setpoint_subscription;
     rclcpp::Subscription<rov_interfaces::msg::BNO055Data>::SharedPtr bno_data_subscription;
     rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr _publisher;
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr toggle_PID_service;
+
+    std::function<void(void)> _update = std::bind(&FlightController::updatePID, this);
+    std::function<void(void)> _update2 = std::bind(&FlightController::updateSimple, this);
 
     rclcpp::TimerBase::SharedPtr pid_control_loop;
 
@@ -295,7 +333,8 @@ private:
     std::unordered_map<int, int> thruster_index_to_PWM_pin;
 
     double Pq = 1.0, Pw = 1.0; // TODO: tune these gain constants
-    double kp = 1.0, ki = 1.0, kd = 1.0;
+    double kp = 1.0, ki = 1.0, kd = 1.0; // TODO: ROS2 Params for real-time tuning (no more 30000 compilations wooooooooo)
+    double pc_1 = 1.0, pc_2 = 1.0;
 };
 
 int main(int argc, char ** argv) {

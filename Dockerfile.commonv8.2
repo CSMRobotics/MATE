@@ -2,7 +2,7 @@ ARG BASE_IMAGE=nvcr.io/nvidia/l4t-base:r32.7.1
 FROM ${BASE_IMAGE}
 
 ARG ROS_PKG=ros_base
-ENV ROS_DISTRO=foxy
+ENV ROS_DISTRO=humble
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
 ENV ROS_PYTHON_VERSION=3
 
@@ -41,14 +41,29 @@ RUN add-apt-repository -y 'ppa:ubuntu-toolchain-r/test' && \
     update-alternatives --set g++ /usr/bin/g++-8 && \
     update-alternatives --set gcc /usr/bin/gcc-8
 
-# install cmake
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz && \
-    tar -xzf cmake-3.23.0-rc2.tar.gz && \
-    cd cmake-3.23.0-rc2 && ./bootstrap -- -DCMAKE_BUILD_TYPE=Release && \
-    make -j 12 && \
-    make install && \
-    rm -rf cmake-3.23.0-rc2.tar.gz && \
-    rm -rf cmake-3.23.0-rc2
+# 
+# upgrade cmake - https://stackoverflow.com/a/56690743
+# this is needed to build some of the ROS2 packages
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+		  software-properties-common \
+		  apt-transport-https \
+		  ca-certificates \
+		  gnupg \
+          cmake \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+		  	  
+RUN wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - && \
+    apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends --only-upgrade \
+            cmake \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+    
+RUN cmake --version
 
 ### python3.8
 # add apt repository for python
