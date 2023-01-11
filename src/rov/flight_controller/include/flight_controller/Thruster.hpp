@@ -16,8 +16,8 @@
 #define MIN_OMEGA_VALUE 1.0         // rad/s
 
 struct Thruster {
-    Eigen::Vector3d position;
-    Eigen::Vector3d thrust;
+    Eigen::Vector3d position; // normalized relative positioning of thruster on robot using NED coords
+    Eigen::Vector3d thrust; // normalized thrust vector on robot using NED coords
     int64_t pwm_pin;
 };
 
