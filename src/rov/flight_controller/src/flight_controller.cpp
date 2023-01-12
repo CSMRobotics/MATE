@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 
+#include "eigen3/Eigen/Core"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
@@ -141,7 +142,7 @@ private:
         fntype** ptr = _update.target<fntype*>();
         if(ptr == nullptr) {
             RCLCPP_ERROR(this->get_logger(), "Flight Controller update target is nullptr. Defaulting to Simple");
-            _update = std::bind(FlightController::updateSimple,this);
+            _update = std::bind(&FlightController::updateSimple, this);
             return;
         } else {
             std::swap(_update, _update2);
@@ -173,7 +174,7 @@ private:
             // TODO: VERIFY THIS WORKS AS INTENDED => max value SHOULD be +-2
             // Actuation = Linear Actuation + Rotational Actuation
             unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints.normalized()) 
-                + t.position.cross3(t.thrust).dot(attitude_setpoints.normalized());
+                + t.position.cross(t.thrust).dot(attitude_setpoints.normalized());
 
             // find the abs largest actuation request
             // used after to normalize the actuations ensuring that |actuation| <= 1 holds for all actuations
