@@ -24,7 +24,7 @@ public:
         control_service = this->create_service<common_interfaces::srv::HeartbeatControl>("heartbeat_control", std::bind(&Listener::heartbeat_control, this, std::placeholders::_1, std::placeholders::_2));
 
         // create subscribers to handle incoming messages
-        heartbeat_sub = this->create_subscription<builtin_interfaces::msg::Time>("heartbeat", 10, std::bind(&Listener::ensure_alive, this, std::placeholders::_1));
+        heartbeat_sub = this->create_subscription<builtin_interfaces::msg::Time>("heartbeat", 10, std::bind(&Listener::heartbeat_callback, this, std::placeholders::_1));
 
         // create estop publisher
         estop_pub = this->create_publisher<common_interfaces::msg::EStop>("estop", 10);
@@ -36,30 +36,28 @@ public:
         watchdog_timer = this->create_wall_timer(std::chrono::milliseconds(WATCHDOG_MS), std::bind(&Listener::watchdog, this));
     }
 private:
-    void restart(const std_msgs::msg::Empty::SharedPtr msg) {
-        (void) msg;
-        // retry handshake
-        handshake();
-    }
-
+    // send request for heartbeat to the heartbeat producer
     void handshake() {
         using namespace date;
         auto req = std::make_shared<common_interfaces::srv::Handshake::Request>();
 
+        // wait for service to be available
         while(!handshake_client->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the <%s> service. Exiting.", handshake_client->get_service_name());
-                return;
+                exit(1);
             }
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "<%s> Service not available, waiting again...", handshake_client->get_service_name());
+            RCLCPP_INFO_THROTTLE(rclcpp::get_logger("rclcpp"), *this->get_clock(), 100, "<%s> Service not available, waiting again...", handshake_client->get_service_name());
         }
 
+        // stamp the request
         const std::chrono::system_clock::time_point pt = std::chrono::system_clock::now();
         auto pt_sec = std::chrono::time_point_cast<std::chrono::seconds>(pt);
         req->sec = pt_sec.time_since_epoch().count();
         req->nanosec = (pt - pt_sec).count();
         req->period = PERIOD;
 
+        // callback to activate the heartbeat watchdog
         auto response_received_callback = [this](rclcpp::Client<common_interfaces::srv::Handshake>::SharedFuture future) {
             auto res = future.get();
             std::stringstream ss;
@@ -73,12 +71,15 @@ private:
         ss.clear();
         ss << pt;
         RCLCPP_INFO(this->get_logger(), "Sent handshake request at %s UTC", ss.str().c_str());
+        // send the request
         auto res_future = handshake_client->async_send_request(req, response_received_callback);
     }
 
-    void ensure_alive(const builtin_interfaces::msg::Time::SharedPtr msg) {
+    // subscription callback
+    void heartbeat_callback(const builtin_interfaces::msg::Time::SharedPtr msg) {
         using namespace date; // i use date library to make outputting chrono::time_point not hell
         std::chrono::system_clock::time_point msg_recv = std::chrono::system_clock::time_point{std::chrono::seconds{msg->sec} + std::chrono::nanoseconds{msg->nanosec}};
+        // only accept most recent packets if they arrive out-of-order
         if(msg_recv > last_received_ping) {
 #ifdef DEBUG
             std::stringstream ss;
@@ -97,7 +98,7 @@ private:
             watchdog_active = false;
             heartbeat_sub.reset();
             handshake();
-            heartbeat_sub = this->create_subscription<builtin_interfaces::msg::Time>("heartbeat", 10, std::bind(&Listener::ensure_alive, this, std::placeholders::_1));
+            heartbeat_sub = this->create_subscription<builtin_interfaces::msg::Time>("heartbeat", 10, std::bind(&Listener::heartbeat_callback, this, std::placeholders::_1));
         } else if (req->stop) {
             // TODO: do we get hanging weak ptrs?
             watchdog_active = false;
@@ -105,6 +106,7 @@ private:
         }
     }
 
+    // timeout watchdog that will cause fatal estop if connection interrupted
     void watchdog() {
         if(watchdog_active && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_received_ping).count() > TIMEOUT_MS) {
             RCLCPP_FATAL(this->get_logger(), "%s watchdog detected a time between heartbeats >%ums", this->get_name(), TIMEOUT_MS);
