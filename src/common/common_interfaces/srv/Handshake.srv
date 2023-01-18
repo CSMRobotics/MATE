@@ -1,0 +1,6 @@
+int64 sec
+uint64 nanosec
+uint64 period
+---
+uint64 sec
+uint64 nanosec

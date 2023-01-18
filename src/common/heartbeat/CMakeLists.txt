@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.23.0)
 project(heartbeat)
 
 # Default to C99
@@ -6,13 +6,19 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# if build type is debug or none, generate additional logger calls
+if(CMAKE_BUILD_TYPE EQUAL "DEBUG" OR NOT CMAKE_BUILD_TYPE)
+  message(WARNING "Build type is DEBUG or None, generating additional RCLCPP_Logger calls")
+  add_definitions(-DDEBUG)
 endif()
 
 # find dependencies
@@ -21,6 +27,8 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 
 add_executable(listener src/listener.cpp)
 target_include_directories(listener PUBLIC
@@ -29,6 +37,8 @@ target_include_directories(listener PUBLIC
 ament_target_dependencies(
   listener
   rclcpp
+  common_interfaces
+  builtin_interfaces
 )
 
 add_executable(producer src/producer.cpp)
@@ -38,12 +48,16 @@ target_include_directories(producer PUBLIC
 ament_target_dependencies(
   producer
   rclcpp
+  common_interfaces
+  builtin_interfaces
 )
 
 install(TARGETS listener
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS producer
   DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY include/
+  DESTINATION include/)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
