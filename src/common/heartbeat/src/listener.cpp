@@ -10,14 +10,18 @@
 #include "common_interfaces/srv/heartbeat_control.hpp"
 #include "heartbeat/date.h"
 
-// TODO: ros params instead of this
-#define PERIOD 3000 // how long should the time between pings be? (negotiated during handshake)
-#define TIMEOUT_MS 3500 // how long is too long between pings?
-#define WATCHDOG_MS 100 // how often should the watchdog check time between pings?
+namespace {
+    void declare_params(rclcpp::Node* Node) {
+        Node->declare_parameter("period_ms", 3000); // how long should the time between pings be? (negotiated during handshake)
+        Node->declare_parameter("timeout_ms", 3500); // how long is too long between pings?
+        Node->declare_parameter("watchdog_ms", 100); // how often should the watchdog check time between pings?
+    }
+}
 
 class Listener : public rclcpp::Node {
 public:
     Listener() : Node("heartbeat_listener") {
+        declare_params(this);
         using namespace std::chrono_literals;
         // create handshake client and control service
         handshake_client = this->create_client<common_interfaces::srv::Handshake>("heartbeat_handshake");
@@ -33,7 +37,7 @@ public:
         handshake();
 
         // create timeout watchdog
-        watchdog_timer = this->create_wall_timer(std::chrono::milliseconds(WATCHDOG_MS), std::bind(&Listener::watchdog, this));
+        watchdog_timer = this->create_wall_timer(std::chrono::milliseconds(this->get_parameter("watchdog_ms").as_int()), std::bind(&Listener::watchdog, this));
     }
 private:
     // send request for heartbeat to the heartbeat producer
@@ -55,7 +59,7 @@ private:
         auto pt_sec = std::chrono::time_point_cast<std::chrono::seconds>(pt);
         req->sec = pt_sec.time_since_epoch().count();
         req->nanosec = (pt - pt_sec).count();
-        req->period = PERIOD;
+        req->period = this->get_parameter("period_ms").as_int();
 
         // callback to activate the heartbeat watchdog
         auto response_received_callback = [this](rclcpp::Client<common_interfaces::srv::Handshake>::SharedFuture future) {
@@ -86,7 +90,7 @@ private:
             ss.clear();
             ss << msg_recv;
             RCLCPP_INFO(this->get_logger(), "Received ping at %s UTC", ss.str().c_str());
-            RCLCPP_INFO(this->get_logger(), "Time since last ping %u milliseconds", std::chrono::duration_cast<std::chrono::milliseconds>(msg_recv - last_received_ping).count());
+            RCLCPP_INFO(this->get_logger(), "Time since last ping %lu milliseconds", std::chrono::duration_cast<std::chrono::milliseconds>(msg_recv - last_received_ping).count());
 #endif
             last_received_ping = msg_recv;
         }
@@ -108,8 +112,8 @@ private:
 
     // timeout watchdog that will cause fatal estop if connection interrupted
     void watchdog() {
-        if(watchdog_active && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_received_ping).count() > TIMEOUT_MS) {
-            RCLCPP_FATAL(this->get_logger(), "%s watchdog detected a time between heartbeats >%ums", this->get_name(), TIMEOUT_MS);
+        if(watchdog_active && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_received_ping).count() > this->get_parameter("timeout_ms").as_int()) {
+            RCLCPP_FATAL(this->get_logger(), "%s watchdog detected a time between heartbeats >%lums", this->get_name(), this->get_parameter("timeout_ms").as_int());
             watchdog_active = false;
             heartbeat_sub.reset();
             common_interfaces::msg::EStop estop;
