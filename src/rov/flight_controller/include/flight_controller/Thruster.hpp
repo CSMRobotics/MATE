@@ -1,5 +1,5 @@
 #ifndef THRUSTER_HPP
-#define THRUSER_HPP
+#define THRUSTER_HPP
 
 #include <algorithm>
 
@@ -21,7 +21,7 @@ struct Thruster {
     int64_t pwm_pin;
 };
 
-float thrust_from_throttle(const float throttle) {
+static float thrust_from_throttle(const float throttle) {
     assert(abs(throttle) <= 1);
     // check if throttle is greater than deadzone (symmetric)
     if(abs(throttle) >= DEADZONE) {
@@ -37,7 +37,7 @@ float thrust_from_throttle(const float throttle) {
     return 0;
 }
 
-float throttle_from_thrust(const float thrust, bool clamping = true) {
+static float throttle_from_thrust(const float thrust, bool clamping = true) {
     switch(clamping) {
         case true:
             // inverse thrust function

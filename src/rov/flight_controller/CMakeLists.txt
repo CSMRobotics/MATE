@@ -27,21 +27,23 @@ find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 
-add_executable(flight_controller src/flight_controller.cpp)
-target_include_directories(flight_controller PUBLIC
+add_library(flight_controller_lib STATIC src/flight_controller.cpp)
+add_executable(flight_controller src/main.cpp)
+target_include_directories(flight_controller_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
-  flight_controller
+  flight_controller_lib
   "rov_interfaces"
   "rclcpp"
   "message_filters"
   "std_srvs"
 )
 
-target_link_libraries(flight_controller Eigen3::Eigen)
+target_link_libraries(flight_controller_lib Eigen3::Eigen)
+target_link_libraries(flight_controller flight_controller_lib)
 
-install(TARGETS flight_controller
+install(TARGETS flight_controller flight_controller_lib
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
@@ -55,6 +57,21 @@ if(BUILD_TESTING)
   # the following line skips cpplint (only works in a git repo)
   # uncomment the line when this package is not in a git repo
   #set(ament_cmake_cpplint_FOUND TRUE)
+  
+  find_package(ament_cmake_gtest REQUIRED)
+  set(TESTFILES
+   test/main.cpp
+   test/test_simple.cpp
+  )
+  ament_add_gtest(${PROJECT_NAME}_test ${TESTFILES})
+  target_link_libraries(${PROJECT_NAME}_test flight_controller_lib) #TODO: fix
+  install(TARGETS
+   ${PROJECT_NAME}_test
+   DESTINATION
+   lib/${PROJECT_NAME}
+  )
+
+
   ament_lint_auto_find_test_dependencies()
 endif()
 
