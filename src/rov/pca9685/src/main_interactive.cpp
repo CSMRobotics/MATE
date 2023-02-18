@@ -20,11 +20,16 @@ int main(int argc, char** argv) {
         std::getline(std::cin, userInput);
         std::cout << '\n';
         boost::algorithm::to_lower(userInput);
-        if(userInput.at(0) == 'c') {
-            servoDriver.addContinuousServo(i);
-            isContinuous[i] = true;
-        } else {
-            // default to non continuous
+        try {
+            if(userInput.at(0) == 'c') {
+                servoDriver.addContinuousServo(i);
+                isContinuous[i] = true;
+            } else {
+                // default to non continuous
+                servoDriver.addServo(i);
+                isContinuous[i] = false;
+            }
+        } catch(std::out_of_range &) {
             servoDriver.addServo(i);
             isContinuous[i] = false;
         }
@@ -52,11 +57,14 @@ int main(int argc, char** argv) {
         std::cout << '\n';
         boost::algorithm::to_lower(userInput);
         int lower_bound = 0;
-        int upper_bound = 0;
+        int upper_bound = 180;
         int idx = userInput.find(' ');
         if(idx != 0 && idx != std::string::npos) {
             lower_bound = boost::lexical_cast<int>(userInput.substr(0, idx));
             upper_bound = boost::lexical_cast<int>(userInput.substr(idx+1));
+        } else {
+            servoDriver.setAngleBounds(i, lower_bound, upper_bound);
+            continue;
         }
         if(isContinuous.at(i)) {
             servoDriver.setThrottleBounds(i, lower_bound, upper_bound);
@@ -97,6 +105,7 @@ int main(int argc, char** argv) {
                 std::cout << "Setting pin " << pin << " to pwm: " << pwm_or_angle << '\n';
             } else {
                 std::cout << "Setting pin " << pin << " to angle: " << pwm_or_angle << '\n';
+                servoDriver.setAngle(pin, pwm_or_angle);
             }
         } catch(boost::bad_lexical_cast &) {
             std::cout << "Bad format\nUse the format: 'pinNumber PWM_or_angle <PWM_TRUE>'\n";
