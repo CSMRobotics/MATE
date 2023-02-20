@@ -15,7 +15,9 @@ COPY src .
 # ensure dependencies are updated, and build
 # RUN rosdep update && \
 #     rosdep install --ignore-src -y src/rov/
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+
+RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \ 
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install --packages-select \
     bar02 \
     bno055 \

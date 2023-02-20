@@ -31,7 +31,8 @@ RUN udevadm trigger
 COPY src .
 
 # build all packages defined in basestation_launch file
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --packages-up-to bs_launch
 
 # Copy over initial run stuff.
