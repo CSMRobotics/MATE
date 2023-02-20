@@ -329,6 +329,16 @@ RUN git clone -b foxy-devel https://github.com/ros-drivers/joystick_drivers && \
     colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to joy --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     cd .. && rm -rf joystick_drivers
 
+# install common apt packages
+RUN apt-get update && apt-get install -y \
+    libi2c-dev
+
+# install common python packages
+RUN python3 -m pip install \
+    Jetson.GPIO \
+    dbus-next \
+    evdev
+
 #
 # setup entrypoint
 #
