@@ -71,7 +71,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // compute the pseudo inverse of the thruster geometry
     this->thruster_geometry_pseudo_inverse = this->thruster_geometry.transpose() * (this->thruster_geometry*this->thruster_geometry.transpose()).inverse();
     this->thruster_coefficient_matrix.diagonal() << 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0; // thrusters are identical T200s running at ~12V
-    this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix * this->thruster_geometry_pseudo_inverse;
+    this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix.inverse() * this->thruster_geometry_pseudo_inverse;
 
     // use PWM service to register thrusters on PCA9685
     this->registerThrusters();
@@ -194,7 +194,7 @@ void FlightController::updateSimple() {
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
         _publisher->publish(msg);
-#ifdef DEBUG
+#ifndef NDEBUG
         RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%d", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
@@ -279,21 +279,22 @@ void FlightController::updatePID() {
     Eigen::Matrix<double, 6, 1> forcesAndTorques;
     forcesAndTorques << desired_force, desired_torque;
 
-    //TODO:fix
+    //TODO:test
     // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
     // while scaling thrusters to account for large thrust demands on a single thruster
-    // Eigen::Matrix<double, NUM_THRUSTERS, 1> throttles = thrust2throttle((this->thruster_coefficient_matrix_times_geometry) * forcesAndTorques);
+    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
+    normalizethrottles(&actuations);
 
-    // // publish PWM values
-    // for(int i = 0; i < NUM_THRUSTERS; i++) {
-    //     rov_interfaces::msg::PWM msg;
-    //     msg.angle_or_throttle = static_cast<float>(throttles(i,0)); // this is a source of noise in output signals, may cause system instability??
-    //     msg.channel = thruster_index_to_PWM_pin.at(i);
-    //     _publisher->publish(msg);
-// #ifdef DEBUG
-//             RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%d", thruster_index_to_PWM_pin.at(i), actuations(i,0));
-// #endif
-    // }
+    // publish PWM values
+    for(int i = 0; i < NUM_THRUSTERS; i++) {
+        rov_interfaces::msg::PWM msg;
+        msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??
+        msg.channel = thruster_index_to_PWM_pin.at(i);
+        _publisher->publish(msg);
+#ifndef NDEBUG
+            RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%d", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#endif
+    }
 }
 
 void FlightController::normalizethrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
