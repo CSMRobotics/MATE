@@ -15,6 +15,7 @@
 
 namespace {
 void declare_params(rclcpp::Node* node) {
+    // declare thruster parameters
     std::stringstream ss;
     std::string s;
     for(int i = 0; i < 8; i++) {
@@ -23,6 +24,16 @@ void declare_params(rclcpp::Node* node) {
         ss << i;
         node->declare_parameter(ss.str());
     }
+    
+    // declare gain constant parameters
+    // TODO: tune these constants
+    node->declare_parameter("Pq", 1.0f);
+    node->declare_parameter("Pw", 1.0f);
+    node->declare_parameter("kp", 1.0f);
+    node->declare_parameter("ki", 1.0f);
+    node->declare_parameter("kd", 1.0f);
+    node->declare_parameter("pc_1", 1.0f);
+    node->declare_parameter("pc_2", 1.0f);
 }
 }
 
@@ -216,20 +227,21 @@ void FlightController::updatePID() {
     // update desired force
     // Linear, discrete-time PID controller
     // lambdas for linear PID loop
-    auto P = [](double& kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
-        return kp * linear_velocity_err;
+    auto PID_params = this->get_parameters(std::vector<std::string>{"kp", "ki", "kd"});
+    auto P = [](rclcpp::Parameter kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
+        return kp.as_double() * linear_velocity_err;
     };
-    auto I = [](double& ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
-        return ki * linear_velocity_err * dt_ms / 1000;
+    auto I = [](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
+        return ki.as_double() * linear_velocity_err * dt_ms / 1000;
     };
-    auto D = [](double& kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
-        return kd* (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
+    auto D = [](rclcpp::Parameter kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
+        return kd.as_double() * (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
     };
 
     // P + I + D
-    desired_force = P(kp,linear_velocity_err)
-                    + (linear_integral += I(ki, linear_velocity_err, dt_ms))
-                    + D(kd, linear_velocity_err, linear_velocity_err_last, dt_ms);
+    desired_force = P(PID_params.at(0),linear_velocity_err)
+                    + (linear_integral += I(PID_params.at(1), linear_velocity_err, dt_ms))
+                    + D(PID_params.at(2), linear_velocity_err, linear_velocity_err_last, dt_ms);
 
     // update desired torque
     // TODO: look at this if performance needs to be improved (loses accuracy tho)
@@ -258,7 +270,8 @@ void FlightController::updatePID() {
         axis_err = q_err.vec();
     }
 
-    desired_torque = (-Pq * axis_err) - (Pw * omega);
+    auto P2_params = this->get_parameters(std::vector<std::string>{"Pq", "Pw"});
+    desired_torque = (-P2_params.at(0).as_double() * axis_err) - (P2_params.at(1).as_double() * omega);
 
     // control allocation
     // u = K^-1 * T^+ * t

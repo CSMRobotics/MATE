@@ -59,10 +59,6 @@ private:
     Eigen::DiagonalMatrix<double, NUM_THRUSTERS> thruster_coefficient_matrix;
     Eigen::Matrix<double, NUM_THRUSTERS, 6> thruster_coefficient_matrix_times_geometry;
     std::unordered_map<int, int> thruster_index_to_PWM_pin;
-
-    double Pq = 1.0, Pw = 1.0; // TODO: tune these gain constants
-    double kp = 1.0, ki = 1.0, kd = 1.0; // TODO: ROS2 Params for real-time tuning (no more 30000 compilations wooooooooo)
-    double pc_1 = 1.0, pc_2 = 1.0;
 };
 
 #endif
