@@ -21,7 +21,7 @@ struct Thruster {
     int64_t pwm_pin;
 };
 
-static float thrust_from_throttle(const float throttle) {
+inline static float thrust_from_throttle(const float throttle) {
     assert(abs(throttle) <= 1);
     // check if throttle is greater than deadzone (symmetric)
     if(abs(throttle) >= DEADZONE) {
@@ -37,7 +37,7 @@ static float thrust_from_throttle(const float throttle) {
     return 0;
 }
 
-static float throttle_from_thrust(const float thrust, bool clamping = true) {
+inline static float throttle_from_thrust(const float thrust, bool clamping = true) {
     switch(clamping) {
         case true:
             // inverse thrust function

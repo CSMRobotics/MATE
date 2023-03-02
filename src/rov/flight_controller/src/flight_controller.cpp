@@ -22,7 +22,10 @@ void declare_params(rclcpp::Node* node) {
         ss.clear();
         ss << "Thruster";
         ss << i;
-        node->declare_parameter(ss.str());
+        node->declare_parameters(ss.str(), std::map<std::string, std::vector<double>>{
+            {"Position", std::vector<double>{0,0,0}},
+            {"Thrust", std::vector<double>{0,0,0}}
+        });
     }
     
     // declare gain constant parameters
@@ -138,6 +141,8 @@ void FlightController::registerThrusters() {
 
 void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, 
         std_srvs::srv::Empty_Response::SharedPtr response) {
+    (void) request;
+    (void) response;
     typedef void (fntype)(void);
     fntype** ptr = _update.target<fntype*>();
     if(ptr == nullptr) {
@@ -195,7 +200,7 @@ void FlightController::updateSimple() {
         msg.channel = thruster_index_to_PWM_pin.at(i);
         _publisher->publish(msg);
 #ifndef NDEBUG
-        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%d", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }
@@ -292,7 +297,7 @@ void FlightController::updatePID() {
         msg.channel = thruster_index_to_PWM_pin.at(i);
         _publisher->publish(msg);
 #ifndef NDEBUG
-            RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%d", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+            RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }
