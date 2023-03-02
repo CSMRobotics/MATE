@@ -18,13 +18,18 @@ void declare_params(rclcpp::Node* node) {
     // declare thruster parameters
     std::stringstream ss;
     std::string s;
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < NUM_THRUSTERS; i++) {
         ss.clear();
         ss << "Thruster";
         ss << i;
+        // default position and thrust vectors to 0
         node->declare_parameters(ss.str(), std::map<std::string, std::vector<double>>{
             {"Position", std::vector<double>{0,0,0}},
             {"Thrust", std::vector<double>{0,0,0}}
+        });
+        // default PWM pin to i in [0,NUM_THRUSTERS]
+        node->declare_parameters(ss.str(), std::map<std::string, int>{
+            {"Pin", i}
         });
     }
     
