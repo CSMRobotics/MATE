@@ -29,7 +29,8 @@ add_executable(pca9685_node src/main.cpp)
 add_executable(pca9685_interactive_test src/main_interactive.cpp)
 target_include_directories(pca9685 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+  JHPWMPCA9685_INCLUDE_DIRS)
 
 target_link_libraries(pca9685 i2c)
 target_link_libraries(pca9685_node pca9685 jhpwmpca9685)
