@@ -23,18 +23,19 @@ find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_library(pca9685 src/PCA9685_Node.cpp src/ServoDriver.cpp)
 add_subdirectory(external/JHPWMPCA9685)
+add_library(pca9685 src/PCA9685_Node.cpp src/ServoDriver.cpp)
+target_include_directories(pca9685 PUBLIC JHPWMPCA9685_INCLUDE_DIRS)
 add_executable(pca9685_node src/main.cpp)
 add_executable(pca9685_interactive_test src/main_interactive.cpp)
 target_include_directories(pca9685 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  JHPWMPCA9685_INCLUDE_DIRS)
+)
 
-target_link_libraries(pca9685 i2c)
-target_link_libraries(pca9685_node pca9685 jhpwmpca9685)
-target_link_libraries(pca9685_interactive_test pca9685 jhpwmpca9685)
+target_link_libraries(pca9685 jhpwmpca9685)
+target_link_libraries(pca9685_node pca9685)
+target_link_libraries(pca9685_interactive_test pca9685)
 
 ament_target_dependencies(pca9685
   rclcpp
