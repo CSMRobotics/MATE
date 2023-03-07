@@ -11,25 +11,31 @@ RUN apt-get install -y \
 RUN python3 -m pip install transitions
 
 COPY src .
-COPY setup/rov_entrypoint.sh /
 
 # ensure dependencies are updated, and build
 # RUN rosdep update && \
 #     rosdep install --ignore-src -y src/rov/
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+
+RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \ 
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install --packages-select \
-    # bar02 \
-    # bno055 \
-    # flight_controller \
-    # manipulator_control \
+
+    bar02 \
+    bno055 \
+    flight_controller \
+    manipulator_control \
     pca9685 \
-    # rov_cameras \
-    # rov_control \ 
-    # rov_estop \
+    rov_cameras \
+    rov_control \ 
+    rov_estop \
     rov_interfaces \
-    # rov_launch \
-    # rov_statistics \
+    rov_launch \
+    rov_statistics \
     --cmake-args --no-warn-unused-cli
+
+# build all packages defined in rov_launch file
+# RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+#     colcon build --packages-up-to rov_launch
 
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
