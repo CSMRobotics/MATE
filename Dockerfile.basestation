@@ -1,4 +1,4 @@
-FROM csmmaterobotics/commonv8.2:latest
+FROM csmmaterobotics/commonv8_3:latest
 
 # Location where source files will be copied in and built
 # By default, this is root, which makes colcon build not work at all
@@ -20,10 +20,8 @@ RUN git clone https://github.com/raysan5/raylib.git raylib && \
     
 # Probably don't use VENV. Colcon has a rough time with it and it's not worth it
 # RUN python3.6 -m venv /BASE_VENV
-RUN python3.8 -m pip install flask evdev
 
 COPY setup/99-gpio.rules /etc/udev/rules.d
-COPY setup/ros_entrypoint.sh .
 RUN groupadd -f -r gpio && \
     usermod -a -G gpio $(id -u -n)
 # udevadm control --reload rules has a non-zero exit status (https://www.reddit.com/r/docker/comments/jeaw9c/comment/g9g8buu)
@@ -32,14 +30,16 @@ RUN udevadm trigger
 
 COPY src .
 
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+# build all packages defined in basestation_launch file
+RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --packages-up-to bs_launch
 
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
 # CMD is the "go" button, and can be overriden
-COPY setup/ros_entrypoint.sh ros_entrypoint.sh
-RUN chmod +x ros_entrypoint.sh
-ENTRYPOINT [ "ros_entrypoint.sh" ]
+COPY setup/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+ENTRYPOINT [ "/ros_entrypoint.sh" ]
 # CMD ["ros2", "launch", "bs_launch", "bs.launch.py"]
 CMD ["/bin/bash"]
