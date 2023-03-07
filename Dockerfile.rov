@@ -6,7 +6,7 @@ WORKDIR /opt/ros/CSM_MATE_WS
 # ROV specific dependencies
 RUN apt-get update
 RUN apt-get install -y \
-    libpugixml-dev libeigen3-dev
+    libpugixml-dev libeigen3-dev libi2c-dev
 
 RUN python3 -m pip install transitions
 
@@ -19,6 +19,7 @@ COPY src .
 RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \ 
     . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install --packages-select \
+
     bar02 \
     bno055 \
     flight_controller \

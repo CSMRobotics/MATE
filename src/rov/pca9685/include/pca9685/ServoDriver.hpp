@@ -1,7 +1,7 @@
 #ifndef SERVO_DRIVER_HPP
 #define SERVO_DRIVER_HPP
 
-#include "JHPWMPCA9685.h"
+#include "JHPWMPCA9685/JHPWMPCA9685.h"
 #include <string>
 
 enum class ServoType{
