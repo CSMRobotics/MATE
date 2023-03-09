@@ -19,7 +19,7 @@ void declare_params(rclcpp::Node* node) {
     std::stringstream ss;
     std::string s;
     for(int i = 0; i < NUM_THRUSTERS; i++) {
-        ss.clear();
+        ss.str("");
         ss << "Thruster";
         ss << i;
         // default position and thrust vectors to 0
@@ -53,8 +53,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     std::stringstream ss;
     std::array<Eigen::VectorXd, NUM_THRUSTERS> temp;
     for(int i = 0; i < NUM_THRUSTERS; i++) {
-        ss.clear();
-        ss << "Thruster" << i << "\\";
+        ss.str("");
+        ss << "Thruster" << i << '.';
         // Construct internal thruster data type from ROS parameter
         Thruster t = {
             Eigen::Vector3d(this->get_parameter(ss.str()+"Position").as_double_array().data()),
