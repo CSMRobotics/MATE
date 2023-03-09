@@ -26,6 +26,7 @@ inline static float thrust_from_throttle(const float throttle) {
     // check if throttle is greater than deadzone (symmetric)
     if(abs(throttle) >= DEADZONE) {
         // faster than floating point operation :)
+        // WTF Explanation: This checks the sign bit but more fastly than a comparison to zero.
         if(*reinterpret_cast<const int32_t*>(&throttle) & 0x80000000) {
             // positive thrust curve derived from BlueRobotics' testing
             return -1.23 + 15.9 * throttle + 23.2 * throttle * throttle;
