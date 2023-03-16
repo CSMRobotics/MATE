@@ -26,9 +26,12 @@ find_package(rclcpp REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
 
 add_library(flight_controller_lib STATIC src/flight_controller.cpp)
 add_executable(flight_controller src/main.cpp)
+add_executable(flight_display src/flight_display.cpp)
+
 target_include_directories(flight_controller_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -42,14 +45,18 @@ ament_target_dependencies(
 
 target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
+target_link_libraries(flight_display flight_controller_lib sfml-system sfml-window sfml-graphics)
 
-install(TARGETS flight_controller flight_controller_lib
+install(TARGETS flight_controller flight_controller_lib flight_display
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
   DESTINATION include/)
 
 install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY assets/
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
