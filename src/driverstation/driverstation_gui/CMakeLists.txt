@@ -25,7 +25,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(raylib REQUIRED)
+find_package(raylib REQUIRED VERSION 4.2.0)
 find_library(NAME ssh REQUIRED)
 find_library(NAME raygui REQUIRED)
 
@@ -46,6 +46,9 @@ target_link_libraries(${PROJECT_NAME} glib-2.0)
 
 install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+ DESTINATION include/)
 
 # TODO: THIS WILL CAUSE PATHS TO NOT WORK CORRECT UNLESS YOU
 # APPEND get_package_share_directory('${PROJECT_NAME}')
