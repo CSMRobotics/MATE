@@ -68,6 +68,7 @@ namespace ssh_interface{
 		                    "automatically created.\n");
 
 		            /* FALL THROUGH to SSH_SERVER_NOT_KNOWN behavior */
+					[[fallthrough]];
 
 		        case SSH_KNOWN_HOSTS_UNKNOWN:
 		            hexa = ssh_get_hexa(hash, hlen);
@@ -128,7 +129,7 @@ namespace ssh_interface{
 			}
 
 			int openChannel(const char* host, const char* username, const char* password){
-				switch(this->current_stage){
+				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
 					case DISCONNECTED:
 					default:
 						this->session = ssh_new();
@@ -160,7 +161,7 @@ namespace ssh_interface{
 			}
 
 			void closeChannel(){
-				switch(this->current_stage){
+				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
 					case CHANNEL_CONNECTED:
 						ssh_channel_close(this->channel);
 						ssh_channel_send_eof(this->channel);
@@ -176,7 +177,7 @@ namespace ssh_interface{
 			}
 
 			void closeSession(){
-				switch(this->current_stage){
+				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
 					case CHANNEL_CONNECTED:
 					case CHANNEL_MADE:
 						this->closeChannel();

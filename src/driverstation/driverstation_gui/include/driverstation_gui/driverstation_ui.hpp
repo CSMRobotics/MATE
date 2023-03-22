@@ -145,6 +145,7 @@ namespace driverstation::gui{
 		protected:
 			std::unique_ptr<dynamic_texture::MultiCellDynamicTextureGrid2D<12, 12>> multi_cell;
 			std::shared_ptr<gui::SshDisplay> ssh_display;
+			// TODO: FIXME: ssh_connect_popup_mode type uses anonymous namespace and is in header file
 			SshConnectPopupMode ssh_connect_popup_mode;
 			char ssh_host[32];
 			char ssh_username[32];

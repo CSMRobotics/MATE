@@ -197,7 +197,7 @@ namespace driverstation::dynamic_texture{
 			return this->texture;
 		}
 
-		void on_click(float x, float y) override{}
+		void on_click(float x, float y) override{(void)x;(void)y;}
 
 		std::tuple<uint, uint> size() override{
 			return std::make_tuple(
@@ -325,6 +325,7 @@ namespace driverstation::dynamic_texture{
 		}
 
 		private:
+			// TODO: FIXME: MultiCellDynamicTextureGrid2DCell type is defined in anonymous namespace but is in header file
 			std::array<std::array<MultiCellDynamicTextureGrid2DCell, column_count>, row_count> cells;
 			Vector2 cell_view_size;
 	};

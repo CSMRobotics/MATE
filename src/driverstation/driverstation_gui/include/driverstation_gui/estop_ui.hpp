@@ -30,6 +30,7 @@ namespace driverstation::gui{
 		}
 
 		void on_click(float x, float y) override{
+			(void)x;(void)y; // TODO: REMOVE
 			if(mollyguard_level > 0){
 				mollyguard_level--;
 				this->recalculate_colors();
