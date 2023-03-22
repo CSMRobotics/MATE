@@ -1,3 +1,7 @@
+# Ignore clangd artifacts
 /.cache
 /.clangd
 /build
+
+# Allow OBJ model files (ignored by outer .gitignore as compilation artifacts)
+!/assets/**/*.obj

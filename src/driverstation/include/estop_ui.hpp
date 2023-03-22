@@ -29,7 +29,7 @@ namespace driverstation::gui{
 			return dynamic_texture::DynamicRenderTexture2D::current_texture();
 		}
 
-		void on_click(float x, float y) override{
+		void on_click([[maybe_unused]] float x, [[maybe_unused]] float y) override{
 			if(mollyguard_level > 0){
 				mollyguard_level--;
 				this->recalculate_colors();

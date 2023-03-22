@@ -237,7 +237,7 @@ namespace driverstation::gui{
 								case '\a':  // For historical reasons, xterm can end OSCs with a bell
 									this->current_text_mode = TextMode::DEFAULT;
 									break;
-								case '0x1B':  // Escape, possibly String Terminator
+								case 0x1B:  // Escape, possibly String Terminator
 									this->current_text_mode = TextMode::ESCAPE_CODE_WITHIN_OPERATING_SYSTEM_COMMAND;
 									break;
 							}
@@ -254,7 +254,7 @@ namespace driverstation::gui{
 							break;
 						case TextMode::AWAITING_STRING_TERMINATOR:
 							switch(current_character){
-								case '0x1B':  // Escape, possibly String Terminator
+								case 0x1B:  // Escape, possibly String Terminator
 									this->current_text_mode = TextMode::EXPECTING_STRING_TERMINATOR;
 									break;
 							}
@@ -278,7 +278,6 @@ namespace driverstation::gui{
 		Texture2D current_texture() override{
 			this->update();
 			// TODO: Replace
-			int cursor_y_position = this->history_rectangle.height - this->character_spacing.y;
 			{const modes::TextureMode TODO_REPLACE_1(this->history_render_texture);
 				if(GetTime() - (int)GetTime() < 0.5f) DrawRectangleV({this->cursor_position.x,this->scroll_position+this->cursor_position.y+12},{this->character_spacing.x,2},WHITE);
 			}
@@ -383,8 +382,10 @@ namespace driverstation::gui{
 					switch(parameters.size()){
 						case 0:                              // \x1B[H
 							parameters.push_back(CsiParameter{CsiParameterType::NUMBER, 1});
+							[[fallthrough]];
 						case 1:                              // \x1B[nH
 							parameters.push_back(CsiParameter{CsiParameterType::INTERMEDIATE, ';'});
+							[[fallthrough]];
 						case 2:
 							if(parameters[1].value == (uint16_t)';'){  // \x1B[n;H
 								parameters.push_back(CsiParameter{CsiParameterType::NUMBER, 1});
@@ -393,6 +394,7 @@ namespace driverstation::gui{
 								this->cursor_position.y = (nonZeroOr(parameters[2].value, 1) - 1) * this->character_spacing.y;
 								break;
 							}
+							[[fallthrough]];
 						case 3:                              // \x1B[n;mH
 							this->cursor_position.x = (nonZeroOr(parameters[0].value, 1) - 1) * this->character_spacing.x;
 							this->cursor_position.y = (nonZeroOr(parameters[2].value, 1) - 1) * this->character_spacing.y;
@@ -550,8 +552,6 @@ namespace driverstation::gui{
 						int characters_to_delete = 1;
 						if(parameters.size() > 0) characters_to_delete = nonZeroOr(parameters[0].value, 1);
 
-						float width = this->history_rectangle.width - (characters_to_delete * this->character_spacing.x);
-						Texture2D texture = this->current_texture();
 						{const modes::TextureMode texture_mode(this->history_render_texture);
 							DrawRectangleRec(
 								Rectangle{
@@ -578,7 +578,7 @@ namespace driverstation::gui{
 					break;
 				case 'm':  // Select Graphic Rendition parameters
 					// TODO: Rework to make use of CsiParameter.type property
-					for(int i = 0; i < parameters.size(); i += 2){  // NOTE: += 2 to skip semicolons separating parameters
+					for(size_t i = 0; i < parameters.size(); i += 2){  // NOTE: += 2 to skip semicolons separating parameters
 						switch(parameters[i].value){
 							case 0:  // Reset
 								this->current_foreground_color = this->default_foreground_color;
@@ -601,7 +601,7 @@ namespace driverstation::gui{
 											uint8_t n = parameters[i + 2].value;
 
 											// NOTE: The standard palette options modify the `n` parameter such that the next pass actually handles the color application
-											if(n >= 0 && n <= 7){  // Standard foreground color
+											if(n <= 7){  // Standard foreground color
 												parameters[i + 2].value += 30;
 											}else if(n >= 8 && n <= 15){  // Bright foreground color
 												parameters[i + 2].value += 90;
@@ -649,7 +649,7 @@ namespace driverstation::gui{
 											uint8_t n = parameters[i + 2].value;
 
 											// NOTE: The standard palette options modify the `n` parameter such that the next pass actually handles the color application
-											if(n >= 0 && n <= 7){  // Standard background color
+											if(n <= 7){  // Standard background color
 												parameters[i + 2].value += 40;
 											}else if(n >= 8 && n <= 15){  // Bright background color
 												parameters[i + 2].value += 100;
@@ -707,7 +707,7 @@ namespace driverstation::gui{
 				default:
 					// TODO: Temporary
 					std::cout << "Unknown escape code: \\x1B[";
-					for(int i = 0; i < this->current_csi_parameters.size(); i++){
+					for(size_t i = 0; i < this->current_csi_parameters.size(); i++){
 						if(this->current_csi_parameters[i].type == CsiParameterType::NUMBER){
 							std::cout << this->current_csi_parameters[i].value;
 						}else{
