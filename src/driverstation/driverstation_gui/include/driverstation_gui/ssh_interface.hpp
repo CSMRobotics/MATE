@@ -69,7 +69,6 @@ namespace ssh_interface{
 
 		            /* FALL THROUGH to SSH_SERVER_NOT_KNOWN behavior */
 					[[fallthrough]];
-
 		        case SSH_KNOWN_HOSTS_UNKNOWN:
 		            hexa = ssh_get_hexa(hash, hlen);
 		            fprintf(stderr,"The server is unknown. Do you trust the host key?\n");
@@ -129,23 +128,26 @@ namespace ssh_interface{
 			}
 
 			int openChannel(const char* host, const char* username, const char* password){
-				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
+				switch(this->current_stage){
 					case DISCONNECTED:
 					default:
 						this->session = ssh_new();
 						if(this->session == NULL) break;
 						this->current_stage = SESSION_MADE;
+						[[fallthrough]];
 					case SESSION_MADE:
 						ssh_options_set(this->session, SSH_OPTIONS_HOST, host);
 						ssh_options_set(this->session, SSH_OPTIONS_USER, username);
 						if(ssh_connect(this->session) != SSH_OK) break;
 						this->current_stage = SESSION_CONNECTED;
+						[[fallthrough]];
 					case SESSION_CONNECTED:
 						if(verify_knownhost(this->session) < 0) break;
 						if(ssh_userauth_password(this->session, NULL, password) != SSH_AUTH_SUCCESS) break;
 						this->channel = ssh_channel_new(this->session);
 						if(this->channel == NULL) break;
 						this->current_stage = CHANNEL_MADE;
+						[[fallthrough]];
 					case CHANNEL_MADE:
 						if(ssh_channel_open_session(this->channel) != SSH_OK) break;
 						if(ssh_channel_request_pty(this->channel) != SSH_OK) break;
@@ -153,6 +155,7 @@ namespace ssh_interface{
 						if(ssh_channel_change_pty_size(this->channel, 80, 24) != SSH_OK) break;
 						if(ssh_channel_request_shell(this->channel) != SSH_OK) break;
 						this->current_stage = CHANNEL_CONNECTED;
+						[[fallthrough]];
 					case CHANNEL_CONNECTED:
 						return SSH_OK;
 				}
@@ -161,13 +164,15 @@ namespace ssh_interface{
 			}
 
 			void closeChannel(){
-				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
+				switch(this->current_stage){
 					case CHANNEL_CONNECTED:
 						ssh_channel_close(this->channel);
 						ssh_channel_send_eof(this->channel);
+						[[fallthrough]];
 					case CHANNEL_MADE:
 						ssh_channel_free(this->channel);
 						this->current_stage = SESSION_CONNECTED;
+						[[fallthrough]];
 					case SESSION_CONNECTED:
 					case SESSION_MADE:
 					case DISCONNECTED:
@@ -177,15 +182,18 @@ namespace ssh_interface{
 			}
 
 			void closeSession(){
-				switch(this->current_stage){ // TODO: FIXME: use [[fallthrough]]; if this should fallthrough (removes ugly warnings)
+				switch(this->current_stage){
 					case CHANNEL_CONNECTED:
 					case CHANNEL_MADE:
 						this->closeChannel();
+						[[fallthrough]];
 					case SESSION_CONNECTED:
 						ssh_disconnect(this->session);
+						[[fallthrough]];
 					case SESSION_MADE:
 						ssh_free(this->session);
 						this->current_stage = DISCONNECTED;
+						[[fallthrough]];
 					case DISCONNECTED:
 					default:
 						break;

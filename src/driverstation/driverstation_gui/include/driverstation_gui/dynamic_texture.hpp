@@ -59,7 +59,7 @@ namespace driverstation::dynamic_texture{
 			return this->render_texture.texture;
 		}
 
-		void on_click(float x, float y) override{(void)x;(void)y;}
+		void on_click([[maybe_unused]] float x, [[maybe_unused]] float y) override{}
 
 		std::tuple<uint, uint> size() override{
 			return std::make_tuple(
@@ -108,7 +108,7 @@ namespace driverstation::dynamic_texture{
 		}
 
 		// TODO: Should the body of this method be integrated into current_texture()?
-		std::optional<std::tuple<uint8_t, uint8_t>> update(int joystick_id = -1){
+		std::optional<std::tuple<uint8_t, uint8_t>> update([[maybe_unused]] int joystick_id = -1){
 			// Mouse Control:
 			//   Click on an unfocused cell to bring it in to focus
 			//   Click on a focused cell to bring it out of focus
@@ -197,7 +197,7 @@ namespace driverstation::dynamic_texture{
 			return this->texture;
 		}
 
-		void on_click(float x, float y) override{(void)x;(void)y;}
+		void on_click([[maybe_unused]] float x, [[maybe_unused]] float y) override{}
 
 		std::tuple<uint, uint> size() override{
 			return std::make_tuple(
@@ -325,7 +325,6 @@ namespace driverstation::dynamic_texture{
 		}
 
 		private:
-			// TODO: FIXME: MultiCellDynamicTextureGrid2DCell type is defined in anonymous namespace but is in header file
 			std::array<std::array<MultiCellDynamicTextureGrid2DCell, column_count>, row_count> cells;
 			Vector2 cell_view_size;
 	};

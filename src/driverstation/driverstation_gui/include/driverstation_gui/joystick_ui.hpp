@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <memory>
+#include <raylib.h>
 #undef RAYGUI_IMPLEMENTATION
 #include <raygui.h>
 #include <vector>
@@ -28,22 +29,21 @@ namespace driverstation::gui{
 
 		// TODO: Should JoystickDisplay use a RenderTexture like other components?
 		// TODO: parameter `color` is currently unused
-		void draw(int x, int y, Color color){
-			(void) color; // TODO: REMOVE
+		void draw(int x, int y, [[maybe_unused]] Color color){
 			bool joystick_available = IsGamepadAvailable(this->joystick_id);
 
 			int previous_gui_state = GuiGetState();
 			if(joystick_available) GuiEnable();
 			else GuiDisable();
 
-			for(int i = 0; (size_t)i < this->button_indicators.size(); i++){
+			for(size_t i = 0; i < this->button_indicators.size(); i++){
 				GuiCheckBox(
 					this->button_indicators[i] + Vector2{(float)x, (float)y},
 					TextFormat("%d", i + 1),
 					IsGamepadButtonDown(this->joystick_id, i + 1)
 				);
 			}
-			for(int i = 0; (size_t)i < this->axis_indicators.size(); i++){
+			for(size_t i = 0; i < this->axis_indicators.size(); i++){
 				// NOTE: Buttons are 1-indexed, Axes are 0-indexed
 				float axis_value = GetGamepadAxisMovement(this->joystick_id, i);
 				GuiProgressBar(
