@@ -59,7 +59,7 @@ namespace driverstation::dynamic_texture{
 			return this->render_texture.texture;
 		}
 
-		void on_click(float x, float y) override{}
+		void on_click(float x, float y) override{(void)x;(void)y;}
 
 		std::tuple<uint, uint> size() override{
 			return std::make_tuple(

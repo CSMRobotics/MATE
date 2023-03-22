@@ -237,7 +237,7 @@ namespace driverstation::gui{
 								case '\a':  // For historical reasons, xterm can end OSCs with a bell
 									this->current_text_mode = TextMode::DEFAULT;
 									break;
-								case '0x1B':  // Escape, possibly String Terminator
+								case (char)0x1B:  // Escape, possibly String Terminator
 									this->current_text_mode = TextMode::ESCAPE_CODE_WITHIN_OPERATING_SYSTEM_COMMAND;
 									break;
 							}
@@ -254,7 +254,7 @@ namespace driverstation::gui{
 							break;
 						case TextMode::AWAITING_STRING_TERMINATOR:
 							switch(current_character){
-								case '0x1B':  // Escape, possibly String Terminator
+								case 0x1B:  // Escape, possibly String Terminator
 									this->current_text_mode = TextMode::EXPECTING_STRING_TERMINATOR;
 									break;
 							}
