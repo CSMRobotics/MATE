@@ -27,6 +27,7 @@ find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
+find_package(Boost 1.71.0 REQUIRED)
 
 add_library(flight_controller_lib STATIC src/flight_controller.cpp)
 add_executable(flight_controller src/main.cpp)
@@ -42,22 +43,27 @@ ament_target_dependencies(
   "message_filters"
   "std_srvs"
 )
+target_include_directories(flight_display PUBLIC
+  ${Boost_INCLUDE_DIRS})
 
 target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
-target_link_libraries(flight_display flight_controller_lib sfml-system sfml-window sfml-graphics)
+target_link_libraries(flight_display flight_controller_lib sfml-system sfml-window sfml-graphics yaml-cpp ${Boost_LIBRARIES})
 
 install(TARGETS flight_controller flight_controller_lib flight_display
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include/
   DESTINATION include/)
 
 install(DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME})
+  DESTINATION share/${PROJECT_NAME}/config)
 
 install(DIRECTORY assets/
-  DESTINATION share/${PROJECT_NAME})
+  DESTINATION share/${PROJECT_NAME}/assets)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
