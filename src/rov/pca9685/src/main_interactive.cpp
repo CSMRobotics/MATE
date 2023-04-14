@@ -134,9 +134,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
             } else {
                 if(isContinuous[pin]) {
                     servoDriver.setThrottle(pin, pwm_or_angle);
-                    break;
+                } else {
+                    servoDriver.setAngle(pin, pwm_or_angle);
                 }
-                servoDriver.setAngle(pin, pwm_or_angle);
             }
         } catch(boost::bad_lexical_cast &) {
             std::cout << "Bad format\nUse the format: 'pinNumber PWM_or_angle <PWM_TRUE>'\n";
