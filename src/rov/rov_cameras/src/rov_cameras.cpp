@@ -177,11 +177,11 @@ private:
                     std::shared_ptr<cv::VideoCapture> camera_device = std::make_shared<cv::VideoCapture>(string_format(pipeline, camera_path.c_str()), cv::CAP_GSTREAMER);
                     usleep(1000 * 1000); // ensure camera is captured and opened
                     if(!camera_device->isOpened()) {
-                        RCLCPP_DEBUG(this->get_logger(), "During reconnection attempt of Camera %i, %s is not a camera or could not be opened (might already be in use).", camera, camera_path);
+                        RCLCPP_DEBUG(this->get_logger(), "During reconnection attempt of Camera %i, %s is not a camera or could not be opened (might already be in use).", camera, camera_path.c_str());
                     } else {
                         camera_device->set(cv::CAP_PROP_FRAME_WIDTH,320);
                         camera_device->set(cv::CAP_PROP_FRAME_HEIGHT,240);
-                        RCLCPP_DEBUG(this->get_logger(), "During reconnection attempt of Camera %i, %s successfully opened as video capture object", camera, camera_path);
+                        RCLCPP_DEBUG(this->get_logger(), "During reconnection attempt of Camera %i, %s successfully opened as video capture object", camera, camera_path.c_str());
                         this->cameras[camera] = camera_device;
                     }
                 }
@@ -218,12 +218,12 @@ private:
             std::shared_ptr<cv::VideoCapture> camera = std::make_shared<cv::VideoCapture>(string_format(pipeline, camera_path.c_str()), cv::CAP_GSTREAMER);
             usleep(1000 * 1000); // ensure camera is captured and opened
             if(!camera->isOpened()) {
-                RCLCPP_DEBUG(this->get_logger(), "%s is not a camera or could not be opened.", camera_path);
+                RCLCPP_DEBUG(this->get_logger(), "%s is not a camera or could not be opened.", camera_path.c_str());
                 std::cout << camera_path << " is not a camera or could not be opened." << std::endl;
             } else {
                 camera->set(cv::CAP_PROP_FRAME_WIDTH,320);
                 camera->set(cv::CAP_PROP_FRAME_HEIGHT,240);
-                RCLCPP_DEBUG(this->get_logger(), "%s successfully opened as video capture object", camera_path);
+                RCLCPP_DEBUG(this->get_logger(), "%s successfully opened as video capture object", camera_path.c_str());
                 std::cout << camera_path << " successfully opened as video capture object" << std::endl;
                 this->cameras.push_back(camera);
             }
