@@ -30,7 +30,7 @@ private:
 
     rclcpp::Subscription<rov_interfaces::msg::ThrusterSetpoints>::SharedPtr thruster_setpoint_subscription;
     rclcpp::Subscription<rov_interfaces::msg::BNO055Data>::SharedPtr bno_data_subscription;
-    rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr _publisher;
+    rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr pwm_publisher;
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr toggle_PID_service;
 
     std::function<void(void)> _update = std::bind(&FlightController::updateSimple, this);

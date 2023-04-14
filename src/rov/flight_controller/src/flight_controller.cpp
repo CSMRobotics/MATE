@@ -64,8 +64,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         thrusters[i] = t;
         // TODO: look at this again
         // calculate linear and rotation contribution
-        Eigen::Vector3d linear_contribution(t.thrust * MAX_THRUST_VALUE);
-        Eigen::Vector3d rotation_contribution(t.position.cross(t.thrust * MAX_THRUST_VALUE));
+        Eigen::Vector3d linear_contribution(t.thrust);
+        Eigen::Vector3d rotation_contribution(t.position.cross(t.thrust));
 
         // add the PWM pin to the thruster index map
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
@@ -90,7 +90,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // receives orientation and acceleration data from bno055
     bno_data_subscription = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
     // publishes PWM commands to PCA9685
-    _publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
+    pwm_publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
@@ -203,7 +203,7 @@ void FlightController::updateSimple() {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
-        _publisher->publish(msg);
+        pwm_publisher->publish(msg);
 #ifndef NDEBUG
         RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
@@ -300,7 +300,7 @@ void FlightController::updatePID() {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??
         msg.channel = thruster_index_to_PWM_pin.at(i);
-        _publisher->publish(msg);
+        pwm_publisher->publish(msg);
 #ifndef NDEBUG
             RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
