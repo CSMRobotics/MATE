@@ -127,12 +127,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
                 is_pwm = false;
             }
             int pin = boost::lexical_cast<int>(pinNumber);
-            int pwm_or_angle = boost::lexical_cast<int>(PWM_or_angle);
+            float pwm_or_angle = boost::lexical_cast<float>(PWM_or_angle);
 
             if(is_pwm) {
                 std::cout << "Setting pin " << pin << " to pwm: " << pwm_or_angle << '\n';
             } else {
-                std::cout << "Setting pin " << pin << " to angle: " << pwm_or_angle << '\n';
+                if(isContinuous[pin]) {
+                    servoDriver.setThrottle(pwm_or_angle);
+                    break;
+                }
                 servoDriver.setAngle(pin, pwm_or_angle);
             }
         } catch(boost::bad_lexical_cast &) {
