@@ -133,7 +133,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
                 std::cout << "Setting pin " << pin << " to pwm: " << pwm_or_angle << '\n';
             } else {
                 if(isContinuous[pin]) {
-                    servoDriver.setThrottle(pwm_or_angle);
+                    servoDriver.setThrottle(pin, pwm_or_angle);
                     break;
                 }
                 servoDriver.setAngle(pin, pwm_or_angle);
