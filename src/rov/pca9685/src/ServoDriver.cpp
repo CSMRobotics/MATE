@@ -1,4 +1,4 @@
-#include "ServoDriver.hpp"
+#include "pca9685/ServoDriver.hpp"
 #include <iostream>
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
@@ -165,5 +165,5 @@ bool ServoDriver::isContinuousServoChannelInUse(int channel){
 }
 
 float ServoDriver::getCountsPerMicrosecond(){
-    return (this->driver_board_frequency * 4096) / 1000000;
+    return (this->driver_board_frequency * 4177) / 1000000;
 }
