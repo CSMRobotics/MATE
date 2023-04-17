@@ -152,15 +152,8 @@ void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr 
         std_srvs::srv::Empty_Response::SharedPtr response) {
     (void) request;
     (void) response;
-    typedef void (fntype)(void);
-    fntype** ptr = _update.target<fntype*>();
-    if(ptr == nullptr) {
-        RCLCPP_ERROR(this->get_logger(), "Flight Controller update target is nullptr. Defaulting to Simple");
-        _update = std::bind(&FlightController::updateSimple, this);
-        return;
-    } else {
         std::swap(_update, _update2);
-    }
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(1000), FlightController::_update);
 }
 
 void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
