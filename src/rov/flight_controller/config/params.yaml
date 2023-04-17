@@ -1,5 +1,7 @@
 flight_controller:
   ros__parameters:
+    Debug: True
+    Use_PCA9685: False
     Thruster0:
       Position: [1.0, 1.0, 0.0]
       Thrust: [0.0, 0.0, 1.0]
@@ -34,6 +36,8 @@ flight_controller:
       Pin: 15
 flight_display:
   ros__parameters:
+    Debug: True
+    Use_PCA9685: True
     Thruster0:
       Position: [1.0, 1.0, 0.0]
       Thrust: [0.0, 0.0, 1.0]

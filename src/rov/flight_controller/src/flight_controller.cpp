@@ -32,6 +32,9 @@ void declare_params(rclcpp::Node* node) {
             {"Pin", i}
         });
     }
+
+    node->declare_parameter("Debug", false);
+    node->declare_parameter("Use_PCA9685", true);
     
     // declare gain constant parameters
     // TODO: tune these constants
@@ -82,7 +85,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix.inverse() * this->thruster_geometry_pseudo_inverse;
 
     // use PWM service to register thrusters on PCA9685
-    this->registerThrusters();
+    if(this->get_parameter("Use_PCA9685").as_bool())
+        this->registerThrusters();
     
     // create ros subscriptions and publishers
     // receives translation and rotational setpoints from rov_control
@@ -195,18 +199,23 @@ void FlightController::updateSimple() {
     }
     
     // scale actuations by abs of largest actuation request
-    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = unnormalized_actuations / largest_abs_actuation_request;
+    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = unnormalized_actuations;
+    normalizethrottles(&actuations);
 
     // apply the actuations to the thrusters
     // publish PWM values
+    // TODO: consider refactoring this to have 8 separate publishers?
+    // publishers would be created upon successful return from registerThrusters() if Use_PCA9685 == true
+    // else defaults would be created from params.yaml
+    // this method would allow for rqt_topic to more accurately collect PWM values
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-#ifndef NDEBUG
-        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
-#endif
+// #ifndef NDEBUG
+//         RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+// #endif
     }
 }
 
@@ -296,6 +305,10 @@ void FlightController::updatePID() {
     normalizethrottles(&actuations);
 
     // publish PWM values
+    // TODO: consider refactoring this to have 8 separate publishers?
+    // publishers would be created upon successful return from registerThrusters() if Use_PCA9685 == true
+    // else defaults would be created from params.yaml
+    // this method would allow for rqt_topic to more accurately collect PWM values
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??

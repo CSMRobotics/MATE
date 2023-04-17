@@ -44,8 +44,8 @@ private:
 
     rov_interfaces::msg::BNO055Data bno_data;
     std::mutex bno_mutex;
-    Eigen::Vector3d translation_setpoints = Eigen::Vector3d(3,1);
-    Eigen::Vector3d attitude_setpoints = Eigen::Vector3d(3,1);
+    Eigen::Vector3d translation_setpoints = Eigen::Vector3d(0,0,0);
+    Eigen::Vector3d attitude_setpoints = Eigen::Vector3d(0,0,0);
     std::mutex setpoint_mutex;
     Eigen::Quaterniond quaternion_reference;
     Eigen::Vector3d linear_accel_last;
