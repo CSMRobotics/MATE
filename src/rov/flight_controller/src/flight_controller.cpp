@@ -98,7 +98,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
 
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), FlightController::_update);
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(1000), FlightController::_update);
 
     // Creates service responsible for toggling between updateSimple and updatePID
     toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", 
@@ -152,7 +152,7 @@ void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr 
         std_srvs::srv::Empty_Response::SharedPtr response) {
     (void) request;
     (void) response;
-        std::swap(_update, _update2);
+    std::swap(_update, _update2);
     pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(1000), FlightController::_update);
 }
 
@@ -175,25 +175,22 @@ void FlightController::bno_callback(const rov_interfaces::msg::BNO055Data::Share
 void FlightController::updateSimple() {
     // convert setpoints to actuations that the controller must apply
     Eigen::Matrix<double, NUM_THRUSTERS, 1> unnormalized_actuations = Eigen::Matrix<double, NUM_THRUSTERS, 1>::Zero();
-    double largest_abs_actuation_request = 0;
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         Thruster t = thrusters[i];
         // TODO: VERIFY THIS WORKS AS INTENDED => max value SHOULD be +-1 (rov_control.py only updates translation or rotation)
         // Actuation = Linear Actuation(0) + Rotational Actuation (0)
         // ALTERNATIVELY: G^+ * tau = activation for rotation or translation defined but not both
-        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints.normalized()) 
-            + t.position.cross(t.thrust).dot(attitude_setpoints.normalized());
-
-        // find the abs largest actuation request
-        // used after to normalize the actuations ensuring that |actuation| <= 1 holds for all actuations
-        if(abs(unnormalized_actuations(i,0)) > largest_abs_actuation_request) {
-            largest_abs_actuation_request = abs(unnormalized_actuations(i,0));
-        }
+        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints) 
+            + t.position.cross(t.thrust).dot(attitude_setpoints);
     }
     
     // scale actuations by abs of largest actuation request
     Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = unnormalized_actuations;
-    normalizethrottles(&actuations);
+    // Eigen::Index idx;
+    // (actuations.cwiseAbs()).maxCoeff(&idx);
+    // if(actuations(idx) != 0)
+    //     actuations /= actuations(idx);
+    clampthrottles(&actuations);
 
     // apply the actuations to the thrusters
     // publish PWM values
@@ -206,9 +203,9 @@ void FlightController::updateSimple() {
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-// #ifndef NDEBUG
-//         RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
-// #endif
+#ifndef NDEBUG
+        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#endif
     }
 }
 
@@ -225,7 +222,7 @@ void FlightController::updatePID() {
     this->setpoint_mutex.lock();
     this->bno_mutex.lock();
     Eigen::Vector3d linear_accel(bno_data.linearaccel.i, bno_data.linearaccel.j,bno_data.linearaccel.k); // m/s^2
-    Eigen::Vector3d linear_velocity = linear_velocity + linear_accel * dt_ms / 1000; // get an approximation of linear velocity
+    linear_velocity += linear_accel * dt_ms / 1000; // get an approximation of linear velocity
     linear_velocity_err_last = linear_velocity_err;
     linear_velocity_err[0] = translation_setpoints(0,0) - linear_velocity[0];
     linear_velocity_err[1] = translation_setpoints(1,0) - linear_velocity[1];
@@ -243,8 +240,10 @@ void FlightController::updatePID() {
     auto P = [](rclcpp::Parameter kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
         return kp.as_double() * linear_velocity_err;
     };
-    auto I = [](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
-        return ki.as_double() * linear_velocity_err * dt_ms / 1000;
+    // TODO: anti-windup
+    auto I = [this](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
+        this->linear_integral += ki.as_double() * linear_velocity_err * dt_ms / 1000;
+        return this->linear_integral;
     };
     auto D = [](rclcpp::Parameter kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
         return kd.as_double() * (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
@@ -252,7 +251,7 @@ void FlightController::updatePID() {
 
     // P + I + D
     desired_force = P(PID_params.at(0),linear_velocity_err)
-                    + (linear_integral += I(PID_params.at(1), linear_velocity_err, dt_ms))
+                    + I(PID_params.at(1), linear_velocity_err, dt_ms)
                     + D(PID_params.at(2), linear_velocity_err, linear_velocity_err_last, dt_ms);
 
     // update desired torque
@@ -295,7 +294,7 @@ void FlightController::updatePID() {
     // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
     // while scaling thrusters to account for large thrust demands on a single thruster
     Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
-    normalizethrottles(&actuations);
+    clampthrottles(&actuations);
 
     // publish PWM values
     // TODO: consider refactoring this to have 8 separate publishers?
@@ -313,7 +312,7 @@ void FlightController::updatePID() {
     }
 }
 
-void FlightController::normalizethrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
+void FlightController::clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
     Eigen::Index loc;
     throttles->minCoeff(&loc);
     double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0));

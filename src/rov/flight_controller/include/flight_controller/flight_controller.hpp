@@ -26,7 +26,7 @@ private:
     void bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data);
     void updateSimple();
     void updatePID();
-    void normalizethrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles);
+    void clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles);
 
     rclcpp::Subscription<rov_interfaces::msg::ThrusterSetpoints>::SharedPtr thruster_setpoint_subscription;
     rclcpp::Subscription<rov_interfaces::msg::BNO055Data>::SharedPtr bno_data_subscription;
@@ -48,10 +48,11 @@ private:
     Eigen::Vector3d attitude_setpoints = Eigen::Vector3d(0,0,0);
     std::mutex setpoint_mutex;
     Eigen::Quaterniond quaternion_reference;
-    Eigen::Vector3d linear_accel_last;
-    Eigen::Vector3d linear_integral;
+    Eigen::Vector3d linear_accel_last = Eigen::Vector3d(0,0,0);
+    Eigen::Vector3d linear_integral = Eigen::Vector3d(0,0,0);
+    Eigen::Vector3d linear_velocity = Eigen::Vector3d(0,0,0);
     Eigen::Vector3d linear_velocity_err = Eigen::Vector3d(0,0,0);
-    Eigen::Vector3d linear_velocity_err_last;
+    Eigen::Vector3d linear_velocity_err_last = Eigen::Vector3d(0,0,0);
 
     std::array<Thruster, NUM_THRUSTERS> thrusters;
     Eigen::Matrix<double, 6, NUM_THRUSTERS> thruster_geometry;
