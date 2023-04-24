@@ -13,6 +13,7 @@
 #include "rov_interfaces/msg/pwm.hpp"
 
 #define NUM_THRUSTERS 8
+#define UPDATE_MS 1000
 
 // TODO: ensure services are thread-safe
 class FlightController : public rclcpp::Node {

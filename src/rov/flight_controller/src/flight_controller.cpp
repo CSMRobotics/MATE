@@ -98,7 +98,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
 
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(1000), FlightController::_update);
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
 
     // Creates service responsible for toggling between updateSimple and updatePID
     toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", 
@@ -148,12 +148,14 @@ void FlightController::registerThrusters() {
     }
 }
 
+// TODO: fix the PID controller not liking being paused. (set a pause flag? or reset last_updated to now?), dt continues to grow.
 void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, 
         std_srvs::srv::Empty_Response::SharedPtr response) {
     (void) request;
     (void) response;
     std::swap(_update, _update2);
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(1000), FlightController::_update);
+    this->last_updated = std::chrono::high_resolution_clock::now();
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
 }
 
 void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {

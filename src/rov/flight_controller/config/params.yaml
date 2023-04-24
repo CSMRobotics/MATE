@@ -20,11 +20,11 @@ flight_controller:
       Pin: 3
     Thruster4:
       Position: [1.0, 0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 1.0]
+      Thrust: [0.707106781, -0.707106781, 0.0]
       Pin: 12
     Thruster5:
       Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 1.0]
+      Thrust: [0.707106781, 0.707106781, 0.0]
       Pin: 13
     Thruster6:
       Position: [1.0, -0.5, 0.0]
