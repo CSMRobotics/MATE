@@ -17,11 +17,56 @@ class States(Enum):
     teleop_drive = 2
     teleop_manip = 3
 
+def declare_parameters(node : Node):
+    node.declare_parameters("mapping",
+        [
+            ("trigger", 0),
+            ("trigger", 0),
+            ("thumb", 1),
+            ("button_3", 2),
+            ("button_4", 3),
+            ("button_5", 4),
+            ("button_6", 5),
+            ("button_7", 6),
+            ("button_8", 7),
+            ("button_9", 8),
+            ("button_10", 9),
+            ("button_11", 10),
+            ("button_12", 11),
+            ("roll", 0),
+            ("pitch", 1),
+            ("yaw", 2),
+            ("throttle", 3),
+            ("hat_x", 4),
+            ("hat_y", 5),
+        ]
+    )
+
+    node.declare_parameters("",
+        [
+            ("chicken_speed", 10),
+            ("wrist_speed", 10),
+            ("level_min", -90),
+            ("level_initial", 0),
+            ("level_max", 90),
+            ("elbow_min", -90),
+            ("elbow_initial", 0),
+            ("elbow_max", 90),
+            ("wrist_min", -90),
+            ("wrist_initial", 0),
+            ("wrist_max", 90),
+            ("clamp_initial", 0),
+            ("deadzone", 0),
+            ("joy_update_hz", 10),
+            ("joy_timeout", 0.5)
+        ]
+    )
+
 
 class ROV_Control(Node):
     def __init__(self):
-        
-        super().__init__("rov_control", automatically_declare_parameters_from_overrides=True)
+        super().__init__("rov_control")
+        declare_parameters(self)
         self.thruster_setpoint_publisher = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 10)
         self.machine = Machine(self, states=States, initial=States.teleop_drive)
         self.machine.add_transition("estop_normal", "*", States.paused)
