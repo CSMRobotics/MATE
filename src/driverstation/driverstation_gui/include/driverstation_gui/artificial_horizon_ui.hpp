@@ -10,6 +10,8 @@
 #include "modes_util.hpp"
 #include "ui_util.hpp"
 
+#include "horrible_ros_path.hpp"
+
 namespace driverstation::gui{
 	struct ArtificialHorizon : public dynamic_texture::DynamicRenderTexture2D{
 		Vector3 gravity_vector = Vector3{0.0f, 1.0f, 0.0f};
@@ -21,8 +23,8 @@ namespace driverstation::gui{
 			CAMERA_ORTHOGRAPHIC          // projection
 		};
 		Model hemisphere_model = LoadModelFromMesh(GenMeshHemiSphere(10.0f, 12.0f, 12.0f));
-		Model sphere_model = LoadModel("assets/navball.obj");
-		Texture2D texture = LoadTexture("assets/textures/navball.png");
+		Model sphere_model = LoadModel(horrible_ros_path::prepend_prefix("assets/navball.obj").c_str());
+		Texture2D texture = LoadTexture(horrible_ros_path::prepend_prefix("assets/textures/navball.png").c_str());
 
 		// TODO: Properties for colors?
 

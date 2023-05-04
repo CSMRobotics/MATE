@@ -16,6 +16,7 @@
 #include "modes_util.hpp"
 #include "ssh_ui.hpp"
 #include "ui_util.hpp"
+#include "horrible_ros_path.hpp"
 
 namespace chosen_config = driverstation::configs::main;
 
@@ -33,7 +34,7 @@ namespace driverstation::gui{
 			DriverstationUi(int screen_width, int screen_height, const char* window_title){
 				InitWindow(screen_width, screen_height, window_title);
 				SetTargetFPS(60);
-				GuiLoadStyle("assets/styles/dark.rgs");
+				GuiLoadStyle(horrible_ros_path::prepend_prefix("assets/styles/dark.rgs").c_str());
 
 				this->ssh_display = chosen_config::InitializeSshDisplay();
 				this->ssh_connect_popup_mode = SshConnectPopupMode::Host;

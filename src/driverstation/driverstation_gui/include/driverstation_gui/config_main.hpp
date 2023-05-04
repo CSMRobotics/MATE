@@ -11,6 +11,7 @@
 #include "orientation_viewport_ui.hpp"
 #include "ssh_ui.hpp"
 #include "ui_util.hpp"
+#include "horrible_ros_path.hpp"
 
 namespace driverstation::configs::main{
 	const uint8_t CAMERA_GRID_ROW_COUNT = 2;
@@ -20,7 +21,7 @@ namespace driverstation::configs::main{
 	// TODO: Should this be templated over the grid size?
 	// template<uint8_t row_count, uint8_t column_count>
 	std::shared_ptr<dynamic_texture::HomogeneousDynamicTextureGrid2D<gui::CameraViewport, CAMERA_GRID_ROW_COUNT, CAMERA_GRID_COLUMN_COUNT>> InitializeCameraGrid(){
-		auto fallback = std::make_shared<dynamic_texture::GifTexture2D>("assets/camera_fallback_image.gif", 2.0f);
+		auto fallback = std::make_shared<dynamic_texture::GifTexture2D>(horrible_ros_path::prepend_prefix("assets/camera_fallback_image.gif").c_str(), 2.0f);
 
 		std::array<std::array<Color, CAMERA_GRID_COLUMN_COUNT>, CAMERA_GRID_ROW_COUNT> colors = {{
 			{Color{191, 0, 0, 255}, Color{0, 0, 191, 255}},//    LIME,   GOLD},
@@ -100,7 +101,7 @@ namespace driverstation::configs::main{
 	}
 
 	std::shared_ptr<gui::OrientationViewport> InitializeOrientationViewport(){
-		return std::make_shared<gui::OrientationViewport>("assets/rov.obj", 608, 400);
+		return std::make_shared<gui::OrientationViewport>(horrible_ros_path::prepend_prefix("assets/rov.obj").c_str(), 608, 400);
 	}
 
 	std::shared_ptr<gui::ArtificialHorizon> InitializeArtificialHorizon(){
@@ -110,8 +111,8 @@ namespace driverstation::configs::main{
 	std::shared_ptr<gui::SshDisplay> InitializeSshDisplay(){
 		return std::make_shared<gui::SshDisplay>(
 			8, 15, 80, 24, 100,
-			LoadFontEx("assets/fonts/font.ttf", 60, nullptr, 256),
-			LoadFontEx("assets/fonts/font_bold.ttf", 60, nullptr, 256)
+			LoadFontEx(horrible_ros_path::prepend_prefix("assets/fonts/font.ttf").c_str(), 60, nullptr, 256),
+			LoadFontEx(horrible_ros_path::prepend_prefix("assets/fonts/font_bold.ttf").c_str(), 60, nullptr, 256)
 		);
 	}
 }
