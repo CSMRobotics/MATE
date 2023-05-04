@@ -25,6 +25,11 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(raylib REQUIRED VERSION 4.2.0)
 find_library(NAME ssh REQUIRED)
 find_library(NAME raygui REQUIRED)
@@ -38,6 +43,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 ament_target_dependencies(
   ${PROJECT_NAME}
   rclcpp
+  common_interfaces
+  image_transport
+  cv_bridge
+  sensor_msgs
+  std_msgs
 )
 
 target_link_libraries(${PROJECT_NAME} raylib)

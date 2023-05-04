@@ -5,13 +5,16 @@
 #include <memory>
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.hpp>
 
 #include "artificial_horizon_ui.hpp"
 #include "camera_viewport_ui.hpp"
 #include "config_main.hpp"
 #include "dynamic_texture.hpp"
 #include "estop_ui.hpp"
-#include "joystick_ui.hpp"
 #include "orientation_viewport_ui.hpp"
 #include "modes_util.hpp"
 #include "ssh_ui.hpp"
@@ -31,7 +34,8 @@ namespace driverstation::gui{
 
 	class DriverstationUi{
 		public:
-			DriverstationUi(int screen_width, int screen_height, const char* window_title){
+			DriverstationUi(int screen_width, int screen_height, const char* window_title, rclcpp::Node::SharedPtr node){
+				this->node = node;
 				InitWindow(screen_width, screen_height, window_title);
 				SetTargetFPS(60);
 				GuiLoadStyle(horrible_ros_path::prepend_prefix("assets/styles/dark.rgs").c_str());
@@ -144,6 +148,9 @@ namespace driverstation::gui{
 			}
 
 		protected:
+			rclcpp::Node::SharedPtr node;
+			// rclcpp::Publisher<>::SharedPtr pub;
+			
 			std::unique_ptr<dynamic_texture::MultiCellDynamicTextureGrid2D<12, 12>> multi_cell;
 			std::shared_ptr<gui::SshDisplay> ssh_display;
 			// TODO: FIXME: ssh_connect_popup_mode type uses anonymous namespace and is in header file
