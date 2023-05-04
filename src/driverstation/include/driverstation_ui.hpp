@@ -2,7 +2,11 @@
 #define DRIVERSTATION_UI_HEADER_INCLUDED
 
 #include <cstring>
+#include <functional>
 #include <memory>
+#include <sys/types.h>
+#include <vector>
+
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
 
@@ -45,14 +49,37 @@ namespace driverstation::gui{
 					screen_width, screen_height
 				);
 
+				this->camera_feeds[0] = std::make_shared<dynamic_texture::ImageFeed>();
+				this->camera_feeds[1] = std::make_shared<dynamic_texture::ImageFeed>();
+				this->camera_feeds[2] = std::make_shared<dynamic_texture::ImageFeed>();
+				this->camera_feeds[3] = std::make_shared<dynamic_texture::ImageFeed>();
+
+				auto camera_grid = std::make_shared<dynamic_texture::HomogeneousDynamicTextureGrid2D<gui::CameraViewport, 2, 2>>(1112, 834);
+				for(uint8_t y = 0; y < 2; y++){
+					for(uint8_t x = 0; x < 2; x++){
+						auto camera = std::make_unique<gui::CameraViewport>(
+							1112, 834,
+							this->camera_feeds[y+y+x],
+							WHITE,
+							16
+						);
+
+						camera->label = "Camera";
+						camera->unavailable_label = "Stream Unavailable";
+
+						camera_grid->cells[y][x] = std::move(camera);
+					}
+				}
+
 				uint32_t w, h;
 
 				this->multi_cell
-					->from(3, 0).to(9, 8).set(chosen_config::InitializeCameraGrid())
+					// ->from(3, 0).to(9, 8).set(chosen_config::InitializeCameraGrid())
+					->from(3, 0).to(9, 8).set(camera_grid)
 					->from(9, 0).to(12, 6).tapSizePixels(&w, &h).set(std::make_shared<gui::OrientationViewport>("assets/rov.obj", w, h))
 					->from(9, 6).to(12, 8).tapSizePixels(&w, &h).set(std::make_shared<gui::ArtificialHorizon>(w, h))
 					->from(4, 8).to(8, 12).set(this->ssh_display)
-					->from(11, 9).to(12, 11).tapSizePixels(&w, &h).set(std::make_shared<gui::EStop>(w, h, 2));
+					->from(11, 9).to(12, 11).tapSizePixels(&w, &h).set(std::make_shared<gui::EStop>(w, h, 2, std::bind(&DriverstationUi::callAllEstopCallbacks, this)));
 			}
 
 			~DriverstationUi(){
@@ -142,6 +169,16 @@ namespace driverstation::gui{
 				return !WindowShouldClose();
 			}
 
+			void setCameraImage(uint camera_index, uint width, uint height, const void* frame_data){
+				if(camera_index < 4){
+					this->camera_feeds[camera_index]->setImage(width, height, frame_data);
+				}
+			}
+
+			void registerEstopCallback(std::function<void(void)> callback){
+				this->estop_callbacks.push_back(callback);
+			}
+
 		protected:
 			std::unique_ptr<dynamic_texture::MultiCellDynamicTextureGrid2D<12, 12>> multi_cell;
 			std::shared_ptr<gui::SshDisplay> ssh_display;
@@ -150,6 +187,15 @@ namespace driverstation::gui{
 			char ssh_username[32];
 			char ssh_password[32];
 			int ssh_connect_popup_show_text;
+			std::shared_ptr<dynamic_texture::ImageFeed> camera_feeds[4];
+			std::vector<std::function<void(void)>> estop_callbacks;
+		
+		private:
+			void callAllEstopCallbacks(){
+				for(auto callback : this->estop_callbacks){
+					callback();
+				}
+			}
 	};
 }
 

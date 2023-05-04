@@ -5,7 +5,6 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC
 	config_main.hpp
 	driverstation_ui.hpp
 	dynamic_texture.hpp
-	estop.hpp
 	estop_ui.hpp
 	joystick_ui.hpp
 	modes_util.hpp
