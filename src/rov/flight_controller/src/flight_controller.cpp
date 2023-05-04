@@ -96,6 +96,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // publishes PWM commands to PCA9685
     pwm_publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
+
+    RCLCPP_INFO(this->get_logger(), "Flight Controller Successfully Initialized");
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
     pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
