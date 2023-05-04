@@ -221,6 +221,43 @@ namespace driverstation::dynamic_texture{
 
 			return DynamicRenderTexture2D::current_texture();
 		}
+
+		void set_color(Color color){
+			this->color = color;
+		}
+	};
+
+	struct ImageFeed : public DynamicTexture2D{
+		Texture2D texture;
+
+		ImageFeed(){
+			this->texture = Texture2D{};
+		}
+
+		void unload() override{
+			UnloadTexture(this->texture);
+		}
+
+		Texture2D current_texture() override{
+			return this->texture;
+		}
+
+		void on_click([[maybe_unused]] float x, [[maybe_unused]] float y) override{}
+
+		std::tuple<uint, uint> size() override{
+			return std::make_tuple(this->texture.width, this->texture.height);
+		}
+
+		void setImage(uint width, uint height, const void* image_data){
+			UpdateTextureRec(
+				this->texture,
+				Rectangle{
+					0.0f, 0.0f,
+					(float)width, (float)height
+				},
+				image_data
+			);
+		}
 	};
 
 	namespace{
@@ -322,6 +359,15 @@ namespace driverstation::dynamic_texture{
 
 		MultiCellDynamicTextureGrid2DSelectFrom<row_count, column_count> from(uint8_t x, uint8_t y){
 			return MultiCellDynamicTextureGrid2DSelectFrom(this, x, y);
+		}
+
+		std::optional<std::shared_ptr<DynamicTexture2D>> get(uint8_t x, uint8_t y){
+			MultiCellDynamicTextureGrid2DCell* cell = &this->cells[y][x];
+			if(cell->value){
+				return cell->value;
+			}else{
+				return std::nullopt;
+			}
 		}
 
 		private:

@@ -1,16 +1,17 @@
 #ifndef ESTOP_UI_HEADER_INCLUDED
 #define ESTOP_UI_HEADER_INCLUDED
 
+#include <functional>
+#include <optional>
 #include <raylib.h>
 
-#include "estop.hpp"
 #include "modes_util.hpp"
 #include "ui_util.hpp"
 
 namespace driverstation::gui{
 	struct EStop : public dynamic_texture::DynamicRenderTexture2D{
-		EStop(uint width, uint height, uint8_t molly_guard_level) : dynamic_texture::DynamicRenderTexture2D(width, height),
-			mollyguard_level(molly_guard_level){
+		EStop(uint width, uint height, uint8_t molly_guard_level, std::optional<std::function<void(void)>> trigger_callback = std::nullopt) : dynamic_texture::DynamicRenderTexture2D(width, height),
+			mollyguard_level(molly_guard_level),trigger_callback(trigger_callback){
 			this->recalculate_colors();
 		}
 
@@ -33,8 +34,19 @@ namespace driverstation::gui{
 			if(mollyguard_level > 0){
 				mollyguard_level--;
 				this->recalculate_colors();
+			}else if(this->trigger_callback.has_value()){
+				(*this->trigger_callback)();
+			}
+		}
+
+		std::optional<std::function<void(void)>> setTriggerCallback(std::function<void(void)> callback){
+			if(this->trigger_callback.has_value()){
+				std::function<void(void)> previous_callback = this->trigger_callback.value();
+				this->trigger_callback = callback;
+				return previous_callback;
 			}else{
-				estop::estop();
+				this->trigger_callback = callback;
+				return std::nullopt;
 			}
 		}
 
@@ -44,6 +56,7 @@ namespace driverstation::gui{
 			Color button_color = RED;
 			Color current_base_color;
 			Color current_button_color;
+			std::optional<std::function<void(void)>> trigger_callback;
 
 			void recalculate_colors(){
 				float blend_level = 1.0f - std::pow(0.5f, mollyguard_level);
