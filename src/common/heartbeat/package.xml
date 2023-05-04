@@ -10,7 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
-  <depend>common_interfaces</depend>
+  <depend>csm_common_interfaces</depend>
   <depend>builtin_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>

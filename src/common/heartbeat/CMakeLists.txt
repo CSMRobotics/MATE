@@ -27,7 +27,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(common_interfaces REQUIRED)
+find_package(csm_common_interfaces REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 
 add_executable(listener src/listener.cpp)
