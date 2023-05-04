@@ -7,11 +7,11 @@
 
 namespace driverstation::horrible_ros_path {
 
-    std::string prepend_prefix(char c_str[]) {
+    std::string prepend_prefix(const char c_str[]) {
         return std::string((PREFIX / c_str).c_str());
     }
 
-    std::string prepend_prefix(std::string& str) {
+    std::string prepend_prefix(const std::string& str) {
         return std::string((PREFIX / str.c_str()).c_str());
     }
 
