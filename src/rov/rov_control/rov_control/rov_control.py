@@ -57,7 +57,7 @@ def declare_parameters(node : Node):
             ("wrist_max", 90),
             ("clamp_initial", 0),
             ("deadzone", 0),
-            ("joy_update_hz", 10),
+            ("joy_update_hz", 60),
             ("joy_timeout", 0.5)
         ]
     )
