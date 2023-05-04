@@ -30,7 +30,7 @@ rov_control:
     wrist_min: -90
     wrist_initial: 0
     wrist_max: 90
-    clamp_initial: True
+    clamp_initial: 0
 
     deadzone: 0
     joy_update_hz: 10

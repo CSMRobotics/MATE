@@ -2,8 +2,8 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Bool
-from rov.rov_control.rov_control.JoySubscriber import JoySubscriber
-from JoySubscriber import ParsedJoy
+from rov_control.JoySubscriber import JoySubscriber
+from rov_control.JoySubscriber import ParsedJoy
 from rov_interfaces.msg import ManipulatorSetpoints, ThrusterSetpoints
 from transitions import Machine
 from std_msgs.msg import String
@@ -20,6 +20,7 @@ class States(Enum):
 
 class ROV_Control(Node):
     def __init__(self):
+        
         super().__init__("rov_control", automatically_declare_parameters_from_overrides=True)
         self.thruster_setpoint_publisher = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 10)
         self.machine = Machine(self, states=States, initial=States.teleop_drive)
