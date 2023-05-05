@@ -70,8 +70,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
 
         // add the PWM pin to the thruster index map
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
-#ifndef NDEBUG
-        RCLCPP_INFO(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
             i,
             linear_contribution(0,0),
             linear_contribution(1,0),
@@ -195,8 +195,8 @@ void FlightController::updateSimple() {
     // (actuations.cwiseAbs()).maxCoeff(&idx);
     // if(actuations(idx) != 0)
     //     actuations /= actuations(idx);
-#ifndef NDEBUG
-    RCLCPP_INFO(this->get_logger(), "ACTUATIONS: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+#if DEBUG_OUTPUT
+    RCLCPP_DEBUG(this->get_logger(), "ACTUATIONS: %f | %f | %f | %f | %f | %f | %f | %f\n", 
         actuations(0,0),
         actuations(1,0),
         actuations(2,0),
@@ -207,8 +207,8 @@ void FlightController::updateSimple() {
         actuations(7,0));
 #endif
     clampthrottles(&actuations);
-#ifndef NDEBUG
-    RCLCPP_INFO(this->get_logger(), "NORMALIZED: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+#if DEBUG_OUTPUT
+    RCLCPP_DEBUG(this->get_logger(), "NORMALIZED: %f | %f | %f | %f | %f | %f | %f | %f\n", 
         actuations(0,0),
         actuations(1,0),
         actuations(2,0),
@@ -230,8 +230,8 @@ void FlightController::updateSimple() {
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-#ifndef NDEBUG
-        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }
@@ -333,8 +333,8 @@ void FlightController::updatePID() {
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-#ifndef NDEBUG
-            RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }

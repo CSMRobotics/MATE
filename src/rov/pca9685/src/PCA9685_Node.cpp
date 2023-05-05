@@ -13,7 +13,9 @@ PCA9685_Node::PCA9685_Node() : Node(std::string("pca9685")) {
 }
 
 void PCA9685_Node::topic_callback(const rov_interfaces::msg::PWM::SharedPtr msg) {
+#if DEBUG_OUTPUT
     RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "PCA9685 set channel %i to %f", msg->channel, msg->angle_or_throttle);
+#endif
     servoDriver.setOutput(msg->channel, msg->angle_or_throttle);
 }
 

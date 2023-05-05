@@ -122,7 +122,7 @@ void ServoDriver::setPWMBounds(int channel, int minimum_us, int maximum_us){
 
 void ServoDriver::setPWM(int channel, int value){
     if(this->isChannelInUse(channel)){
-#ifndef NDEBUG
+#if DEBUG_OUTPUT
         printf("Setting pin %i to pwm %i", channel, (int)(value * (1e6 / this->driver_board_frequency / NUM_COUNTS)));
 #endif
         this->driver_board.setPWM(channel, 0, value);
