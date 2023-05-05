@@ -72,7 +72,6 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
 #ifndef NDEBUG
         RCLCPP_INFO(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
-#endif
             i,
             linear_contribution(0,0),
             linear_contribution(1,0),
@@ -80,6 +79,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
             rotation_contribution(0,0),
             rotation_contribution(1,0),
             rotation_contribution(2,0));
+#endif
 
         // add the thruster's geometry to the thruster geometry matrix
         temp[i] = Eigen::VectorXd(6);
