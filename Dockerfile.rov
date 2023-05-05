@@ -33,7 +33,7 @@ RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptool
     rov_interfaces \
     rov_launch \
     # rov_statistics \
-    --cmake-args --no-warn-unused-cli -DNDEBUG
+    --cmake-args --no-warn-unused-cli -D NDEBUG
 
 # build all packages defined in rov_launch file
 # RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
