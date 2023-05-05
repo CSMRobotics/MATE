@@ -49,21 +49,24 @@ ament_target_dependencies(
   "message_filters"
   "std_srvs"
 )
-
 if(BUILD_DISPLAY)
   target_include_directories(flight_display PUBLIC
-  ${Boost_INCLUDE_DIRS})
+    ${Boost_INCLUDE_DIRS})
 endif()
 
 target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
-
 if(BUILD_DISPLAY)
   target_link_libraries(flight_display flight_controller_lib sfml-system sfml-window sfml-graphics yaml-cpp ${Boost_LIBRARIES})
 endif()
 
 install(TARGETS flight_controller flight_controller_lib
   DESTINATION lib/${PROJECT_NAME})
+
+if(BUILD_DISPLAY)
+  install(TARGETS flight_display
+  DESTINATION lib/${PROJECT_NAME})
+endif()
 
 if(BUILD_DISPLAY)
   install(TARGETS flight_display
