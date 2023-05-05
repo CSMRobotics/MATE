@@ -139,9 +139,9 @@ void FlightController::registerThrusters() {
         if(status == std::future_status::ready) {
             auto res = requests[i].get();
             if(res->result) {
-                RCLCPP_INFO(this->get_logger(), "Successfully registered continuous servo on channel %i", res->channel);
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered continuous servo on channel %i", res->channel);
             } else {
-                RCLCPP_ERROR(this->get_logger(), "Could not register continuous servo on channel %i", res->channel);
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Could not register continuous servo on channel %i", res->channel);
             }
         } else {
             i--;
