@@ -146,6 +146,7 @@ void FlightController::registerThrusters() {
             continue;
         }
     }
+    RCLCPP_INFO(this->get_logger(), "Flight Controller Initialized");
 }
 
 // TODO: fix the PID controller not liking being paused. (set a pause flag? or reset last_updated to now?), dt continues to grow.
