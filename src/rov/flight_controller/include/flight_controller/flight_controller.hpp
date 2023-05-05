@@ -12,6 +12,8 @@
 #include "rov_interfaces/msg/thruster_setpoints.hpp"
 #include "rov_interfaces/msg/pwm.hpp"
 
+#include "rov_interfaces/srv/create_continuous_servo.hpp"
+
 #define NUM_THRUSTERS 8
 #define UPDATE_MS 1000/60
 
@@ -33,6 +35,9 @@ private:
     rclcpp::Subscription<rov_interfaces::msg::BNO055Data>::SharedPtr bno_data_subscription;
     rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr pwm_publisher;
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr toggle_PID_service;
+    rclcpp::CallbackGroup::SharedPtr pca9685_registration_callbackgroup;
+    rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedPtr pca9685_client;
+    std::array<std::shared_future<std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Response>>, NUM_THRUSTERS> pca9685_requests;
 
     std::function<void(void)> _update = std::bind(&FlightController::updateSimple, this);
     std::function<void(void)> _update2 = std::bind(&FlightController::updatePID, this);

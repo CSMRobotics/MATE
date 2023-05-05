@@ -11,8 +11,6 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
-#include "rov_interfaces/srv/create_continuous_servo.hpp"
-
 namespace {
 void declare_params(rclcpp::Node* node) {
     // declare thruster parameters
@@ -85,8 +83,11 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix.inverse() * this->thruster_geometry_pseudo_inverse;
 
     // use PWM service to register thrusters on PCA9685
-    if(this->get_parameter("Use_PCA9685").as_bool())
+    if(this->get_parameter("Use_PCA9685").as_bool()) {
+        this->pca9685_registration_callbackgroup = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        this->pca9685_client = this->create_client<rov_interfaces::srv::CreateContinuousServo>("create_continuous_servo", rmw_qos_profile_services_default, this->pca9685_registration_callbackgroup);
         this->registerThrusters();
+    }
     
     // create ros subscriptions and publishers
     // receives translation and rotational setpoints from rov_control
@@ -107,21 +108,27 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         std::bind(&FlightController::toggle_PID, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+namespace {
+    auto registration_callback = [](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFuture future) {
+        auto result = future.get();
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered continuous servo on channel %i", result->channel);
+    };
+}
+
 void FlightController::registerThrusters() {
-    // create service client
-    auto pca9685 = this->create_client<rov_interfaces::srv::CreateContinuousServo>("create_continuous_servo");
-    std::array<std::shared_future<std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Response>>, NUM_THRUSTERS> requests;
     for(int i=0; i < NUM_THRUSTERS; i++) {
         // create continuous servo creation requests on channels in thruster pwm pin map
         auto req = std::make_shared<rov_interfaces::srv::CreateContinuousServo_Request>();
+
         try {
             req->channel = thruster_index_to_PWM_pin.at(i);
         } catch (std::out_of_range const& e) {
             // if thruster index not in map, throw error
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Thruster index's PWM pin %i not found in thruster PWM pin map", i);
+            continue;
         }
         // ensure service is not busy
-        while(!pca9685->wait_for_service(std::chrono::milliseconds(100))) {
+        while(!pca9685_client->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
                 exit(0);
@@ -130,25 +137,8 @@ void FlightController::registerThrusters() {
         }
 
         // asynchronously send these servo creation requests
-        requests[i] = pca9685->async_send_request(req);
+        pca9685_requests[i] = pca9685_client->async_send_request(req, registration_callback);
     }
-
-    // wait for requests to be completed
-    for(int i=0; i < NUM_THRUSTERS; i++) {
-        auto status = requests[i].wait_for(std::chrono::milliseconds(100));
-        if(status == std::future_status::ready) {
-            auto res = requests[i].get();
-            if(res->result) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered continuous servo on channel %i", res->channel);
-            } else {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Could not register continuous servo on channel %i", res->channel);
-            }
-        } else {
-            i--;
-            continue;
-        }
-    }
-    RCLCPP_INFO(this->get_logger(), "Flight Controller Initialized");
 }
 
 // TODO: fix the PID controller not liking being paused. (set a pause flag? or reset last_updated to now?), dt continues to grow.
