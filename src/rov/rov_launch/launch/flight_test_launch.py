@@ -8,7 +8,8 @@ def generate_launch_description():
         Node(package="flight_controller",
             namespace="",
             executable="flight_controller",
-            name="flight_controller"),
+            name="flight_controller",
+            arguments= [os.path.join(get_package_share_directory("flight_controller"), "config", "params.yaml")]),
         Node(package="rov_control",
             namespace="",
             executable="rov_control",
@@ -17,9 +18,5 @@ def generate_launch_description():
         Node(package="pca9685",
             namespace="",
             executable="pca9685_node",
-            name="pca9685"),
-        Node(package="bno055",
-            namespace="",
-            executable="bno055_node",
-            name="bno055")
+            name="pca9685")
         ])
