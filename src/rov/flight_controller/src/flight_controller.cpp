@@ -70,8 +70,9 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
 
         // add the PWM pin to the thruster index map
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
-
+#ifndef NDEBUG
         RCLCPP_INFO(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
+#endif
             i,
             linear_contribution(0,0),
             linear_contribution(1,0),
@@ -194,6 +195,7 @@ void FlightController::updateSimple() {
     // (actuations.cwiseAbs()).maxCoeff(&idx);
     // if(actuations(idx) != 0)
     //     actuations /= actuations(idx);
+#ifndef NDEBUG
     RCLCPP_INFO(this->get_logger(), "ACTUATIONS: %f | %f | %f | %f | %f | %f | %f | %f\n", 
         actuations(0,0),
         actuations(1,0),
@@ -203,7 +205,9 @@ void FlightController::updateSimple() {
         actuations(5,0),
         actuations(6,0),
         actuations(7,0));
+#endif
     clampthrottles(&actuations);
+#ifndef NDEBUG
     RCLCPP_INFO(this->get_logger(), "NORMALIZED: %f | %f | %f | %f | %f | %f | %f | %f\n", 
         actuations(0,0),
         actuations(1,0),
@@ -213,6 +217,7 @@ void FlightController::updateSimple() {
         actuations(5,0),
         actuations(6,0),
         actuations(7,0));
+#endif
 
     // apply the actuations to the thrusters
     // publish PWM values
