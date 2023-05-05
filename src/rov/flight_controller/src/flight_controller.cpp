@@ -175,7 +175,7 @@ void FlightController::updateSimple() {
         // TODO: VERIFY THIS WORKS AS INTENDED => max value SHOULD be +-1 (rov_control.py only updates translation or rotation)
         // Actuation = Linear Actuation(0) + Rotational Actuation (0)
         // ALTERNATIVELY: G^+ * tau = activation for rotation or translation defined but not both
-        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints) 
+        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints)
             + t.position.cross(t.thrust).dot(attitude_setpoints);
     }
     
@@ -185,7 +185,25 @@ void FlightController::updateSimple() {
     // (actuations.cwiseAbs()).maxCoeff(&idx);
     // if(actuations(idx) != 0)
     //     actuations /= actuations(idx);
+    RCLCPP_INFO(this->get_logger(), "ACTUATIONS: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+        actuations(0,0),
+        actuations(1,0),
+        actuations(2,0),
+        actuations(3,0),
+        actuations(4,0),
+        actuations(5,0),
+        actuations(6,0),
+        actuations(7,0));
     clampthrottles(&actuations);
+    RCLCPP_INFO(this->get_logger(), "NORMALIZED: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+        actuations(0,0),
+        actuations(1,0),
+        actuations(2,0),
+        actuations(3,0),
+        actuations(4,0),
+        actuations(5,0),
+        actuations(6,0),
+        actuations(7,0));
 
     // apply the actuations to the thrusters
     // publish PWM values
