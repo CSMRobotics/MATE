@@ -12,6 +12,9 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
+  <build_depend>rov_interfaces</build_depend>
+  <build_depend>common_interfaces</build_depend>
+
   <exec_depend>bno055</exec_depend>
   <exec_depend>flight_controller</exec_depend>
   <exec_depend>pca9685_node</exec_depend>

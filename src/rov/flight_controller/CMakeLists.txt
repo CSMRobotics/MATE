@@ -68,6 +68,11 @@ if(BUILD_DISPLAY)
   DESTINATION lib/${PROJECT_NAME})
 endif()
 
+if(BUILD_DISPLAY)
+  install(TARGETS flight_display
+    DESTINATION lib/${PROJECT_NAME})
+endif()
+
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME})
 
