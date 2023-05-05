@@ -71,7 +71,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         // add the PWM pin to the thruster index map
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
 
-        RCLCPP_DEBUG(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
+        RCLCPP_INFO(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
             i,
             linear_contribution(0,0),
             linear_contribution(1,0),
