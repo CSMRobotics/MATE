@@ -13,7 +13,8 @@ def generate_launch_description():
     )
     flight_controller = Node(
         package="flight_controller",
-        executable="flight_controller"
+        executable="flight_controller",
+        arguments= [os.path.join(get_package_share_directory("flight_controller"), "config", "params.yaml")]
     )
     # manipulator_control = Node()
     pca9685 = Node(
