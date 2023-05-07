@@ -6,7 +6,7 @@ WORKDIR /opt/ros/CSM_MATE_WS
 # ROV specific dependencies
 RUN apt-get update
 RUN apt-get install -y \
-    libpugixml-dev libeigen3-dev
+    libpugixml-dev libeigen3-dev libi2c-dev
 
 RUN python3 -m pip install transitions
 
@@ -19,18 +19,21 @@ COPY src .
 RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \ 
     . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install --packages-select \
-    bar02 \
+
+    csm_common_interfaces \
+
+    # bar02 \
     bno055 \
     flight_controller \
-    manipulator_control \
+    # manipulator_control \
     pca9685 \
-    rov_cameras \
+    # rov_cameras \
     rov_control \ 
-    rov_estop \
+    # rov_estop \
     rov_interfaces \
     rov_launch \
-    rov_statistics \
-    --cmake-args --no-warn-unused-cli
+    # rov_statistics \
+    --cmake-args --no-warn-unused-cli -D DEBUG_OUTPUT=False
 
 # build all packages defined in rov_launch file
 # RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \

@@ -11,7 +11,9 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
-#include "rov_interfaces/srv/create_continuous_servo.hpp"
+#ifndef DEBUG_OUTPUT
+#define DEBUG_OUTPUT false
+#endif
 
 namespace {
 void declare_params(rclcpp::Node* node) {
@@ -32,6 +34,9 @@ void declare_params(rclcpp::Node* node) {
             {"Pin", i}
         });
     }
+
+    node->declare_parameter("Debug", false);
+    node->declare_parameter("Use_PCA9685", true);
     
     // declare gain constant parameters
     // TODO: tune these constants
@@ -69,6 +74,16 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
 
         // add the PWM pin to the thruster index map
         this->thruster_index_to_PWM_pin.emplace(std::make_pair(i, t.pwm_pin));
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "Thruster %i: linear: %f, %f, %f  rotation: %f, %f, %f\n",
+            i,
+            linear_contribution(0,0),
+            linear_contribution(1,0),
+            linear_contribution(2,0),
+            rotation_contribution(0,0),
+            rotation_contribution(1,0),
+            rotation_contribution(2,0));
+#endif
 
         // add the thruster's geometry to the thruster geometry matrix
         temp[i] = Eigen::VectorXd(6);
@@ -82,7 +97,11 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     this->thruster_coefficient_matrix_times_geometry = this->thruster_coefficient_matrix.inverse() * this->thruster_geometry_pseudo_inverse;
 
     // use PWM service to register thrusters on PCA9685
-    this->registerThrusters();
+    if(this->get_parameter("Use_PCA9685").as_bool()) {
+        this->pca9685_registration_callbackgroup = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        this->pca9685_client = this->create_client<rov_interfaces::srv::CreateContinuousServo>("create_continuous_servo", rmw_qos_profile_services_default, this->pca9685_registration_callbackgroup);
+        this->registerThrusters();
+    }
     
     // create ros subscriptions and publishers
     // receives translation and rotational setpoints from rov_control
@@ -92,30 +111,38 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // publishes PWM commands to PCA9685
     pwm_publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
+
+    RCLCPP_INFO(this->get_logger(), "Flight Controller Successfully Initialized");
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(16), FlightController::_update);
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
 
     // Creates service responsible for toggling between updateSimple and updatePID
     toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", 
         std::bind(&FlightController::toggle_PID, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+namespace {
+    auto registration_callback = [](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFuture future) {
+        auto result = future.get();
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered continuous servo on channel %i", result->channel);
+    };
+}
+
 void FlightController::registerThrusters() {
-    // create service client
-    auto pca9685 = this->create_client<rov_interfaces::srv::CreateContinuousServo>("create_continuous_servo");
-    std::array<std::shared_future<std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Response>>, NUM_THRUSTERS> requests;
     for(int i=0; i < NUM_THRUSTERS; i++) {
         // create continuous servo creation requests on channels in thruster pwm pin map
         auto req = std::make_shared<rov_interfaces::srv::CreateContinuousServo_Request>();
+
         try {
             req->channel = thruster_index_to_PWM_pin.at(i);
         } catch (std::out_of_range const& e) {
             // if thruster index not in map, throw error
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Thruster index's PWM pin %i not found in thruster PWM pin map", i);
+            continue;
         }
         // ensure service is not busy
-        while(!pca9685->wait_for_service(std::chrono::milliseconds(100))) {
+        while(!pca9685_client->wait_for_service(std::chrono::milliseconds(100))) {
             if (!rclcpp::ok()) {
                 RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
                 exit(0);
@@ -124,39 +151,18 @@ void FlightController::registerThrusters() {
         }
 
         // asynchronously send these servo creation requests
-        requests[i] = pca9685->async_send_request(req);
-    }
-
-    // wait for requests to be completed
-    for(int i=0; i < NUM_THRUSTERS; i++) {
-        auto status = requests[i].wait_for(std::chrono::milliseconds(100));
-        if(status == std::future_status::ready) {
-            auto res = requests[i].get();
-            if(res->result) {
-                RCLCPP_INFO(this->get_logger(), "Successfully registered continuous servo on channel %i", res->channel);
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Could not register continuous servo on channel %i", res->channel);
-            }
-        } else {
-            i--;
-            continue;
-        }
+        pca9685_requests[i] = pca9685_client->async_send_request(req, registration_callback);
     }
 }
 
+// TODO: fix the PID controller not liking being paused. (set a pause flag? or reset last_updated to now?), dt continues to grow.
 void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, 
         std_srvs::srv::Empty_Response::SharedPtr response) {
     (void) request;
     (void) response;
-    typedef void (fntype)(void);
-    fntype** ptr = _update.target<fntype*>();
-    if(ptr == nullptr) {
-        RCLCPP_ERROR(this->get_logger(), "Flight Controller update target is nullptr. Defaulting to Simple");
-        _update = std::bind(&FlightController::updateSimple, this);
-        return;
-    } else {
-        std::swap(_update, _update2);
-    }
+    std::swap(_update, _update2);
+    this->last_updated = std::chrono::high_resolution_clock::now();
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
 }
 
 void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
@@ -178,34 +184,58 @@ void FlightController::bno_callback(const rov_interfaces::msg::BNO055Data::Share
 void FlightController::updateSimple() {
     // convert setpoints to actuations that the controller must apply
     Eigen::Matrix<double, NUM_THRUSTERS, 1> unnormalized_actuations = Eigen::Matrix<double, NUM_THRUSTERS, 1>::Zero();
-    double largest_abs_actuation_request = 0;
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         Thruster t = thrusters[i];
         // TODO: VERIFY THIS WORKS AS INTENDED => max value SHOULD be +-1 (rov_control.py only updates translation or rotation)
         // Actuation = Linear Actuation(0) + Rotational Actuation (0)
         // ALTERNATIVELY: G^+ * tau = activation for rotation or translation defined but not both
-        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints.normalized()) 
-            + t.position.cross(t.thrust).dot(attitude_setpoints.normalized());
-
-        // find the abs largest actuation request
-        // used after to normalize the actuations ensuring that |actuation| <= 1 holds for all actuations
-        if(abs(unnormalized_actuations(i,0)) > largest_abs_actuation_request) {
-            largest_abs_actuation_request = abs(unnormalized_actuations(i,0));
-        }
+        unnormalized_actuations(i,0) = t.thrust.dot(translation_setpoints)
+            + t.position.cross(t.thrust).dot(attitude_setpoints);
     }
     
     // scale actuations by abs of largest actuation request
-    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = unnormalized_actuations / largest_abs_actuation_request;
+    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = unnormalized_actuations;
+    // Eigen::Index idx;
+    // (actuations.cwiseAbs()).maxCoeff(&idx);
+    // if(actuations(idx) != 0)
+    //     actuations /= actuations(idx);
+#if DEBUG_OUTPUT
+    RCLCPP_DEBUG(this->get_logger(), "ACTUATIONS: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+        actuations(0,0),
+        actuations(1,0),
+        actuations(2,0),
+        actuations(3,0),
+        actuations(4,0),
+        actuations(5,0),
+        actuations(6,0),
+        actuations(7,0));
+#endif
+    clampthrottles(&actuations);
+#if DEBUG_OUTPUT
+    RCLCPP_DEBUG(this->get_logger(), "NORMALIZED: %f | %f | %f | %f | %f | %f | %f | %f\n", 
+        actuations(0,0),
+        actuations(1,0),
+        actuations(2,0),
+        actuations(3,0),
+        actuations(4,0),
+        actuations(5,0),
+        actuations(6,0),
+        actuations(7,0));
+#endif
 
     // apply the actuations to the thrusters
     // publish PWM values
+    // TODO: consider refactoring this to have 8 separate publishers?
+    // publishers would be created upon successful return from registerThrusters() if Use_PCA9685 == true
+    // else defaults would be created from params.yaml
+    // this method would allow for rqt_topic to more accurately collect PWM values
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-#ifndef NDEBUG
-        RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }
@@ -223,7 +253,7 @@ void FlightController::updatePID() {
     this->setpoint_mutex.lock();
     this->bno_mutex.lock();
     Eigen::Vector3d linear_accel(bno_data.linearaccel.i, bno_data.linearaccel.j,bno_data.linearaccel.k); // m/s^2
-    Eigen::Vector3d linear_velocity = linear_velocity + linear_accel * dt_ms / 1000; // get an approximation of linear velocity
+    linear_velocity += linear_accel * dt_ms / 1000; // get an approximation of linear velocity
     linear_velocity_err_last = linear_velocity_err;
     linear_velocity_err[0] = translation_setpoints(0,0) - linear_velocity[0];
     linear_velocity_err[1] = translation_setpoints(1,0) - linear_velocity[1];
@@ -241,8 +271,10 @@ void FlightController::updatePID() {
     auto P = [](rclcpp::Parameter kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
         return kp.as_double() * linear_velocity_err;
     };
-    auto I = [](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
-        return ki.as_double() * linear_velocity_err * dt_ms / 1000;
+    // TODO: anti-windup
+    auto I = [this](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
+        this->linear_integral += ki.as_double() * linear_velocity_err * dt_ms / 1000;
+        return this->linear_integral;
     };
     auto D = [](rclcpp::Parameter kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
         return kd.as_double() * (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
@@ -250,7 +282,7 @@ void FlightController::updatePID() {
 
     // P + I + D
     desired_force = P(PID_params.at(0),linear_velocity_err)
-                    + (linear_integral += I(PID_params.at(1), linear_velocity_err, dt_ms))
+                    + I(PID_params.at(1), linear_velocity_err, dt_ms)
                     + D(PID_params.at(2), linear_velocity_err, linear_velocity_err_last, dt_ms);
 
     // update desired torque
@@ -293,21 +325,25 @@ void FlightController::updatePID() {
     // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
     // while scaling thrusters to account for large thrust demands on a single thruster
     Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
-    normalizethrottles(&actuations);
+    clampthrottles(&actuations);
 
     // publish PWM values
+    // TODO: consider refactoring this to have 8 separate publishers?
+    // publishers would be created upon successful return from registerThrusters() if Use_PCA9685 == true
+    // else defaults would be created from params.yaml
+    // this method would allow for rqt_topic to more accurately collect PWM values
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??
         msg.channel = thruster_index_to_PWM_pin.at(i);
         pwm_publisher->publish(msg);
-#ifndef NDEBUG
-            RCLCPP_INFO(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+#if DEBUG_OUTPUT
+        RCLCPP_DEBUG(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
 #endif
     }
 }
 
-void FlightController::normalizethrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
+void FlightController::clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
     Eigen::Index loc;
     throttles->minCoeff(&loc);
     double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0));

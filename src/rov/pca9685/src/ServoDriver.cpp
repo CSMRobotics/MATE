@@ -1,5 +1,7 @@
-#include "ServoDriver.hpp"
+#include "pca9685/ServoDriver.hpp"
 #include <iostream>
+
+#define NUM_COUNTS 4177
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
     return ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
@@ -120,9 +122,9 @@ void ServoDriver::setPWMBounds(int channel, int minimum_us, int maximum_us){
 
 void ServoDriver::setPWM(int channel, int value){
     if(this->isChannelInUse(channel)){
-        #ifndef NDEBUG
-        std::cout << "Setting channel " << channel << " to pwm " << value << std::endl;
-        #endif
+#if DEBUG_OUTPUT
+        printf("Setting pin %i to pwm %i", channel, (int)(value * (1e6 / this->driver_board_frequency / NUM_COUNTS)));
+#endif
         this->driver_board.setPWM(channel, 0, value);
     }
 }
@@ -165,5 +167,5 @@ bool ServoDriver::isContinuousServoChannelInUse(int channel){
 }
 
 float ServoDriver::getCountsPerMicrosecond(){
-    return (this->driver_board_frequency * 4096) / 1000000;
+    return (this->driver_board_frequency * NUM_COUNTS) / 1e6;
 }

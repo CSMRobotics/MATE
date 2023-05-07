@@ -57,6 +57,13 @@ class ParsedJoy:
             return 0
         else:
             return value
+    
+    def __getitem__(self, key):
+        if key in self.button_names:
+            return self.toggled_buttons[key]
+        if key in self.axis_names:
+            return self.axes[key]
+        return 0
 
 
 class JoySubscriber:
@@ -79,7 +86,7 @@ class JoySubscriber:
         self.last_joy_time = self.now_seconds()
 
     def joy_timeout(self, timeout_seconds):
-        return self.last_joy_time == 0 or (self.current_sec - self.last_joy_time) > timeout_seconds
+        return self.last_joy_time == 0 or (self.now_seconds() - self.last_joy_time) > timeout_seconds
 
     def delta_time(self):
-        min(self.current_sec - self.last_update_time, 0.2)
+        min(self.now_seconds() - self.last_joy_time, 0.2)
