@@ -11,6 +11,10 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 
+#ifndef DEBUG_OUTPUT
+#define DEBUG_OUTPUT false
+#endif
+
 namespace {
 void declare_params(rclcpp::Node* node) {
     // declare thruster parameters
