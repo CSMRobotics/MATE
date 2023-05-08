@@ -26,6 +26,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(compressed_image_transport REQUIRED)
+find_package(h264_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 
 add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp)
@@ -40,9 +41,10 @@ ament_target_dependencies(
   "std_msgs"
   "cv_bridge"
   "compressed_image_transport"
+  "h264_msgs"
 )
 
-target_link_libraries(rov_cameras ${OpenCV_LIBS} udev)
+target_link_libraries(rov_cameras ${OpenCV_LIBS} udev pthread avutil avformat avdevice avcodec)
 
 install(TARGETS rov_cameras
   DESTINATION lib/${PROJECT_NAME})
