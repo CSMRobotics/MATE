@@ -15,7 +15,8 @@ public:
 private:
     void poll();
 
-    cv::Mat img = cv::Mat(240,320, CV_8UC3);
+    cv::Mat img_i420 = cv::Mat(240*3/2,320, CV_8UC1);
+    cv::Mat img_bgr = cv::Mat(240,320,CV_8UC3);
     cv::VideoCapture cap;
     rclcpp::TimerBase::SharedPtr poll_func;
     rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr image_pub;

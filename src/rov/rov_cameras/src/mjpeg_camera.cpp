@@ -16,12 +16,12 @@ MJPEG_Camera::MJPEG_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(st
 
 void MJPEG_Camera::poll() {
     cap.grab();
-    cap.retrieve(this->img);
-    cv::cvtColor(this->img, this->img, cv::COLOR_YUV2BGR_I420);
+    cap.retrieve(this->img_i420);
+    cv::cvtColor(this->img_i420, this->img_bgr, cv::COLOR_YUV2BGR_NV12);
     sensor_msgs::msg::CompressedImage msg;
     std_msgs::msg::Header header;
     header.set__stamp(this->now());
-    cv_bridge::CvImage img_bridge(header, sensor_msgs::image_encodings::BGR8, this->img);
+    cv_bridge::CvImage img_bridge(header, sensor_msgs::image_encodings::BGR8, this->img_bgr);
     img_bridge.toCompressedImageMsg(msg);
     image_pub->publish(msg);
 }
