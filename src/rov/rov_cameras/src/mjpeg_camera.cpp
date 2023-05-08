@@ -5,13 +5,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-MJPEG_Camera::MJPEG_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(std::string("camera_mjpeg" + std::to_string(static_cast<int>(pub_id)))) {
-    image_pub = this->create_publisher<sensor_msgs::msg::CompressedImage>(std::string("camera_mjpeg" + std::to_string(static_cast<int>(pub_id)) + std::string("/image")), 10);
+MJPEG_Camera::MJPEG_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(std::string("camera_mjpeg") + std::to_string(static_cast<int>(pub_id))) {
+    image_pub = this->create_publisher<sensor_msgs::msg::CompressedImage>(std::string("camera_mjpeg") + std::to_string(static_cast<int>(pub_id)) + std::string("/image"), 10);
     poll_func = this->create_wall_timer(std::chrono::milliseconds(1000/30), std::bind(&MJPEG_Camera::poll, this));
 
     char pipeline[1025] = {0};
     snprintf(pipeline, sizeof(pipeline)-1, PIPELINE_F, device.c_str());
-    cap = cv::VideoCapture(pipeline);
+    cap = cv::VideoCapture(std::string(pipeline));
 }
 
 void MJPEG_Camera::poll() {
