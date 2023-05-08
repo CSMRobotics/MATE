@@ -45,6 +45,9 @@ void enumerateCameras(std::unordered_map<std::string, Camera_Metadata>& cameras)
         // printf("path: %s\n", path);
         // printf("serial_id: %s\n", udev_device_get_property_value(dev, "ID_PATH"));
         const char* camera_id_path = udev_device_get_property_value(dev, "ID_PATH");
+        if(camera_id_path == nullptr) {
+            continue;
+        }
         
         auto it = cameras.find(std::string(camera_id_path));
         if(it != cameras.end()) {
