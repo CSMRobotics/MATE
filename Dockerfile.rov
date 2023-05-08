@@ -20,18 +20,18 @@ RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptool
     . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install --packages-select \
 
-    csm_common_interfaces \
+    # csm_common_interfaces \
 
     # bar02 \
-    bno055 \
-    flight_controller \
+    # bno055 \
+    # flight_controller \
     # manipulator_control \
-    pca9685 \
-    # rov_cameras \
-    rov_control \ 
+    # pca9685 \
+    rov_cameras \
+    # rov_control \ 
     # rov_estop \
-    rov_interfaces \
-    rov_launch \
+    # rov_interfaces \
+    # rov_launch \
     # rov_statistics \
     --cmake-args --no-warn-unused-cli -D DEBUG_OUTPUT=False
 
