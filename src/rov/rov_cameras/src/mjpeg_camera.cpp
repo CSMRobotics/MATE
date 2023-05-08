@@ -11,7 +11,7 @@ MJPEG_Camera::MJPEG_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(st
 
     char pipeline[1025] = {0};
     snprintf(pipeline, sizeof(pipeline)-1, PIPELINE_F, device.c_str());
-    cap = cv::VideoCapture(std::string(pipeline));
+    cap = cv::VideoCapture(std::string(pipeline), cv::CAP_GSTREAMER);
 }
 
 void MJPEG_Camera::poll() {
