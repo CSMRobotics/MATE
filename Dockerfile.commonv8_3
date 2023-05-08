@@ -329,9 +329,18 @@ RUN git clone -b foxy-devel https://github.com/ros-drivers/joystick_drivers && \
     colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to joy --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     cd .. && rm -rf joystick_drivers
 
+### build h264_image_transport
+RUN git clone -b galactic https://github.com/clydemcqueen/h264_image_transport/ && \
+    cd h264_image_transport && \
+    source /opt/ros/$ROS_DISTRO/install/setup.bash && \
+    colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to h264_image_transport --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+    cd .. && rm -rf h264_image_transport
+
 # install common apt packages
 RUN apt-get update && apt-get install -y \
-    libi2c-dev
+    libi2c-dev \
+    ffmpeg \
+
 
 # install common python packages
 RUN python3 -m pip install \
