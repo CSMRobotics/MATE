@@ -9,6 +9,13 @@ MJPEG_Camera::MJPEG_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(st
     image_pub = this->create_publisher<sensor_msgs::msg::CompressedImage>(std::string("camera_mjpeg") + std::to_string(static_cast<int>(pub_id)) + std::string("/image_raw/compressed"), 10);
     poll_func = this->create_wall_timer(std::chrono::milliseconds(1000/30), std::bind(&MJPEG_Camera::poll, this));
 
+    cv::Mat yComponent(240, 320, CV_8UC1);
+    cv::Mat uComponent(240/2, 320/2, CV_8UC1);
+    cv::Mat vComponent(240/2, 320/2, CV_8UC1);
+    std::vector<cv::Mat> yuvComponents = {yComponent, uComponent, vComponent};
+
+    cv::merge(yuvComponents, img_i420);
+
     char pipeline[1025] = {0};
     snprintf(pipeline, sizeof(pipeline)-1, PIPELINE_F, device.c_str());
     cap = cv::VideoCapture(std::string(pipeline), cv::CAP_GSTREAMER);
