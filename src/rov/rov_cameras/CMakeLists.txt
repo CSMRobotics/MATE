@@ -24,7 +24,7 @@ find_package(cv_bridge REQUIRED)
 find_package(compressed_image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 
-add_executable(rov_cameras src/rov_cameras.cpp)
+add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp)
 target_include_directories(rov_cameras PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -38,10 +38,16 @@ ament_target_dependencies(
   "compressed_image_transport"
 )
 
-target_link_libraries(rov_cameras ${OpenCV_LIBS} pthread)
+target_link_libraries(rov_cameras ${OpenCV_LIBS} udev)
 
 install(TARGETS rov_cameras
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
