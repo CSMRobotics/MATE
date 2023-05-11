@@ -174,7 +174,9 @@ namespace ssh_interface{
 						this->current_stage = SESSION_CONNECTED;
 						[[fallthrough]];
 					case SESSION_CONNECTED:
+						[[fallthrough]];
 					case SESSION_MADE:
+						[[fallthrough]];
 					case DISCONNECTED:
 					default:
 						break;

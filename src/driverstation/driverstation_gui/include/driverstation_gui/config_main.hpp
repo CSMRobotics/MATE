@@ -39,9 +39,6 @@ namespace driverstation::configs::main{
 					16
 				);
 
-				camera->label = "Camera";
-				camera->unavailable_label = "Stream Unavailable";
-
 				camera_grid->cells[y][x] = std::move(camera);
 			}
 		}

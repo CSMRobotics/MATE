@@ -8,6 +8,7 @@
 #include <raylib.h>
 #include <tuple>
 
+#include "horrible_ros_path.hpp"
 #include "modes_util.hpp"
 #include "ui_util.hpp"
 
@@ -231,7 +232,7 @@ namespace driverstation::dynamic_texture{
 		Texture2D texture;
 
 		ImageFeed(){
-			this->texture = Texture2D{};
+			this->texture = LoadTexture(horrible_ros_path::prepend_prefix("assets/textures/camera_viewport_placeholder.png").c_str());
 		}
 
 		void unload() override{
@@ -248,14 +249,14 @@ namespace driverstation::dynamic_texture{
 			return std::make_tuple(this->texture.width, this->texture.height);
 		}
 
-		void setImage(uint width, uint height, const void* image_data){
+		void setImage(Image image){
 			UpdateTextureRec(
 				this->texture,
 				Rectangle{
 					0.0f, 0.0f,
-					(float)width, (float)height
+					(float)image.width, (float)image.height
 				},
-				image_data
+				image.data
 			);
 		}
 	};

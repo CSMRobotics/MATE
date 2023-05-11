@@ -69,9 +69,6 @@ namespace driverstation::gui{
 							16
 						);
 
-						camera->label = "Camera";
-						camera->unavailable_label = "Stream Unavailable";
-
 						camera_grid->cells[y][x] = std::move(camera);
 					}
 				}
@@ -174,9 +171,9 @@ namespace driverstation::gui{
 				return !WindowShouldClose();
 			}
 
-			void setCameraImage(uint camera_index, uint width, uint height, const void* frame_data){
+			void setCameraImage(uint camera_index, Image image){
 				if(camera_index < 4){
-					this->camera_feeds[camera_index]->setImage(width, height, frame_data);
+					this->camera_feeds[camera_index]->setImage(image);
 				}
 			}
 
