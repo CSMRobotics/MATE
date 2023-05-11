@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
         }
     }
 #if DEBUG_OUTPUT
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s\n", ss.str());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s\n", ss.str().c_str());
 #endif
 
     // calculate the intersection of cameras that support mjpeg and h264
