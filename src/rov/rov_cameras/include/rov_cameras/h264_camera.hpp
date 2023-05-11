@@ -10,7 +10,7 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/core/types.hpp>
 
-#define PIPELINE_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=320,height=240,format=I420 ! appsink"
+#define PIPELINE_H264_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=320,height=240,format=I420 ! appsink"
 
 class H264_Camera : public rclcpp::Node {
 public:

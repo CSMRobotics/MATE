@@ -9,7 +9,7 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/core/types.hpp>
 
-#define PIPELINE_F "v4l2src device=%s io-mode=2 ! image/jpeg,width=320,height=240,framerate=30/1 ! jpegparse ! jpegdec ! nvvidconv ! video/x-raw,format=I420 ! appsink max-buffers=1 drop=true"
+#define PIPELINE_MJPEG_F "v4l2src device=%s io-mode=2 ! image/jpeg,width=320,height=240,framerate=30/1 ! jpegparse ! jpegdec ! nvvidconv ! video/x-raw,format=I420 ! appsink max-buffers=1 drop=true"
 
 class MJPEG_Camera : public rclcpp::Node {
 public:

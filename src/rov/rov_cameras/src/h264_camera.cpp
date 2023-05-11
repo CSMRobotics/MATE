@@ -14,6 +14,10 @@ H264_Camera::H264_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(std:
 
     camera_pub = this->create_publisher<sensor_msgs::msg::CompressedImage>(std::string("camera_h264") + std::to_string(static_cast<int>(pub_id)) + std::string("/image_raw/compressed"), 10);
     poll_func = this->create_wall_timer(std::chrono::milliseconds(1000/30), std::bind(&H264_Camera::poll, this));
+
+    char pipeline[1025] = {0};
+    snprintf(pipeline, sizeof(pipeline)-1, PIPELINE_H264_F, device.c_str());
+    cap = cv::VideoCapture(std::string(pipeline), cv::CAP_GSTREAMER);
 }
 
 void H264_Camera::poll() {
