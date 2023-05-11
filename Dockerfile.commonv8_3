@@ -147,11 +147,12 @@ RUN apt-get update && \
 # see https://forums.developer.nvidia.com/t/cudnn-8-0-of-jp4-4p-recognized-under-7-5-version-by-opencv4-2-and-4-3/128167
     sed -i 's/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn.h" CUDNN_H_CONTENTS)/file(READ "${CUDNN_INCLUDE_DIR}\/cudnn_version.h" CUDNN_H_CONTENTS)/' opencv-4.5.1/cmake/FindCUDNN.cmake && \
     export PATH=/usr/local/cuda/bin${PATH:+:${PATH}} && \
-    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH} && \
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}} && \
 # build it
     cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
         -D CMAKE_INSTALL_PREFIX=/usr \
+        -D CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda \
         -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib-4.5.1/modules \
         -D EIGEN_INCLUDE_PATH=/usr/include/eigen3 \
         -D WITH_OPENCL=OFF \
@@ -329,9 +330,51 @@ RUN git clone -b foxy-devel https://github.com/ros-drivers/joystick_drivers && \
     colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to joy --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     cd .. && rm -rf joystick_drivers
 
+### build ffmpeg
+RUN mkdir /ffmpeg_build
+WORKDIR /ffmpeg_build
+RUN git clone https://github.com/jocover/jetson-ffmpeg.git && \
+    cd jetson-ffmpeg && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j 8 && \
+    make install && \
+    ldconfig
+### patch ffmpeg
+RUN git clone git://source.ffmpeg.org/ffmpeg.git -b n4.2.9 --depth=1 && \
+    cd ffmpeg && \
+    wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch && \
+    git apply ffmpeg_nvmpi.patch && \
+    export PATH=/ffmpeg_build/bin:$PATH && \
+    PKG_CONFIG_PATH+="/usr/local/share/pkgconfig:/usr/lib/aarch64-linux-gnu/pkgconfig" \
+    ./configure \
+        --extra-cflags="-I/ffmpeg_build/include" \
+        --extra-ldflags="-L/ffmpeg_build/lib" \
+        --enable-nvmpi \
+        --prefix=/usr/local \
+        --enable-gpl \
+        --enable-version3 \
+        --enable-nonfree \
+        --enable-libv4l2 \
+        --enable-opengl \
+        --enable-cuda-nvcc \
+        --enable-shared \
+        --pkg-config-flags="--static" && \
+    make -j 8 && \
+    make install && \
+    ldconfig
+### build h264_image_transport
+RUN git clone -b galactic https://github.com/clydemcqueen/h264_image_transport/ && \
+    cd h264_image_transport && \
+    source /opt/ros/$ROS_DISTRO/install/setup.bash && \
+    colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to h264_image_transport --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+    cd .. && rm -rf h264_image_transport
+
 # install common apt packages
 RUN apt-get update && apt-get install -y \
     libi2c-dev
+
 
 # install common python packages
 RUN python3 -m pip install \

@@ -11,6 +11,10 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
+if(DEBUG_OUTPUT)
+  add_compile_definitions(DEBUG_OUTPUT=true)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -22,9 +26,10 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(compressed_image_transport REQUIRED)
+find_package(h264_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 
-add_executable(rov_cameras src/rov_cameras.cpp)
+add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp)
 target_include_directories(rov_cameras PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -36,12 +41,19 @@ ament_target_dependencies(
   "std_msgs"
   "cv_bridge"
   "compressed_image_transport"
+  "h264_msgs"
 )
 
-target_link_libraries(rov_cameras ${OpenCV_LIBS} pthread)
+target_link_libraries(rov_cameras ${OpenCV_LIBS} udev pthread avutil avformat avdevice avcodec)
 
 install(TARGETS rov_cameras
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
