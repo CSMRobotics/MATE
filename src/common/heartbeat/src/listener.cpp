@@ -5,9 +5,9 @@
 #include <builtin_interfaces/msg/time.hpp>
 #include <std_msgs/msg/empty.hpp>
 
-#include "common_interfaces/msg/e_stop.hpp"
-#include "common_interfaces/srv/handshake.hpp"
-#include "common_interfaces/srv/heartbeat_control.hpp"
+#include "csm_common_interfaces/msg/e_stop.hpp"
+#include "csm_common_interfaces/srv/handshake.hpp"
+#include "csm_common_interfaces/srv/heartbeat_control.hpp"
 #include "heartbeat/date.h"
 
 namespace {
@@ -24,14 +24,14 @@ public:
         declare_params(this);
         using namespace std::chrono_literals;
         // create handshake client and control service
-        handshake_client = this->create_client<common_interfaces::srv::Handshake>("heartbeat_handshake");
-        control_service = this->create_service<common_interfaces::srv::HeartbeatControl>("heartbeat_control", std::bind(&Listener::heartbeat_control, this, std::placeholders::_1, std::placeholders::_2));
+        handshake_client = this->create_client<csm_common_interfaces::srv::Handshake>("heartbeat_handshake");
+        control_service = this->create_service<csm_common_interfaces::srv::HeartbeatControl>("heartbeat_control", std::bind(&Listener::heartbeat_control, this, std::placeholders::_1, std::placeholders::_2));
 
         // create subscribers to handle incoming messages
         heartbeat_sub = this->create_subscription<builtin_interfaces::msg::Time>("heartbeat", 10, std::bind(&Listener::heartbeat_callback, this, std::placeholders::_1));
 
         // create estop publisher
-        estop_pub = this->create_publisher<common_interfaces::msg::EStop>("estop", 10);
+        estop_pub = this->create_publisher<csm_common_interfaces::msg::EStop>("estop", 10);
 
         // request producer's start
         handshake();
@@ -43,7 +43,7 @@ private:
     // send request for heartbeat to the heartbeat producer
     void handshake() {
         using namespace date;
-        auto req = std::make_shared<common_interfaces::srv::Handshake::Request>();
+        auto req = std::make_shared<csm_common_interfaces::srv::Handshake::Request>();
 
         // wait for service to be available
         while(!handshake_client->wait_for_service(std::chrono::milliseconds(100))) {
@@ -62,7 +62,7 @@ private:
         req->period = this->get_parameter("period_ms").as_int();
 
         // callback to activate the heartbeat watchdog
-        auto response_received_callback = [this](rclcpp::Client<common_interfaces::srv::Handshake>::SharedFuture future) {
+        auto response_received_callback = [this](rclcpp::Client<csm_common_interfaces::srv::Handshake>::SharedFuture future) {
             auto res = future.get();
             std::stringstream ss;
             ss.clear();
@@ -97,7 +97,7 @@ private:
     }
 
     // service callback that will restart handshake
-    void heartbeat_control(const common_interfaces::srv::HeartbeatControl::Request::SharedPtr req, common_interfaces::srv::HeartbeatControl::Response::SharedPtr res __attribute__((unused))) {
+    void heartbeat_control(const csm_common_interfaces::srv::HeartbeatControl::Request::SharedPtr req, csm_common_interfaces::srv::HeartbeatControl::Response::SharedPtr res __attribute__((unused))) {
         if(req->restart) {
             watchdog_active = false;
             heartbeat_sub.reset();
@@ -116,7 +116,7 @@ private:
             RCLCPP_FATAL(this->get_logger(), "%s watchdog detected a time between heartbeats >%lums", this->get_name(), this->get_parameter("timeout_ms").as_int());
             watchdog_active = false;
             heartbeat_sub.reset();
-            common_interfaces::msg::EStop estop;
+            csm_common_interfaces::msg::EStop estop;
             estop.is_fatal = true;
             estop_pub->publish(estop);
         }
@@ -125,10 +125,10 @@ private:
     std::chrono::system_clock::time_point last_received_ping;
     rclcpp::TimerBase::SharedPtr watchdog_timer;
     bool watchdog_active = false;
-    rclcpp::Publisher<common_interfaces::msg::EStop>::SharedPtr estop_pub;
+    rclcpp::Publisher<csm_common_interfaces::msg::EStop>::SharedPtr estop_pub;
     rclcpp::Subscription<builtin_interfaces::msg::Time>::SharedPtr heartbeat_sub;
-    rclcpp::Client<common_interfaces::srv::Handshake>::SharedPtr handshake_client;
-    rclcpp::Service<common_interfaces::srv::HeartbeatControl>::SharedPtr control_service;
+    rclcpp::Client<csm_common_interfaces::srv::Handshake>::SharedPtr handshake_client;
+    rclcpp::Service<csm_common_interfaces::srv::HeartbeatControl>::SharedPtr control_service;
 };
 
 int main(int argc, char ** argv) {

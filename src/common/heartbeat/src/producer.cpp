@@ -1,6 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <builtin_interfaces/msg/time.hpp>
-#include <common_interfaces/srv/handshake.hpp>
+#include <csm_common_interfaces/srv/handshake.hpp>
 
 #include "heartbeat/date.h"
 
@@ -13,13 +13,13 @@ class Producer : public rclcpp::Node {
 public:
     Producer() : Node("heartbeat_producer") {
         using namespace std::chrono_literals;
-        heartbeat_service_listener = this->create_service<common_interfaces::srv::Handshake>("heartbeat_handshake", std::bind(&Producer::handshake, this, std::placeholders::_1, std::placeholders::_2));
+        heartbeat_service_listener = this->create_service<csm_common_interfaces::srv::Handshake>("heartbeat_handshake", std::bind(&Producer::handshake, this, std::placeholders::_1, std::placeholders::_2));
         heartbeat_pub = this->create_publisher<builtin_interfaces::msg::Time>("heartbeat", 10);
         srand(time(NULL));
     }
 private:
-    void handshake(const common_interfaces::srv::Handshake::Request::SharedPtr req,
-            common_interfaces::srv::Handshake::Response::SharedPtr res) {
+    void handshake(const csm_common_interfaces::srv::Handshake::Request::SharedPtr req,
+            csm_common_interfaces::srv::Handshake::Response::SharedPtr res) {
         using namespace date; // i use date library to make outputting chrono::time_point not hell (not necessary in c++20)
 
         // acknowledge reception of message
@@ -49,7 +49,7 @@ private:
 
     rclcpp::Publisher<builtin_interfaces::msg::Time>::SharedPtr heartbeat_pub;
     rclcpp::TimerBase::SharedPtr heartbeat_timer;
-    rclcpp::Service<common_interfaces::srv::Handshake>::SharedPtr heartbeat_service_listener;
+    rclcpp::Service<csm_common_interfaces::srv::Handshake>::SharedPtr heartbeat_service_listener;
 };
 
 int main(int argc, char ** argv) {

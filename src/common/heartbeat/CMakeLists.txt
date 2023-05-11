@@ -37,7 +37,7 @@ target_include_directories(listener PUBLIC
 ament_target_dependencies(
   listener
   rclcpp
-  common_interfaces
+  csm_common_interfaces
   builtin_interfaces
 )
 
@@ -48,7 +48,7 @@ target_include_directories(producer PUBLIC
 ament_target_dependencies(
   producer
   rclcpp
-  common_interfaces
+  csm_common_interfaces
   builtin_interfaces
 )
 

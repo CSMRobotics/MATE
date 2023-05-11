@@ -12,13 +12,16 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
-  <build_depend>rov_interfaces</build_depend>
-  <build_depend>common_interfaces</build_depend>
+  <depend>rov_interfaces</depend>
+  <depend>csm_common_interfaces</depend>
+  <depend>heartbeat</depend>
 
-  <exec_depend>bno055</exec_depend>
-  <exec_depend>flight_controller</exec_depend>
-  <exec_depend>pca9685_node</exec_depend>
-  <exec_depend>rov_control</exec_depend>
+  <depend>bno055</depend>
+  <depend>flight_controller</depend>
+  <depend>pca9685_node</depend>
+  <depend>rov_control</depend>
+  <depend>rov_cameras</depend>
+  <depend>bar02</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

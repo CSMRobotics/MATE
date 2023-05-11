@@ -7,6 +7,10 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     ld = LaunchDescription()
 
+    bar02 = Node(
+        package="bar02",
+        executable="bar02"
+    )
     bno055 = Node(
         package="bno055",
         executable="bno055_node"
@@ -14,7 +18,7 @@ def generate_launch_description():
     flight_controller = Node(
         package="flight_controller",
         executable="flight_controller",
-        arguments= [os.path.join(get_package_share_directory("flight_controller"), "config", "params.yaml")]
+        parameters=[os.path.join(get_package_share_directory("flight_controller"), "config", "params.yaml")]
     )
     # manipulator_control = Node()
     pca9685 = Node(
@@ -29,19 +33,14 @@ def generate_launch_description():
         package="rov_control",
         executable="rov_control",
         name="rov_control",
-        parameters=[os.path.join(get_package_share_directory("rov_control"), "config", "default.yaml")],
+        parameters=[os.path.join(get_package_share_directory("rov_control"), "config", "default.yaml")]
     )
-    estop = Node(
-        package="rov_estop",
-        executable="rov_estop"
-    )
-    # statistics = Node()
 
     ld.add_action(bno055)
     ld.add_action(flight_controller)
     ld.add_action(pca9685)
     ld.add_action(cameras)
     ld.add_action(control)
-    ld.add_action(estop)
+    ld.add_action(bar02)
 
     return ld
