@@ -1,7 +1,9 @@
 #ifndef MJPEG_CAMERA_INCLUDED_HPP
 #define MJPEG_CAMERA_INCLUDED_HPP
 
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/node.hpp>
+#include <rclcpp/timer.hpp>
+#include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 
 #include <opencv2/videoio.hpp>

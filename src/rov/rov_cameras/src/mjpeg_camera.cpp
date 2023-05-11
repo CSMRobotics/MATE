@@ -1,7 +1,5 @@
 #include "rov_cameras/mjpeg_camera.hpp"
 
-#include <sensor_msgs/msg/compressed_image.hpp>
-
 #include <opencv2/imgcodecs.hpp>
 #include <cv_bridge/cv_bridge.h>
 
