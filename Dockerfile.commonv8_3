@@ -331,6 +331,8 @@ RUN git clone -b foxy-devel https://github.com/ros-drivers/joystick_drivers && \
     cd .. && rm -rf joystick_drivers
 
 ### build ffmpeg
+RUN mkdir /ffmpeg_build
+WORKDIR /ffmpeg_build
 RUN git clone https://github.com/jocover/jetson-ffmpeg.git && \
     cd jetson-ffmpeg && \
     mkdir build && \
@@ -340,14 +342,28 @@ RUN git clone https://github.com/jocover/jetson-ffmpeg.git && \
     make install && \
     ldconfig
 ### patch ffmpeg
-RUN git clone git://source.ffmpeg.org/ffmpeg.git -b release/4.2 --depth=1 && \
+RUN git clone git://source.ffmpeg.org/ffmpeg.git -b n4.2.9 --depth=1 && \
     cd ffmpeg && \
     wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch && \
     git apply ffmpeg_nvmpi.patch && \
-    ./configure --enable-nvmpi && \
+    export PATH=/ffmpeg_build/bin:$PATH && \
+    PKG_CONFIG_PATH+="/usr/local/share/pkgconfig:/usr/lib/aarch64-linux-gnu/pkgconfig" \
+    ./configure \
+        --extra-cflags="-I/ffmpeg_build/include" \
+        --extra-ldflags="-L/ffmpeg_build/lib" \
+        --enable-nvmpi \
+        --prefix=/usr/local \
+        --enable-gpl \
+        --enable-version3 \
+        --enable-nonfree \
+        --enable-libv4l2 \
+        --enable-opengl \
+        --enable-cuda-nvcc \
+        --enable-shared \
+        --pkg-config-flags="--static" && \
     make -j 8 && \
-    make install
-
+    make install && \
+    ldconfig
 ### build h264_image_transport
 RUN git clone -b galactic https://github.com/clydemcqueen/h264_image_transport/ && \
     cd h264_image_transport && \
@@ -357,8 +373,7 @@ RUN git clone -b galactic https://github.com/clydemcqueen/h264_image_transport/ 
 
 # install common apt packages
 RUN apt-get update && apt-get install -y \
-    libi2c-dev \
-    ffmpeg \
+    libi2c-dev
 
 
 # install common python packages
