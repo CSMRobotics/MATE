@@ -28,6 +28,6 @@ void H264_Camera::poll() {
     std_msgs::msg::Header header;
     header.set__stamp(this->now());
     cv_bridge::CvImage img_bridge(header, sensor_msgs::image_encodings::BGR8, this->img_bgr);
-    img_bridge.toCompressedImageMsg(msg);
+    img_bridge.toCompressedImageMsg(msg, cv_bridge::Format::PNG);
     camera_pub->publish(msg);
 }
