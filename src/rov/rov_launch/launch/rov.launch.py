@@ -7,6 +7,10 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     ld = LaunchDescription()
 
+    gpio = Node(
+        package="rov_gpio",
+        executable="rov_gpio"
+    )
     bar02 = Node(
         package="bar02",
         executable="bar02"
