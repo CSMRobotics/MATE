@@ -24,6 +24,9 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EStop.msg"
+  "msg/JetsonNanoGpio.msg"
+  "msg/PinPublisherConfig.msg"
+  "msg/PinState.msg"
   "srv/Handshake.srv"
   "srv/HeartbeatControl.srv"
 )
