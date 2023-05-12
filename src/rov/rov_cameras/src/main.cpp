@@ -29,13 +29,13 @@ int main(int argc, char** argv) {
     // for each camera enumerated
     for(auto c : camera_metadata) {
 #if DEBUG_OUTPUT
-        ss << "Devices for camera" << c.first.c_str() << '\n';
+        ss << "Devices for camera: " << c.first.c_str() << '\n';
         // printf("Devices for camera %s\n", c.first.c_str());
 #endif
         // for each v4l2 device associated with each camera
         for(auto d : c.second.device_names) {
 #if DEBUG_OUTPUT
-            ss << '\t' << d.c_str() << '\t';
+            ss << '\t' << d.c_str() << '\n';
             // printf("\t%s\n", d.c_str());
 #endif
             try {

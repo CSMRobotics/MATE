@@ -18,6 +18,7 @@ H264_Camera::H264_Camera(std::string device, uint8_t pub_id) : rclcpp::Node(std:
     char pipeline[1025] = {0};
     snprintf(pipeline, sizeof(pipeline)-1, PIPELINE_H264_F, device.c_str());
     cap = cv::VideoCapture(std::string(pipeline), cv::CAP_GSTREAMER);
+    RCLCPP_INFO(this->get_logger(), "Device %s initialized as H264 Camera", device.c_str());
 }
 
 void H264_Camera::poll() {
