@@ -18,7 +18,7 @@
 
   <depend>bno055</depend>
   <depend>flight_controller</depend>
-  <depend>pca9685_node</depend>
+  <depend>pca9685</depend>
   <depend>rov_control</depend>
   <depend>rov_cameras</depend>
   <depend>bar02</depend>
