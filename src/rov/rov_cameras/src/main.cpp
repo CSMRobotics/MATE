@@ -82,21 +82,25 @@ int main(int argc, char** argv) {
     printf("\n\nMJPEG Cameras\n");
     for(auto cam : mjpeg_cameras) {
         printf("\t%s\n", cam.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MJPEG Camera: %s", cam.c_str());
     }
 
     printf("MJPEG Devices\n");
     for(auto dev : mjpeg_devices) {
         printf("\t%s\n", dev.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "MJPEG Device: %s", dev.c_str());
     }
 
     printf("H264 Cameras\n");
     for(auto cam : h264_cameras) {
         printf("\t%s\n", cam.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "H264 Camera: %s", cam.c_str());
     }
 
     printf("H264 Devices\n");
     for(auto dev : h264_devices) {
         printf("\t%s\n", dev.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "H264 Device: %s", dev.c_str());
     }
 #endif
 
