@@ -64,15 +64,15 @@ int main(int argc, char** argv) {
 
     // calculate the intersection of cameras that support mjpeg and h264
     // yeah i do set theory (⌐□_□)
-    std::set<std::string> camera_intersection;
+    std::vector<std::string> camera_intersection;
     std::set_intersection(mjpeg_cameras.begin(), mjpeg_cameras.end(), h264_cameras.begin(), h264_cameras.end(), std::inserter(camera_intersection, camera_intersection.begin()));
 
     // prefer h264
     for(auto cam : camera_intersection) {
         mjpeg_cameras.erase(cam);
-        for(auto dev : mjpeg_devices) {
-            auto it = std::find(camera_metadata.at(cam).device_names.begin(), camera_metadata.at(cam).device_names.end(), dev);
-            if(it != camera_metadata.at(cam).device_names.end()) {
+        for(auto dev : camera_metadata.at(cam).device_names) {
+            auto it = std::find(mjpeg_devices.begin(), mjpeg_devices.end(), dev);
+            if(it != mjpeg_devices.end()) {
                 mjpeg_devices.erase(*it);
             }
         }
