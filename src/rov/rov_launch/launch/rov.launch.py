@@ -22,7 +22,7 @@ def generate_launch_description():
     )
     # manipulator_control = Node()
     pca9685 = Node(
-        package="pca9685_node",
+        package="pca9685",
         executable="pca9685_node"
     )
     cameras = Node(
