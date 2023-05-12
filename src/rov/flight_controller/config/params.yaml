@@ -3,70 +3,34 @@ flight_controller:
     Debug: False
     Use_PCA9685: True
     Thruster0:
+      Position: [-1.0, 0.5, 0.0]
+      Thrust: [0.0, 0.0, 1.0]
+      Pin: 0
+    Thruster1:
       Position: [1.0, 0.5, 0.0]
       Thrust: [0.0, 0.0, 1.0]
       Pin: 1
-    Thruster1:
-      Position: [1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 6
     Thruster2:
-      Position: [-1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 5
+      Position: [1.0, 0.5, 0.0]
+      Thrust: [0.707106781, -0.707106781, 0.0]
+      Pin: 2
     Thruster3:
+      Position: [-1.0, 0.5, 0.0]
+      Thrust: [0.707106781, 0.707106781, 0.0]
+      Pin: 3
+    Thruster4:
       Position: [-1.0, -0.5, 0.0]
       Thrust: [0.707106781, -0.707106781, 0.0]
       Pin: 4
-    Thruster4:
-      Position: [1.0, 0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 0.0]
-      Pin: 0
     Thruster5:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 0.0]
-      Pin: 2
-    Thruster6:
       Position: [1.0, -0.5, 0.0]
       Thrust: [0.707106781, 0.707106781, 0.0]
+      Pin: 5
+    Thruster6:
+      Position: [-1.0, -0.5, 0.0]
+      Thrust: [0.0, 0.0, 1.0]
+      Pin: 6
+    Thruster7:
+      Position: [1.0, -0.5, 0.0]
+      Thrust: [0.0, 0.0, 1.0]
       Pin: 7
-    Thruster7:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 3
-flight_display:
-  ros__parameters:
-    Debug: False
-    Use_PCA9685: True
-    Thruster0:
-      Position: [1.0, 0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 0
-    Thruster1:
-      Position: [1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 1
-    Thruster2:
-      Position: [-1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 2
-    Thruster3:
-      Position: [-1.0, -0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 0.0]
-      Pin: 3
-    Thruster4:
-      Position: [1.0, 0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 1.0]
-      Pin: 12
-    Thruster5:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 1.0]
-      Pin: 13
-    Thruster6:
-      Position: [1.0, -0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 0.0]
-      Pin: 14
-    Thruster7:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 15
