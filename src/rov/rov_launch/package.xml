@@ -22,7 +22,7 @@
   <depend>rov_control</depend>
   <depend>rov_cameras</depend>
   <depend>bar02</depend>
-  <depend>rov_gpio</depend>
+  <depend>rov_gpio</depend>  
 
   <export>
     <build_type>ament_cmake</build_type>

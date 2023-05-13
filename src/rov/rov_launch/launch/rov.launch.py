@@ -46,5 +46,5 @@ def generate_launch_description():
     ld.add_action(cameras)
     ld.add_action(control)
     ld.add_action(bar02)
-
+    ld.add_action(gpio)
     return ld
