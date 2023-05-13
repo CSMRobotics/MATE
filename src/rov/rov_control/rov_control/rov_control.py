@@ -162,8 +162,8 @@ class ROV_Control(Node):
         thrust_setpoints.vx = float(joystick["hat_y"])
         thrust_setpoints.vy = float(joystick["hat_x"])
         thrust_setpoints.vz = float(joystick["throttle"])
-        thrust_setpoints.omegax = float(joystick["pitch"])
-        thrust_setpoints.omegay = float(joystick["roll"])
+        thrust_setpoints.omegax = float(joystick["roll"])
+        thrust_setpoints.omegay = -float(joystick["pitch"])
         thrust_setpoints.omegaz = -float(joystick["yaw"])
         
         self.thruster_setpoint_pub.publish(thrust_setpoints)
