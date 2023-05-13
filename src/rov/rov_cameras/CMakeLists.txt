@@ -28,7 +28,7 @@ find_package(cv_bridge REQUIRED)
 find_package(compressed_image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 
-add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp)
+add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp src/camera_to_file.cpp)
 target_include_directories(rov_cameras PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>

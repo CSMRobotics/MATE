@@ -4,14 +4,17 @@
 
 #include <set>
 #include <algorithm>
+#include <signal.h>
 
 #include <rclcpp/rclcpp.hpp>
 
 #include "rov_cameras/enumerate_cameras.hpp"
 #include "rov_cameras/h264_camera.hpp"
 #include "rov_cameras/mjpeg_camera.hpp"
+#include "rov_cameras/camera_to_file.hpp"
 
 int main(int argc, char** argv) {
+
     rclcpp::init(argc, argv);
 
     std::unordered_map<std::string, Camera_Metadata> camera_metadata;
@@ -108,16 +111,21 @@ int main(int argc, char** argv) {
     rclcpp::executors::MultiThreadedExecutor exec;
     std::vector<rclcpp::Node::SharedPtr> mjpeg_nodes;
     std::vector<rclcpp::Node::SharedPtr> h264_nodes;
+    std::vector<rclcpp::Node::SharedPtr> file_nodes;
     
     int camera_idx = 0;
     for(auto device : mjpeg_devices) {
         mjpeg_nodes.emplace_back(std::make_shared<MJPEG_Camera>(device, camera_idx));
+        file_nodes.emplace_back(std::make_shared<File_Camera>(device, camera_idx, "bottom_cam.avi"));
         exec.add_node(mjpeg_nodes.back());
+        exec.add_node(file_nodes.back());
         camera_idx++;
     }
     for(auto device : h264_devices) {
         h264_nodes.emplace_back(std::make_shared<H264_Camera>(device, camera_idx));
+        file_nodes.emplace_back(std::make_shared<File_Camera>(device, camera_idx, "front_cam.mp4"));
         exec.add_node(h264_nodes.back());
+        exec.add_node(file_nodes.back());
         camera_idx++;
     }
 
