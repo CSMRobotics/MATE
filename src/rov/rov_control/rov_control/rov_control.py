@@ -159,17 +159,13 @@ class ROV_Control(Node):
         # All values default to zero
         thrust_setpoints = ThrusterSetpoints()
 
-        if joystick["thumb"]:
-            # Rotation mode
-            thrust_setpoints.omegax = -float(joystick["pitch"])
-            thrust_setpoints.omegay = -float(joystick["roll"])
-            thrust_setpoints.omegaz = -float(joystick["yaw"])
-        else:
-            # Translation mode
-            thrust_setpoints.vx = float(joystick["pitch"])
-            thrust_setpoints.vy = -float(joystick["roll"])
-            thrust_setpoints.vz = float(joystick["throttle"])
-
+        thrust_setpoints.vx = float(joystick["hat_y"])
+        thrust_setpoints.vy = float(joystick["hat_x"])
+        thrust_setpoints.vz = float(joystick["throttle"])
+        thrust_setpoints.omegax = float(joystick["pitch"])
+        thrust_setpoints.omegay = float(joystick["roll"])
+        thrust_setpoints.omegaz = -float(joystick["yaw"])
+        
         self.thruster_setpoint_pub.publish(thrust_setpoints)
 
     def estop_fatal(self):
