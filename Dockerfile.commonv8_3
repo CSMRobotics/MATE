@@ -375,7 +375,7 @@ RUN git clone -b galactic https://github.com/clydemcqueen/h264_image_transport/ 
 RUN mkdir tmp_ros_build && cd tmp_ros_build && \
     git clone --branch galactic-devel https://github.com/ros-visualization/python_qt_binding && \
     git clone --branch galactic-devel https://github.com/ros-visualization/qt_gui_core && \
-    git clone --branch humble https://github.com/ros-visualization/rqt && \
+    git clone --branch crystal-devel https://github.com/ros-visualization/rqt && \
     git clone --branch galactic https://github.com/ros-visualization/tango_icons_vendor && \
     git clone --branch galactic https://github.com/ros-perception/vision_opencv && \
     cd .. && \
