@@ -20,7 +20,7 @@ RUN git clone https://github.com/raysan5/raylib.git raylib && \
 
 ## raygui
 RUN wget https://github.com/raysan5/raygui/archive/refs/tags/3.2.zip && \
-    uzip raygui-3.2.zip && \
+    tar -xf raygui-3.2.zip && \
     cd raygui-3.2 && \
     cp src/raygui.h /usr/local/include/ && \
     mv src/raygui.h src/raygui.c && \
