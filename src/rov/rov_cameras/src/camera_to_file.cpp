@@ -1,4 +1,4 @@
-#include "camera_to_file.hpp"
+#include "rov_cameras/camera_to_file.hpp"
 
 File_Camera::File_Camera(const std::string& device, uint8_t id, const std::string& file_name, bool mjpeg) : rclcpp::Node(std::string("file_camera") + std::to_string(id)) {
     char command[1025] = {0};
