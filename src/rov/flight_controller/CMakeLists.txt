@@ -27,6 +27,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
+find_package(csm_common_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -37,7 +38,7 @@ if(BUILD_DISPLAY)
   find_package(Boost 1.71.0 REQUIRED)
 endif()
 
-add_library(flight_controller_lib STATIC src/flight_controller.cpp)
+add_library(flight_controller_lib STATIC src/controller.cpp)
 add_executable(flight_controller src/main.cpp)
 
 if(BUILD_DISPLAY)
@@ -53,6 +54,7 @@ ament_target_dependencies(
   "rclcpp"
   "message_filters"
   "std_srvs"
+  "csm_common_interfaces"
 )
 if(BUILD_DISPLAY)
   target_include_directories(flight_display PUBLIC

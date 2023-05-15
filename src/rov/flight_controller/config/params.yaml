@@ -1,36 +1,41 @@
 flight_controller:
   ros__parameters:
-    Debug: False
-    Use_PCA9685: True
-    Thruster0:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
+    thruster0:
+      position: [-1.0, 0.5, 0.0]
+      thrust: [0.0, 0.0, 1.0]
       Pin: 0
-    Thruster1:
-      Position: [1.0, 0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
+    thruster1:
+      position: [1.0, 0.5, 0.0]
+      thrust: [0.0, 0.0, 1.0]
       Pin: 1
-    Thruster2:
-      Position: [1.0, 0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 0.0]
+    thruster2:
+      position: [1.0, 0.5, 0.0]
+      thrust: [0.707106781, -0.707106781, 0.0]
       Pin: 2
-    Thruster3:
-      Position: [-1.0, 0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 0.0]
+    thruster3:
+      position: [-1.0, 0.5, 0.0]
+      thrust: [0.707106781, 0.707106781, 0.0]
       Pin: 3
-    Thruster4:
-      Position: [-1.0, -0.5, 0.0]
-      Thrust: [0.707106781, -0.707106781, 0.0]
+    thruster4:
+      position: [-1.0, -0.5, 0.0]
+      thrust: [0.707106781, -0.707106781, 0.0]
       Pin: 4
-    Thruster5:
-      Position: [1.0, -0.5, 0.0]
-      Thrust: [0.707106781, 0.707106781, 0.0]
+    thruster5:
+      position: [1.0, -0.5, 0.0]
+      thrust: [0.707106781, 0.707106781, 0.0]
       Pin: 5
-    Thruster6:
-      Position: [-1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 6
-    Thruster7:
-      Position: [1.0, -0.5, 0.0]
-      Thrust: [0.0, 0.0, 1.0]
-      Pin: 7
+    thruster6:
+      position: [-1.0, -0.5, 0.0]
+      thrust: [0.0, 0.0, 1.0]
+      pin: 6
+    thruster7:
+      position: [1.0, -0.5, 0.0]
+      thrust: [0.0, 0.0, 1.0]
+      pin: 7
+    kp: 1.0
+    kq: 1.0
+    kw: 1.0
+    mass_kg: 1.0
+    volume_m3: 1.0
+    cg: [0.0, 0.0, 0.0]
+    cb: [0.0, 0.0, 0.0]

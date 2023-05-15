@@ -10,8 +10,8 @@
 #define MAX_THRUST_VALUE 36.4       // N
 #define MIN_THROTTLE_CUTOFF -0.1
 #define MAX_THROTTLE_CUTOFF 0.1
-#define MAX_VELOCITY_VALUE 0.0
-#define MIN_VELOCITY_VALUE 0.0
+#define MAX_VELOCITY_VALUE 1.0      // m/s
+#define MIN_VELOCITY_VALUE -1.0     // m/s
 #define MAX_OMEGA_VALUE 1.0         // rad/s
 #define MIN_OMEGA_VALUE 1.0         // rad/s
 

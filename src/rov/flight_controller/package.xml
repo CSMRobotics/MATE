@@ -10,6 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rov_interfaces</depend>
+  <depend>csm_common_interfaces</depend>
   <depend>rclcpp</depend>
   <depend>std_srv</depend>
   <depend>message_filters</depend>
