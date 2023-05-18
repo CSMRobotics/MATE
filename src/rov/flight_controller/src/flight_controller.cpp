@@ -105,7 +105,7 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     
     // create ros subscriptions and publishers
     // receives translation and rotational setpoints from rov_control
-    thruster_setpoint_subscription = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::setpoint_callback, this, std::placeholders::_1));
+    thruster_setpoint_subscription = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::thruster_setpoint_callback, this, std::placeholders::_1));
     // receives orientation and acceleration data from bno055
     bno_data_subscription = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
     // publishes PWM commands to PCA9685
@@ -165,7 +165,7 @@ void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr 
     pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
 }
 
-void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
+void FlightController::thruster_setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
     std::lock_guard<std::mutex>(this->setpoint_mutex);
     std::lock_guard<std::mutex>(this->stall_mutex);
     translation_setpoints(0,0) = setpoints->vx; // [-1,1]

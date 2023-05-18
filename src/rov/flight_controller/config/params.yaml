@@ -35,6 +35,11 @@ flight_controller:
     kp: 1.0
     kq: 1.0
     kw: 1.0
+    kdp: 1.0
+    kdi: 0.1
+    depth_tare: 0.0
+    depth_integral_max_contrib: 0.2
+    max_depth_m: 6.0
     mass_kg: 1.0
     volume_m3: 1.0
     cg: [0.0, 0.0, 0.0]

@@ -25,7 +25,7 @@ public:
 private:
     void registerThrusters();
     void toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, std_srvs::srv::Empty_Response::SharedPtr response);
-    void setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints);
+    void thruster_setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints);
     void bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data);
     void updateSimple();
     void updatePID();

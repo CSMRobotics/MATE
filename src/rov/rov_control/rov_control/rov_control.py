@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64
 from rov_control.JoySubscriber import JoySubscriber
 from rov_control.JoySubscriber import ParsedJoy
 from rov_interfaces.msg import ManipulatorSetpoints, ThrusterSetpoints
@@ -84,6 +84,7 @@ class ROV_Control(Node):
         self.last_update_time = 0
         self.joy_subscriber = JoySubscriber(self, self.mapping, 0.02)
         self.create_timer(1 / self.get_parameter("joy_update_hz").value, self.joy_update)
+        self.depth_setpoint_pub = self.create_publisher(Float64, "depth_setpoint", 2)
         self.manipulator_setpoint_pub = self.create_publisher(ManipulatorSetpoints, "manipulator_setpoints", 2)
         self.thruster_setpoint_pub = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 2)
         self.state_pub = self.create_publisher(String, "rov_control_state", 2)
@@ -158,15 +159,19 @@ class ROV_Control(Node):
     def do_thrust_setpoint_update(self, joystick: ParsedJoy):
         # All values default to zero
         thrust_setpoints = ThrusterSetpoints()
+        depth_setpoints = Float64()
 
         thrust_setpoints.vx = float(joystick["hat_y"])
         thrust_setpoints.vy = float(joystick["hat_x"])
-        thrust_setpoints.vz = float(joystick["throttle"])
+        # thrust_setpoints.vz = float(joystick["throttle"])
         thrust_setpoints.omegax = float(joystick["pitch"])
         thrust_setpoints.omegay = float(joystick["roll"])
         thrust_setpoints.omegaz = -float(joystick["yaw"])
+        depth_setpoints.data = float(joystick["throttle"])
+
         
         self.thruster_setpoint_pub.publish(thrust_setpoints)
+        self.depth_setpoint_pub.publish(depth_setpoints)
 
     def estop_fatal(self):
         return

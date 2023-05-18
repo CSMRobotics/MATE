@@ -37,11 +37,18 @@ void declare_flight_controller_parameters(rclcpp::Node*const node) {
         });
     }
 
-    node->declare_parameter("kp", 1.0f);
-    node->declare_parameter("kq", 1.0f);
-    node->declare_parameter("kw", 1.0f);
-
-    node->declare_parameter("mass", 1.0f); // kg
+    node->declare_parameter("kp", 1.0);
+    node->declare_parameter("kq", 1.0);
+    node->declare_parameter("kw", 1.0);
+    node->declare_parameter("kdp", 1.0);
+    node->declare_parameter("kdi", 0.1);
+    node->declare_parameter("depth_tare", 0.0);
+    node->declare_parameter("depth_integral_max_contrib", 0.2);
+    node->declare_parameter("max_depth_m", 6.0);
+    node->declare_parameter("mass_kg", 1.0);
+    node->declare_parameter("volume_m3", 1.0);
+    node->declare_parameter("cg", std::vector<double>{0.0, 0.0, 0.0});
+    node->declare_parameter("cb", std::vector<double>{0.0, 0.0, 0.0});
 }
 
 // Parse the given Flight Controller's thruster<idx> parameters and apply them to supplied containers
@@ -90,6 +97,11 @@ inline Eigen::Matrix3d skew_symmetric(Eigen::Vector3d lambda) {
     return ret;
 }
 
+void fuzzy_linear_velocity(Eigen::Vector3d& velocity) {
+    if(velocity.isMuchSmallerThan(VELOCITY_PREC))
+        velocity = Eigen::Vector3d::Zero();
+}
+
 }
 
 FlightController::FlightController() : rclcpp::Node("flight_controller") {
@@ -100,9 +112,10 @@ FlightController::FlightController() : rclcpp::Node("flight_controller") {
     initialize_thrusters(this, &this->thrusters, &this->thruster_idx_to_pwm_pin, &this->thruster_geometry);
 
     // create ros pubs and subs
-    this->bar_sub = this->create_subscription<rov_interfaces::msg::Bar02Data>("bar02_data", 10, std::bind(&FlightController::bar_callback, this, std::placeholders::_1));
-    this->bno_sub = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", 10, std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
-    this->setpoint_sub = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::setpoint_callback, this, std::placeholders::_1));
+    this->bar_sub = this->create_subscription<rov_interfaces::msg::Bar02Data>("bar02_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bar_callback, this, std::placeholders::_1));
+    this->bno_sub = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
+    this->thruster_setpoint_sub = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::thruster_setpoint_callback, this, std::placeholders::_1));
+    this->depth_setpoint_sub = this->create_subscription<std_msgs::msg::Float64>("depth_setpoint", 10, std::bind(&FlightController::depth_setpoint_callback, this, std::placeholders::_1));
     this->estop_sub = this->create_subscription<csm_common_interfaces::msg::EStop>("estop", 10, std::bind(&FlightController::estop_callback, this, std::placeholders::_1));
 
     this->pwm_pub = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
@@ -114,6 +127,10 @@ FlightController::FlightController() : rclcpp::Node("flight_controller") {
     #if DEBUG_OUTPUT
         RCLCPP_INFO(this->get_logger(), "Is the Null Space of thruster geometry 0? %d", thruster_geometry.fullPivLu().kernel().isZero());
     #endif
+
+    // initialize I
+    // TODO: parameterize
+    I = Eigen::Matrix3d::Zero();
 
     // initialize M_rb
     M_rb = Eigen::Matrix<double, 6, 6>::Zero();
@@ -147,10 +164,10 @@ void FlightController::update_callback() {
 
     // scale actuations by abs of largest actuation request
     clampthrottles(&actuations);
+
     // publish PWM values to apply the actuations to the thrusters
     { std::lock_guard lock(pwm_mutex);
     for(int i = 0; i < NUM_THRUSTERS; i++) {
-        
         rov_interfaces::msg::PWM msg;
         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // yeah we convert from a double to a float :(
         msg.channel = thruster_idx_to_pwm_pin.at(i);
@@ -168,9 +185,9 @@ void FlightController::update_simple([[maybe_unused]] long dt_ns) {
     #if DEBUG_OUTPUT
         RCLCPP_DEBUG(this->get_logger(), "Simple Update Called");
     #endif
-    setpoint_data setpoints_CPY;
+    thruster_setpoint_data setpoints_CPY;
     { std::lock_guard lock(setpoint_mutex);
-    setpoints_CPY = setpoints;
+    setpoints_CPY = thruster_setpoints;
     }
 
     // convert setpoints to actuations that the controller must apply
@@ -187,11 +204,6 @@ void FlightController::update_linear_PID([[maybe_unused]] long dt_ns) {
     #if DEBUG_OUTPUT
         RCLCPP_DEBUG(this->get_logger(), "Linear PID Update Called");
     #endif
-    // calculate depth error
-
-    // calculate the direction, in the body frame, of gravity
-
-    // apply translational request
 }
 
 void FlightController::update_non_linear_PID([[maybe_unused]] long dt_ns) {
@@ -199,15 +211,12 @@ void FlightController::update_non_linear_PID([[maybe_unused]] long dt_ns) {
     static Eigen::Vector3d ha;
     static Eigen::Vector3d omega;
     static Eigen::Quaterniond quaternion_measured;
-    #if DEBUG_OUTPUT
-        RCLCPP_DEBUG(this->get_logger(), "Non-Linear PID Update Called");
-    #endif
 
     // update translations aswell
     update_linear_PID(dt_ns);
 
     { std::lock_guard lock(setpoint_mutex); std::lock_guard lock2(bno_mutex);
-    ha = dt_ns * NS_TO_S * 0.5 * setpoints.rotational; // vector of half angle
+    ha = dt_ns * NS_TO_S * 0.5 * thruster_setpoints.rotational; // vector of half angle
     omega = imu_data.gyroscope;
     quaternion_measured = imu_data.quaternion;
     }
@@ -239,6 +248,60 @@ void FlightController::update_non_linear_PID([[maybe_unused]] long dt_ns) {
 
     auto P2_params = this->get_parameters(std::vector<std::string>{"Pq", "Pw"});
     desired_moment = (-P2_params.at(0).as_double() * axis_err) - (P2_params.at(1).as_double() * omega);
+}
+
+void FlightController::update_depth_controller_PID(long dt_ns) {
+    static double depth_error_last = 0;
+    static double integral_contrib = 0;
+
+    // pressure setpoints, pressure data, and IMU data
+    depth_setpoint_data setpoint_cpy;
+    { std::lock_guard lock(setpoint_mutex);
+        setpoint_cpy = depth_setpoints;
+    }
+    bar_data bar_data_cpy;
+    { std::lock_guard lock(bar_mutex);
+        bar_data_cpy = depth_data;
+    }
+    bno_data bno_data_cpy;
+    { std::lock_guard lock(bno_mutex);
+        bno_data_cpy = imu_data;
+    }
+
+    // calculate depth error
+    // TODO: implement service to set depth_tare to current bar_data depth
+    double depth_error = setpoint_cpy.depth_m - bar_data_cpy.depth + this->get_parameter("depth_tare").as_double();
+    double depth_error_add = depth_error + depth_error_last;
+    depth_error_last = depth_error;
+
+    // get gain constants
+    double kdp = this->get_parameter("kdp").as_double();
+    double kdi = this->get_parameter("kdi").as_double();
+    double integral_max_contrib = this->get_parameter("depth_integral_max_contrib").as_double();
+
+    // P and I controller definitions
+    auto P = [&]() {
+        return kdp * depth_error;
+    };
+
+    auto I = [&]() {
+        // with anti windup
+        return integral_contrib = std::min(integral_contrib + kdi * (depth_error_add) / 2 * dt_ns * NS_TO_S, integral_max_contrib);
+    };
+
+    // transform thruster geometry from body to ned
+    // update Jq
+    update_body_to_ned_transform(bno_data_cpy.quaternion);
+    // do the transform
+    Eigen::Matrix<double, 7, NUM_THRUSTERS> thruster_geometry_ned = Jq * thruster_geometry;
+    
+    // apply controller output using method similar to UpdateSimple
+    // since we want to maintain normal control authority, call update_simple before fusing this controller's output
+    update_simple(dt_ns);
+    Eigen::Vector3d controller_output = (P() + I()) * Eigen::Vector3d{0.0, 0.0, 1.0};
+    for(int i = 0; i < NUM_THRUSTERS; i++) {
+        actuations(i,0) = Eigen::Vector3d(thruster_geometry_ned.block<3,1>(0, i)).dot(controller_output);
+    }
 }
 
 void FlightController::update_coriolis_centripetal_matrix(const Eigen::Vector3d& v, const Eigen::Vector3d& w) {
@@ -299,6 +362,14 @@ void FlightController::update_gravitational_and_buoyancy_vector(const Eigen::Qua
     g_res = -g_res;
 }
 
+void FlightController::update_body_to_ned_transform(const Eigen::Quaterniond& quat) {
+    // BL and TR never change from 0s
+    // Update R_bn(q)
+    Jq.block<3,3>(0,0) << I + 2 * quat.w() * skew_symmetric(quat.vec()) + 2 * skew_symmetric(quat.vec()) * skew_symmetric(quat.vec());
+    // Update T_q(q)
+    Jq.block<4,3>(3, 3) << -0.5 * quat.vec().transpose(), quat.w() * I + skew_symmetric(quat.vec());
+}
+
 void FlightController::estop_callback([[maybe_unused]] csm_common_interfaces::msg::EStop::SharedPtr msg) {
     estop_handler(true);
 }
@@ -340,14 +411,19 @@ void FlightController::restart_after_estop([[maybe_unused]] const std::shared_pt
     estop_handler(false);
 }
 
-void FlightController::setpoint_callback(rov_interfaces::msg::ThrusterSetpoints::SharedPtr msg) {
+void FlightController::thruster_setpoint_callback(rov_interfaces::msg::ThrusterSetpoints::SharedPtr msg) {
     auto lock = std::lock_guard(this->setpoint_mutex);
-    setpoints = setpoint_data(msg);
+    thruster_setpoints = thruster_setpoint_data(msg);
+}
+
+void FlightController::depth_setpoint_callback(std_msgs::msg::Float64::SharedPtr msg) {
+    auto lock = std::lock_guard(this->setpoint_mutex);
+    depth_setpoints = depth_setpoint_data(msg, this->get_parameter("max_depth_m").as_double());
 }
 
 void FlightController::bar_callback(rov_interfaces::msg::Bar02Data::SharedPtr msg) {
     auto lock = std::lock_guard(this->bar_mutex);
-    pressure_data = bar_data(msg);
+    depth_data = bar_data(msg);
 }
 
 void FlightController::bno_callback(rov_interfaces::msg::BNO055Data::SharedPtr msg) {
@@ -358,7 +434,7 @@ void FlightController::bno_callback(rov_interfaces::msg::BNO055Data::SharedPtr m
 bar_data::bar_data(rov_interfaces::msg::Bar02Data::SharedPtr msg) :
     altitude(msg->altitude), 
     depth(msg->depth), 
-    pressure(msg->pressure), 
+    pressure_kpa(msg->pressure), 
     temperature_c(msg->temperature_c) {
 }
 
@@ -374,7 +450,11 @@ bno_data::bno_data(rov_interfaces::msg::BNO055Data::SharedPtr msg) :
     calibration(msg->calibration) {
 }
 
-setpoint_data::setpoint_data(rov_interfaces::msg::ThrusterSetpoints::SharedPtr msg) :
+thruster_setpoint_data::thruster_setpoint_data(rov_interfaces::msg::ThrusterSetpoints::SharedPtr msg) :
     translational(msg->vx, msg->vy, msg->vz),
     rotational(msg->omegax, msg->omegay, msg->omegaz) {
+}
+
+depth_setpoint_data::depth_setpoint_data(std_msgs::msg::Float64::SharedPtr msg, double max_depth_m) {
+    this->depth_m = (msg->data += 1) * max_depth_m; // go from [-1, 1] -> [0, MAX_DEPTH]
 }

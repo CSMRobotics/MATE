@@ -89,4 +89,4 @@ class JoySubscriber:
         return self.last_joy_time == 0 or (self.now_seconds() - self.last_joy_time) > timeout_seconds
 
     def delta_time(self):
-        min(self.now_seconds() - self.last_joy_time, 0.2)
+        return min(self.now_seconds() - self.last_joy_time, 0.2)
