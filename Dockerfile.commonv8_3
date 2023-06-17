@@ -394,7 +394,8 @@ RUN git clone --branch foxy-devel https://github.com/ros-visualization/rqt_image
 
 # install common apt packages
 RUN apt-get update && apt-get install -y \
-    libi2c-dev
+    libi2c-dev \
+    vim
 
 
 # install common python packages
