@@ -159,7 +159,7 @@ FlightController::FlightController() : rclcpp::Node("flight_controller") {
 void FlightController::update_callback() {
     // call the desired update function
     { std::lock_guard lock(update_mutex);
-    desired_update((std::chrono::high_resolution_clock::now() - last_updated).count());
+    desired_update(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - last_updated).count());
     }
 
     // scale actuations by abs of largest actuation request
