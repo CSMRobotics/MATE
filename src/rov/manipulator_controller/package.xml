@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>manipulator_control</name>
+  <name>manipulator_controller</name>
   <version>0.0.0</version>
   <description>Subscribes to a setpoint topic and computes IK to determine how to move servos</description>
   <maintainer email="lucas@birdseyerobotics.com">hermanoid</maintainer>

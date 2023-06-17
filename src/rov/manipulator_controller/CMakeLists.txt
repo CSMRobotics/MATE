@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(manipulator_control)
+project(manipulator_controller)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -23,15 +23,24 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rov_interfaces REQUIRED)
 
-add_executable(ManipulatorControl src/ManipulatorControl.cpp)
-target_include_directories(ManipulatorControl PUBLIC
+add_library(manipulator_controller_lib STATIC src/manipulator_controller.cpp)
+add_executable(manipulator_controller src/main.cpp)
+
+target_include_directories(manipulator_controller_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(
+  manipulator_controller_lib
+  rclcpp
+  rov_interfaces)
 
-ament_target_dependencies(ManipulatorControl rclcpp rov_interfaces)
+target_link_libraries(manipulator_controller manipulator_controller_lib)
 
-install(TARGETS ManipulatorControl
+install(TARGETS manipulator_controller manipulator_controller_lib
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
