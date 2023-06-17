@@ -388,7 +388,6 @@ RUN mkdir tmp_ros_build && cd tmp_ros_build && \
 
 RUN git clone --branch foxy-devel https://github.com/ros-visualization/rqt_image_view && \
     cd rqt_image_view && \
-    sed -i '36s/#include <rqt_gui_cpp\/plugin.h>/#include <rqt_gui_cpp\/rqt_gui_cpp\/plugin.h>/' include/rqt_image_view/image_view.h && \
     source /opt/ros/${ROS_DISTRO}/install/setup.bash && \
     colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO}/install --packages-up-to rqt_image_view
 
