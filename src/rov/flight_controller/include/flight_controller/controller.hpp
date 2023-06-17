@@ -67,6 +67,7 @@ public:
     FlightController();
 
 private:
+    void startup_delay_callback();
     void update_callback();
 
     void update_none([[maybe_unused]] long dt_ns) {};
@@ -124,10 +125,10 @@ private:
     Eigen::Matrix<double, 6, 6> D; // hydrodynamic damping matrix
     Eigen::Matrix<double, 6, 1> g_res; // gravitational and buoyancy force vector
 
-    thruster_setpoint_data thruster_setpoints;
-    depth_setpoint_data depth_setpoints;
-    bar_data depth_data;
-    bno_data imu_data;
+    thruster_setpoint_data thruster_setpoints = thruster_setpoint_data();
+    depth_setpoint_data depth_setpoints = depth_setpoint_data();
+    bar_data depth_data = bar_data();
+    bno_data imu_data = bno_data();
     std::mutex setpoint_mutex;
     std::mutex bar_mutex;
     std::mutex bno_mutex;

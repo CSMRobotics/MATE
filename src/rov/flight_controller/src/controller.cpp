@@ -97,7 +97,7 @@ inline Eigen::Matrix3d skew_symmetric(Eigen::Vector3d lambda) {
     return ret;
 }
 
-void fuzzy_linear_velocity(Eigen::Vector3d& velocity) {
+[[maybe_unused]] void fuzzy_linear_velocity(Eigen::Vector3d& velocity) {
     if(velocity.isMuchSmallerThan(VELOCITY_PREC))
         velocity = Eigen::Vector3d::Zero();
 }
@@ -152,8 +152,17 @@ FlightController::FlightController() : rclcpp::Node("flight_controller") {
     D = Eigen::Matrix<double, 6, 6>::Zero();
 
     // start ros update loop
-    this->update_timer = this->create_wall_timer(std::chrono::milliseconds(1000/UPDATE_RATE_HZ), std::bind(&FlightController::update_callback, this));
+    this->update_timer = this->create_wall_timer(std::chrono::milliseconds(1000/UPDATE_RATE_HZ), std::bind(&FlightController::startup_delay_callback, this));
     this->last_updated = std::chrono::high_resolution_clock::now();
+}
+
+void FlightController::startup_delay_callback() {
+    static bool is_not_first = false;
+    static std::chrono::time_point<std::chrono::high_resolution_clock> tp;
+    if(!is_not_first) {is_not_first = true; tp = std::chrono::high_resolution_clock::now() + std::chrono::seconds(2);}
+    if(std::chrono::high_resolution_clock::now() >= tp) {
+        this->update_timer = this->create_wall_timer(std::chrono::milliseconds(1000/UPDATE_RATE_HZ), std::bind(&FlightController::update_callback, this));
+    }
 }
 
 void FlightController::update_callback() {
