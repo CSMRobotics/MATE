@@ -54,7 +54,7 @@ void declare_flight_controller_parameters(rclcpp::Node*const node) {
 // Parse the given Flight Controller's thruster<idx> parameters and apply them to supplied containers
 void initialize_thrusters(FlightController* const node, std::array<Thruster, NUM_THRUSTERS>* const thrusters ,std::unordered_map<int,int>* const thruster_idx_to_pwm_pin, Eigen::Matrix<double, 6, NUM_THRUSTERS>* const thruster_geometry) {
     std::stringstream ss;
-    std::array<Eigen::Vector<double, 6>, NUM_THRUSTERS> temp;
+    std::array<Eigen::Matrix<double, 6, 1>, NUM_THRUSTERS> temp;
     for(int i = 0; i < NUM_THRUSTERS; i++) {
         ss.str("");
         ss << "thruster" << i << '.';
@@ -85,7 +85,7 @@ void initialize_thrusters(FlightController* const node, std::array<Thruster, NUM
         #endif
 
         // add the thruster's geometry to the thruster geometry matrix
-        temp[i] = Eigen::VectorXd(6);
+        temp[i] = Eigen::Matrix<double, 6, 1>();
         temp[i] << linear_contribution, rotation_contribution;
         thruster_geometry->col(i) << temp[i];
     }

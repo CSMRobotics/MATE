@@ -122,7 +122,7 @@ private:
     Eigen::Matrix<double, 6, 6> C_rb; // Coriolis and centripetal matrix
     Eigen::Matrix<double, 6, 6> M_rb; // Rigid-body mass matrix
     Eigen::Matrix<double, 6, 6> D; // hydrodynamic damping matrix
-    Eigen::Vector<double, 6> g_res; // gravitational and buoyancy force vector
+    Eigen::Matrix<double, 6, 1> g_res; // gravitational and buoyancy force vector
 
     thruster_setpoint_data thruster_setpoints;
     depth_setpoint_data depth_setpoints;
