@@ -10,6 +10,7 @@
   <depend>rclpy</depend>
   <depend>rov_interfaces</depend>
   <depend>joy</depend>
+  <depend>csm_common_interfaces</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

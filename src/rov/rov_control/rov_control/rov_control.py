@@ -5,6 +5,7 @@ from std_msgs.msg import Bool
 from rov_control.JoySubscriber import JoySubscriber
 from rov_control.JoySubscriber import ParsedJoy
 from rov_interfaces.msg import ManipulatorSetpoints, ThrusterSetpoints
+from csm_common_interfaces.msg import PinState
 from transitions import Machine
 from std_msgs.msg import String
 
@@ -68,6 +69,10 @@ class ROV_Control(Node):
         super().__init__("rov_control")
         declare_parameters(self)
         self.thruster_setpoint_publisher = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 10)
+        self.gpio_publisher = self.create_publisher(PinState, "set_rov_gpio", 10)
+        self.gpio_lights = True
+        self.gpio_lights_sleep = False
+        self.gpio_lights_sleep_time = 0
         self.machine = Machine(self, states=States, initial=States.teleop_drive)
         self.machine.add_transition("estop_normal", "*", States.paused)
         self.machine.add_transition("estop_fatal", "*", States.shutdown)
@@ -115,6 +120,11 @@ class ROV_Control(Node):
         if self.state in [States.teleop_manip, States.teleop_drive] and self.toggled_buttons["button_8"]:
             self.teleop_mode_switch()
 
+        if(self.gpio_lights_sleep and self.now_seconds() >= self.gpio_lights_sleep_time):
+            self.gpio_lights_sleep = False
+
+        self.do_button_update()
+
         # update teleop modes
         if self.state == States.teleop_manip:
             self.do_manip_setpoint_update(joystick, delta_time)
@@ -128,6 +138,17 @@ class ROV_Control(Node):
 
     def teleop_mode_switch(self):
         return
+
+    def do_button_update(self):
+        if(self.toggled_buttons["button_4"] and not self.gpio_lights_sleep):
+            msg = PinState()
+            msg.pin = 12
+            self.gpio_lights = not self.gpio_lights
+            msg.state = self.gpio_lights
+            self.gpio_publisher.publish(msg)
+            self.gpio_lights_sleep = True
+            self.gpio_lights_sleep_time = self.now_seconds() + 1
+
 
     def do_manip_setpoint_update(self, joystick: ParsedJoy, delta_time: float):
         # NOTE: As of 10/19/22, we're looking into redoing the manipulator, so this is probably useless
