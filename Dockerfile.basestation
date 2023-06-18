@@ -50,6 +50,7 @@ RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptool
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
 # CMD is the "go" button, and can be overriden
+COPY worlds_driverstation_setup.bash /worlds_driverstation_setup.bash
 COPY setup/ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x /ros_entrypoint.sh
 ENTRYPOINT [ "/ros_entrypoint.sh" ]
