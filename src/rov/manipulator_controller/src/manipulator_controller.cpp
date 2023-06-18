@@ -70,8 +70,8 @@ void ManipulatorController::setpoint_callback(const rov_interfaces::msg::Manipul
     ::clamp(&wrist, this->get_parameter("wrist_lower_bound").as_double(), this->get_parameter("wrist_upper_bound").as_double());
     ::clamp(&clamp, this->get_parameter("clamp_lower_bound").as_double(), this->get_parameter("clamp_upper_bound").as_double());
 
-    RCLCPP_INFO(this->get_logger(), "Attempting to set wrist to %d", wrist);
-    RCLCPP_INFO(this->get_logger(), "Attempting to set clamp to %d", clamp);
+    RCLCPP_INFO(this->get_logger(), "Attempting to set wrist to %f", wrist);
+    RCLCPP_INFO(this->get_logger(), "Attempting to set clamp to %f", clamp);
 
     // publish PWM
     // wrist pwm
