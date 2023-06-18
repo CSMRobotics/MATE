@@ -416,7 +416,7 @@ class RovControl(Node):
                         self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
                         * self
                             ._joystick.axis(joystick_axis)
-                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis}").value).value,
+                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
                     1.0))
                     for manipulator_axis, joystick_axis in
                         self.get_parameters_by_prefix("control.manipulator.axis").items()
@@ -445,8 +445,8 @@ class RovControl(Node):
                 thruster_axis: max(-1.0, min(
                     self.get_parameter(f"control.drive.scale.{thruster_axis}").value
                     * self
-                        ._joystick.axis(joystick_axis)
-                        .deadzoned(self.get_parameter(f"deadzone.{joystick_axis}").value),
+                        ._joystick.axis(joystick_axis.value)
+                        .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
                 1.0))
                 for thruster_axis, joystick_axis in
                     self.get_parameters_by_prefix("control.drive.axis").items()
