@@ -6,9 +6,7 @@
 #include "rov_interfaces/msg/pwm.hpp"
 #include "rov_interfaces/msg/manipulator_setpoints.hpp"
 
-namespace {
-
-}
+#include <unordered_map>
 
 class ManipulatorController : public rclcpp::Node {
 public:
