@@ -27,9 +27,11 @@ ManipulatorController::ManipulatorController() : Node(std::string("manipulator_c
 }
 
 void ManipulatorController::setpoint_callback(const rov_interfaces::msg::ManipulatorSetpoints::SharedPtr msg) {
+    static float wrist_pos_last = 0;
+    static float clamp_pos_last = 0;
     // map values from rov_control
-    float wrist = (msg->wrist + 1) * 90 * (this->get_parameter("wrist_invert").as_bool() ? -1 : 1); // map [-1, 1] to [0, 180]
-    float clamp = (msg->clamp + 1) * 90 * (this->get_parameter("clamp_invert").as_bool() ? -1 : 1); // map [-1, 1] to [0, 180]
+    float wrist = wrist_pos_last += msg->wrist * ((this->get_parameter("wrist_invert").as_bool() << 1) - 1);
+    float clamp = clamp_pos_last += msg->clamp * ((this->get_parameter("clamp_invert").as_bool() << 1) - 1);
 
     // clamp the received values
     ::clamp(&wrist, this->get_parameter("wrist_lower_bound").as_double(), this->get_parameter("wrist_upper_bound").as_double());
