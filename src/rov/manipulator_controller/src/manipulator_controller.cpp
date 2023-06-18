@@ -4,13 +4,15 @@
 namespace {
     void declare_manipulator_controller_parameters(rclcpp::Node*const node) {
         node->declare_parameter("wrist_invert", false);
-        node->declare_parameter("wrist_lower_bound", 0.0);
+        node->declare_parameter("wrist_lower_bound", 90.0);
         node->declare_parameter("wrist_upper_bound", 180.0);
-        node->declare_parameter("wrist_pwm_pin", 14);
+        node->declare_parameter("wrist_pwm_pin", 11);
+        node->declare_parameter("wrist_scale", 0.1);
         node->declare_parameter("clamp_invert", false);
-        node->declare_parameter("clamp_lower_bound", 0.0);
-        node->declare_parameter("clamp_upper_bound", 180.0);
-        node->declare_parameter("clamp_pwm_pin", 11);
+        node->declare_parameter("clamp_lower_bound", 20.0);
+        node->declare_parameter("clamp_upper_bound", 160.0);
+        node->declare_parameter("clamp_pwm_pin", 14);
+        node->declare_parameter("wrist_scale", 0.1);
     }
 
     void clamp(float* toClamp, double lower, double upper) {
@@ -61,12 +63,15 @@ void ManipulatorController::setpoint_callback(const rov_interfaces::msg::Manipul
     static float wrist_pos_last = 90;
     static float clamp_pos_last = 90;
     // map values from rov_control
-    float wrist = wrist_pos_last += msg->wrist * ((this->get_parameter("wrist_invert").as_bool() << 1) - 1);
-    float clamp = clamp_pos_last += msg->clamp * ((this->get_parameter("clamp_invert").as_bool() << 1) - 1);
+    float wrist = wrist_pos_last += msg->wrist * (this->get_parameter("wrist_invert").as_bool() * 2 - 1) * this->get_parameter("wrist_scale").as_double();
+    float clamp = clamp_pos_last += msg->clamp * (this->get_parameter("clamp_invert").as_bool() * 2 - 1) * this->get_parameter("clamp_scale").as_double();
 
     // clamp the received values
     ::clamp(&wrist, this->get_parameter("wrist_lower_bound").as_double(), this->get_parameter("wrist_upper_bound").as_double());
     ::clamp(&clamp, this->get_parameter("clamp_lower_bound").as_double(), this->get_parameter("clamp_upper_bound").as_double());
+
+    RCLCPP_INFO(this->get_logger(), "Attempting to set wrist to %d", wrist);
+    RCLCPP_INFO(this->get_logger(), "Attempting to set clamp to %d", clamp);
 
     // publish PWM
     // wrist pwm

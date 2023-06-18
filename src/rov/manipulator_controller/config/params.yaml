@@ -1,10 +1,12 @@
 manipulator_controller:
   ros__parameters:
     wrist_invert: False
-    wrist_lower_bound: 0.0
+    wrist_lower_bound: 90.0
     wrist_upper_bound: 180.0
-    wrist_pwm_pin: 14
+    wrist_pwm_pin: 11
+    wrist_scale: 0.1
     clamp_invert: False
-    clamp_lower_bound: 0.0
-    clamp_upper_bound: 180.0
-    clamp_pwm_pin: 11
+    clamp_lower_bound: 20.0
+    clamp_upper_bound: 160.0
+    clamp_pwm_pin: 14
+    clamp_scale: 0.1
