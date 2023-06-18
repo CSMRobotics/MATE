@@ -1,229 +1,463 @@
+from csm_common_interfaces.msg import PinState
+from enum import Enum
+from rcl_interfaces.msg import ParameterDescriptor
 import rclpy
 from rclpy.node import Node
-
-from std_msgs.msg import Bool
-from rov_control.JoySubscriber import JoySubscriber
-from rov_control.JoySubscriber import ParsedJoy
+from rclpy.parameter import Parameter
 from rov_interfaces.msg import ManipulatorSetpoints, ThrusterSetpoints
-from csm_common_interfaces.msg import PinState
+from sensor_msgs.msg import Joy
+from std_msgs.msg import Bool
 from transitions import Machine
-from std_msgs.msg import String
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 
-from enum import Enum
+K = TypeVar('K')
+V = TypeVar('V')
 
+RecursiveDict = Dict[K, Union[V, "RecursiveDict"]]
 
-class States(Enum):
-    shutdown = 0
-    paused = 1
-    teleop_drive = 2
-    teleop_manip = 3
+ParameterDict = RecursiveDict[str, Optional[Union[
+    Parameter.Type,
+    Tuple[Any, ParameterDescriptor]
+]]]
 
-def declare_parameters(node : Node):
-    node.declare_parameters("mapping",
-        [
-            ("trigger", 0),
-            ("trigger", 0),
-            ("thumb", 1),
-            ("button_3", 2),
-            ("button_4", 3),
-            ("button_5", 4),
-            ("button_6", 5),
-            ("button_7", 6),
-            ("button_8", 7),
-            ("button_9", 8),
-            ("button_10", 9),
-            ("button_11", 10),
-            ("button_12", 11),
-            ("roll", 0),
-            ("pitch", 1),
-            ("yaw", 2),
-            ("throttle", 3),
-            ("hat_x", 4),
-            ("hat_y", 5),
-        ]
-    )
+def namespace_flatten_dict(recursive_dict: RecursiveDict[str, V]) -> Dict[str, V]:
+    output_dict: Dict[str, V] = {}
 
-    node.declare_parameters("",
-        [
-            ("chicken_speed", 10),
-            ("wrist_speed", 10),
-            ("level_min", -90),
-            ("level_initial", 0),
-            ("level_max", 90),
-            ("elbow_min", -90),
-            ("elbow_initial", 0),
-            ("elbow_max", 90),
-            ("wrist_min", -90),
-            ("wrist_initial", 0),
-            ("wrist_max", 90),
-            ("clamp_initial", 0),
-            ("deadzone", 0),
-            ("joy_update_hz", 60),
-            ("joy_timeout", 0.5)
-        ]
-    )
-
-
-class ROV_Control(Node):
-    def __init__(self):
-        super().__init__("rov_control")
-        declare_parameters(self)
-        self.thruster_setpoint_publisher = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 10)
-        self.gpio_publisher = self.create_publisher(PinState, "set_rov_gpio", 10)
-        self.gpio_lights = True
-        self.gpio_lights_sleep = False
-        self.gpio_lights_sleep_time = 0
-        self.machine = Machine(self, states=States, initial=States.teleop_drive)
-        self.machine.add_transition("estop_normal", "*", States.paused)
-        self.machine.add_transition("estop_fatal", "*", States.shutdown)
-        self.machine.add_transition("teleop_mode_switch", States.teleop_manip, States.teleop_drive)
-        self.machine.add_transition("teleop_mode_switch", States.teleop_drive, States.teleop_manip)
-        self.mapping = self.dictionaryafy(self.get_parameters_by_prefix("mapping"))
-        self.last_manip = ManipulatorSetpoints(
-            clamp=float(self.get_parameter("clamp_initial").value),
-            level=float(self.get_parameter("level_initial").value),
-            wrist=float(self.get_parameter("wrist_initial").value),
-            elbow=float(self.get_parameter("elbow_initial").value),
-        )
-        self.last_joy_time = 0
-        self.last_update_time = 0
-        self.joy_subscriber = JoySubscriber(self, self.mapping, 0.02)
-        self.create_timer(1 / self.get_parameter("joy_update_hz").value, self.joy_update)
-        self.manipulator_setpoint_pub = self.create_publisher(ManipulatorSetpoints, "manipulator_setpoints", 2)
-        self.thruster_setpoint_pub = self.create_publisher(ThrusterSetpoints, "thruster_setpoints", 2)
-        self.state_pub = self.create_publisher(String, "rov_control_state", 2)
-        self.create_timer(1, lambda: self.state_pub.publish(String(data=self.state.name)))
-        self.create_subscription(Bool, "estop", self.estop_callback, 0)
-        self.state = States.teleop_drive
-
-    def dictionaryafy(self, in_dict):
-        tree = {}
-        for key, value in in_dict.items():
-            t = tree
-            parts = key.split(".")
-            for part in parts[:-1]:
-                t = t.setdefault(part, {})
-            t[parts[-1]] = value.value
-        return tree
-
-    def now_seconds(self):
-        return self.get_clock().now().nanoseconds / 1000000000.0
-
-    def joy_update(self):
-        if self.joy_subscriber.joy_timeout(self.get_parameter("joy_timeout").value):
-            return
-        delta_time = self.joy_subscriber.delta_time()
-        joystick = self.joy_subscriber.latest_joy
-        self.toggled_buttons = joystick.toggled_buttons
-
-        # if mode switch button has been pressed, toggle the mode if you are in teleop
-        if self.state in [States.teleop_manip, States.teleop_drive] and self.toggled_buttons["button_8"]:
-            self.teleop_mode_switch()
-
-        if(self.gpio_lights_sleep and self.now_seconds() >= self.gpio_lights_sleep_time):
-            self.gpio_lights_sleep = False
-
-        self.do_button_update()
-
-        # update teleop modes
-        if self.state == States.teleop_manip:
-            self.do_manip_setpoint_update(joystick, delta_time)
-            self.thruster_setpoint_pub.publish(ThrusterSetpoints())
-        elif self.state == States.teleop_drive:
-            self.do_thrust_setpoint_update(joystick)
-            self.manipulator_setpoint_pub.publish(self.last_manip)
-
-    def param_clamp(self, value, name):
-        return min(max(value, float(self.get_parameter(name + "_min").value)), float(self.get_parameter(name + "_max").value))
-
-    def teleop_mode_switch(self):
-        return
-
-    def do_button_update(self):
-        if(self.toggled_buttons["button_4"] and not self.gpio_lights_sleep):
-            msg = PinState()
-            msg.pin = 12
-            self.gpio_lights = not self.gpio_lights
-            msg.state = self.gpio_lights
-            self.gpio_publisher.publish(msg)
-            self.gpio_lights_sleep = True
-            self.gpio_lights_sleep_time = self.now_seconds() + 1
-
-
-    def do_manip_setpoint_update(self, joystick: ParsedJoy, delta_time: float):
-        # NOTE: As of 10/19/22, we're looking into redoing the manipulator, so this is probably useless
-        # ALSO TODO: Since we changed the control organization a little so that most logic related to thrust is done in the flight_controller,
-        # ... we should also move all logic related to manipulation into the manipulator node, and only send raw joystick values (meaning [-1, 1])
-        # Also TODO: When doing that last thing don't forget to change estop handling to match. (look below)
-        manip_setpoints = self.last_manip
-        chicken_speed = self.get_parameter("chicken_speed").value
-        manip_setpoints["elbow"] += joystick["pitch"] * chicken_speed * delta_time
-        manip_setpoints["elbow"] = self.param_clamp(manip_setpoints["elbow"], "elbow")
-        # chicken
-        if joystick["thumb"]:
-            # Do IK here :)
-            manip_setpoints["level"] = 180 - manip_setpoints.elbow
+    for key, value in recursive_dict.items():
+        if isinstance(value, dict):
+            output_dict.update({f"{key}.{k}": v for k, v in namespace_flatten_dict(value).items()})
         else:
-            manip_setpoints["level"] += joystick["hat_y"] * chicken_speed * delta_time
-        manip_setpoints["level"] = self.param_clamp(manip_setpoints["level"], "level")
+            output_dict[key] = value
 
-        if self.toggled_buttons["button_3"]:
-            manip_setpoints.clamp = 1.0 - manip_setpoints.clamp
+    return output_dict
 
-        manip_setpoints["wrist"] += joystick["roll"] * self.get_parameter("wrist_speed").value * delta_time
-        manip_setpoints["wrist"] = self.param_clamp(manip_setpoints["wrist"], "wrist")
+def declare_parameter_dict(node: Node, parameters: ParameterDict) -> List[Parameter]:
+    return node.declare_parameters("", list(namespace_flatten_dict(parameters).items()))
 
-        self.manipulator_setpoint_pub.publish(manip_setpoints)
-        self.last_manip = manip_setpoints
-
-    def do_thrust_setpoint_update(self, joystick: ParsedJoy):
-        # All values default to zero
-        thrust_setpoints = ThrusterSetpoints()
-
-        thrust_setpoints.vx = float(joystick["hat_y"])
-        thrust_setpoints.vy = float(joystick["hat_x"])
-        thrust_setpoints.vz = float(joystick["throttle"])
-        thrust_setpoints.omegax = float(joystick["roll"])
-        thrust_setpoints.omegay = -float(joystick["pitch"])
-        thrust_setpoints.omegaz = -float(joystick["yaw"])
-        
-        self.thruster_setpoint_pub.publish(thrust_setpoints)
-
-    def estop_fatal(self):
-        return
+class Timeout:
+    def __init__(self, node: Node, seconds: float = 0.0, nanoseconds: int = 0):
+        self._node = node
+        self._end_time = node.get_clock().now().nanoseconds + int(seconds * 1.0e9) + nanoseconds
     
-    def estop_normal(self):
-        return
+    def passed(self) -> bool:
+        return self._node.get_clock().now().nanoseconds > self._end_time
 
-    def estop_callback(self, msg):
-        if msg.data:
-            self.estop_fatal()
+class Button:
+    # `state` is either the current state, or the number of historical state transitions, starting from `False``
+    def __init__(self, name: Optional[str], state: Union[bool, int]):
+        self._name = name
+        self._transitions = int(state)
+
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
+    
+    @property
+    def state(self) -> bool:
+        return bool(self._transitions % 2)
+
+    @property
+    def toggled(self) -> bool:
+        return bool(self % 2)
+    
+    # The boolean form is the current state
+    def __bool__(self) -> bool:
+        return self.state
+    
+    # `Button % rhs` is the total number of presses mod `rhs`, see `toggled()`
+    def __mod__(self, rhs: int) -> int:
+        return ((self._transitions + 1) // 2) % rhs
+
+    def __eq__(self, rhs: bool) -> bool:
+        return self.state.__eq__(rhs)
+
+    def __ne__(self, rhs: bool) -> bool:
+        return self.state.__ne__(rhs)
+
+class Axis:
+    def __init__(self, name: Optional[str], value: float):
+        self._name = name
+        self._value = value
+
+    def deadzoned(self, deadzone: float) -> "Axis":
+        return Axis(self.name, 0 if abs(self.value) <= deadzone else self.value)
+    
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
+    
+    @property
+    def value(self) -> float:
+        return self._value
+
+    # If `self` is a hat axis where up is positive, then `+self` would be the up hat button
+    def __pos__(self) -> Button:
+        return Button(self.name, self > 0.0)
+
+    # If `self` is a hat axis where up is positive, then `-self` would be the down hat button
+    def __neg__(self) -> Button:
+        return Button(self.name, self < 0.0)
+
+    def __invert__(self) -> "Axis":
+        return Axis(self.name, -self.value)
+
+    def __lt__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__lt__(rhs)
+
+    def __le__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__le__(rhs)
+
+    def __eq__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__eq__(rhs)
+
+    def __ne__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__ne__(rhs)
+
+    def __gt__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__gt__(rhs)
+
+    def __ge__(self, rhs: Union[float, int]) -> bool:
+        return self.value.__ge__(rhs)
+
+class Joystick:
+    def __init__(
+        self,
+        node: Node,
+        joystick_topic_name: str,
+        axis_names: Union[List[str], Dict[str, int]],
+        button_names: Union[List[str], Dict[str, int]]
+    ):
+        self._axis_aliases: Dict[str, int] = {}
+        if isinstance(axis_names, list):
+            self._axis_aliases = {name: index for index, name in enumerate(axis_names)}
+        elif isinstance(axis_names, dict):
+            self._axis_aliases = {name: index for name, index in axis_names.items() if index >= 0}
+
+        self._button_aliases: Dict[str, int] = {}
+        if isinstance(button_names, list):
+            self._button_aliases = {name: index for index, name in enumerate(button_names)}
+        elif isinstance(button_names, dict):
+            self._button_aliases = {name: index for name, index in button_names.items() if index >= 0}
+
+        self._axis_values: List[float] = []
+        self._button_states: List[bool] = []
+        self._button_transitions: List[int] = []
+
+        self._joystick_update_subscription = node.create_subscription(
+            Joy,
+            joystick_topic_name,
+            self.on_joystick_message,
+            10
+        )
+
+    def axis(self, name_or_index: Union[str, int]) -> Axis:
+        if type(name_or_index) == str and self._axis_aliases.get(name_or_index) != None:
+            try:
+                return Axis(name_or_index, self._axis_values[self._axis_aliases[name_or_index]])
+            except:
+                return Axis(None, 0.0)
+        elif type(name_or_index) == int and 0 <= name_or_index < len(self._axis_values):
+            return Axis(None, self._axis_values[name_or_index])
         else:
-            self.estop_normal()
+            return Axis(None, 0.0)
 
-    def stop_all_motors(self):
-        self.thruster_setpoint_pub.publish(ThrusterSetpoints())  # All values will default to zero
-        # Manipulator values are position-based, so we just stop writing new values to cause it to stop
-        # "Not writing new values" is accomplished by changing state, which has already happened now that we've entered 'paused'
+    def button(self, name_or_index: Union[str, int]) -> Button:
+        if type(name_or_index) == str and self._button_aliases.get(name_or_index) != None:
+            try:
+                return Button(name_or_index, self._button_transitions[self._button_aliases[name_or_index]])
+            except:
+                return Button(None, False)
+        elif type(name_or_index) == int and 0 <= name_or_index < len(self._button_transitions):
+            return Button(None, self._button_transitions[name_or_index])
+        else:
+            return Button(None, False)
 
-    def on_enter_paused(self):
-        # Stop motors and all that
-        self.stop_all_motors()
-        self.get_logger().warn("ROV_Control has entered the paused state")
+    def on_joystick_message(self, message: Joy):
+        if len(self._axis_values) < len(message.axes):
+            self._axis_values.extend([0.0] * (len(message.axes) - len(self._axis_values)))
+
+        for index, axis in enumerate(message.axes):
+            self._axis_values[index] = axis
+
+        if len(self._button_states) < len(message.buttons):
+            self._button_states.extend([0.0] * (len(message.buttons) - len(self._button_states)))
+
+        if len(self._button_transitions) < len(message.buttons):
+            self._button_transitions.extend([0.0] * (len(message.buttons) - len(self._button_transitions)))
+
+        for index, button in enumerate(message.buttons):
+            button_state: bool = bool(button)
+
+            if button_state != self._button_states[index]:
+                self._button_transitions[index] += 1
+            
+            self._button_states[index] = button_state
+
+class RovControlState(Enum):
+    OFF = 0
+    SUSPENDED = 1
+    DRIVE_CONTROL = 2
+    MANIPULATOR_CONTROL = 3
+
+class RovControl(Node):
+    def __init__(self, node_name: str = "rov_control", *args, **kwargs):
+        super().__init__(node_name, *args, **kwargs)
+
+        declare_parameter_dict(self, {
+            "update_frequency_hz": 60,
+            "mapping": {
+                "axis": {
+                    "roll": 0,
+                    "pitch": 1,
+                    "yaw": 2,
+                    "throttle": 3,
+                    "hat_x": 4,
+                    "hat_y": 5
+                },
+                "button": {
+                    "button_1": 0,
+                    "button_2": 1,
+                    "button_3": 2,
+                    "button_4": 3,
+                    "button_5": 4,
+                    "button_6": 5,
+                    "button_7": 6,
+                    "button_8": 7,
+                    "button_9": 8,
+                    "button_10": 9,
+                    "button_11": 10,
+                    "button_12": 11,
+                    "trigger": 0,
+                    "grip": 1,
+                    "thumb": 1,
+                    "stick_top_left": 4,
+                    "stick_top_right": 5,
+                    "stick_bottom_left": 2,
+                    "stick_bottom_right": 3,
+                    "base_front_left": 6,
+                    "base_front_right": 7,
+                    "base_middle_left": 8,
+                    "base_middle_right": 9,
+                    "base_back_left": 10,
+                    "base_back_right": 11
+                }
+            },
+            "control": {
+                "deadzone": {
+                    "roll": 0.1,
+                    "pitch": 0.1,
+                    "yaw": 0.1,
+                    "throttle": 0.1,
+                    "hat_x": 0.0,
+                    "hat_y": 0.0
+                },
+                "drive": {
+                    "axis": {
+                        "vx": "hat_y",
+                        "vy": "hat_x",
+                        "vz": "throttle",
+                        "omegax": "roll",
+                        "omegay": "pitch",
+                        "omegaz": "yaw",
+                    },
+                    "scale": {
+                        "vx": 1.0,
+                        "vy": 1.0,
+                        "vz": 1.0,
+                        "omegax": 1.0,
+                        "omegay": -1.0,
+                        "omegaz": -1.0
+                    }
+                },
+                "manipulator": {
+                    "axis": {
+                        "wrist": "roll",
+                        "clamp": "hat_y"
+                    },
+                    "scale": {
+                        "wrist": 1.0,
+                        "clamp": 1.0
+                    }
+                },
+                "other": {
+                    "lights": {
+                        "button": "stick_bottom_right",
+                        "pin": 12,
+                        "timeout_seconds": 1.0
+                    },
+                    "mode_switching": {
+                        "button": "stick_bottom_left"
+                    }
+                }
+            }
+        })
+
+        self._machine = Machine(
+            model = self,
+            states = RovControlState,
+            initial = RovControlState.DRIVE_CONTROL,
+            transitions = [
+                {
+                    "trigger": "change_operating_mode",
+                    "source": RovControlState.DRIVE_CONTROL,
+                    "dest": RovControlState.MANIPULATOR_CONTROL,
+                    "before": self.send_rotation_hold
+                },
+                {
+                    "trigger": "change_operating_mode",
+                    "source": RovControlState.MANIPULATOR_CONTROL,
+                    "dest": RovControlState.DRIVE_CONTROL
+                },
+                {
+                    # Don't turn on an inactive state when suspending
+                    "trigger": "suspend",
+                    "source": [
+                        RovControlState.OFF,
+                        RovControlState.SUSPENDED
+                    ],
+                    "dest": None
+                },
+                {
+                    "trigger": "suspend",
+                    "source": "*",
+                    "dest": RovControlState.SUSPENDED,
+                    "before": self.on_suspend
+                },
+                {
+                    "trigger": "unsuspend",
+                    "source": RovControlState.SUSPENDED,
+                    "dest": RovControlState.DRIVE_CONTROL,
+                    "before": self.on_unsuspend
+                },
+                {
+                    # Don't panic if not on
+                    "trigger": "panic",
+                    "source": RovControlState.OFF,
+                    "dest": None
+                },
+                {
+                    "trigger": "panic",
+                    "source": "*",
+                    "dest": RovControlState.OFF,
+                    "before": self.on_panic
+                }
+            ]
+        )
+
+        self.create_timer(
+            1 / self.get_parameter("update_frequency_hz").value,
+            self.on_update
+        )
+
+        self._joystick = Joystick(
+            node = self,
+            joystick_topic_name = "joy",
+            axis_names = {parameter_name: parameter.value for parameter_name, parameter in self.get_parameters_by_prefix("mapping.axis").items()},
+            button_names = {parameter_name: parameter.value for parameter_name, parameter in self.get_parameters_by_prefix("mapping.button").items()}
+        )
+
+        self._manipulator_setpoint_publisher = self.create_publisher(
+            msg_type = ManipulatorSetpoints,
+            topic = "manipulator_setpoints",
+            qos_profile = 10
+        )
+
+        self._thruster_setpoint_publisher = self.create_publisher(
+            msg_type = ThrusterSetpoints,
+            topic = "thruster_setpoints",
+            qos_profile = 10
+        )
+
+        self._lights_publisher = self.create_publisher(
+            msg_type = PinState,
+            topic = "set_rov_gpio",
+            qos_profile = 10
+        )
+
+        self._estop_subscription = self.create_subscription(
+            msg_type = Bool,
+            topic = "estop",
+            callback = lambda message: self.panic() if message.data else self.suspend(),
+            qos_profile = 10
+        )
+
+        self._lights_timeout = Timeout(self)
+
+    def on_panic(self):
+        self.get_logger().warn(f"{self.__name__} has panicked")
         pass
 
-    def on_enter_shutdown(self):
-        # The sky is falling and we're all going to die
-        self.stop_all_motors()
-        self.get_logger().fatal("ROV_Control has entered emergency shutdown")
+    def on_suspend(self):
+        self.get_logger().warn(f"{self.__name__} is now suspended")
         pass
 
+    def on_unsuspend(self):
+        self.get_logger().warn(f"{self.__name__} is no longer suspended")
+        pass
+
+    def on_update(self):
+        if self.state == RovControlState.DRIVE_CONTROL:
+            self._thruster_setpoint_publisher.publish(
+                ThrusterSetpoints(**{
+                    thruster_axis: max(-1.0, min(
+                        self.get_parameter(f"control.drive.scale.{thruster_axis}").value
+                        * self
+                            ._joystick.axis(joystick_axis.value)
+                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
+                    1.0))
+                    for thruster_axis, joystick_axis in
+                        self.get_parameters_by_prefix("control.drive.axis").items()
+                })
+            )
+        elif self.state == RovControlState.MANIPULATOR_CONTROL:
+            self._manipulator_setpoint_publisher.publish(
+                ManipulatorSetpoints(**{
+                    manipulator_axis: max(-1.0, min(
+                        self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
+                        * self
+                            ._joystick.axis(joystick_axis)
+                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis}").value).value,
+                    1.0))
+                    for manipulator_axis, joystick_axis in
+                        self.get_parameters_by_prefix("control.manipulator.axis").items()
+                })
+            )
+        
+        light_toggle_button = self._joystick.button(self.get_parameter("control.other.lights.button").value)
+        if self._lights_timeout.passed() and light_toggle_button:
+            self._lights_publisher.publish(
+                PinState(
+                    pin = self.get_parameter("control.other.lights.pin").value,
+                    state = light_toggle_button.toggled
+                )
+            )
+            self._lights_timeout = Timeout(
+                node = self,
+                seconds = self.get_parameter("control.other.lights.timeout_seconds").value
+            )
+        
+        if self._joystick.button(self.get_parameter("control.other.lights.button").value):
+            self.change_operating_mode()
+
+    def send_rotation_hold(self):
+        self._thruster_setpoint_publisher.publish(
+            ThrusterSetpoints(**{
+                thruster_axis: max(-1.0, min(
+                    self.get_parameter(f"control.drive.scale.{thruster_axis}").value
+                    * self
+                        ._joystick.axis(joystick_axis)
+                        .deadzoned(self.get_parameter(f"deadzone.{joystick_axis}").value),
+                1.0))
+                for thruster_axis, joystick_axis in
+                    self.get_parameters_by_prefix("control.drive.axis").items()
+                if thruster_axis.startswith("omega")
+            })
+        )
 
 def main():
-    rclpy.init(args=None)
-    rclpy.spin(ROV_Control())
+    rclpy.init()
+    rclpy.spin(RovControl())
     rclpy.shutdown()
-
 
 if __name__ == "__main__":
     main()
