@@ -5,6 +5,7 @@
 
 #include "rov_interfaces/msg/pwm.hpp"
 #include "rov_interfaces/msg/manipulator_setpoints.hpp"
+#include "rov_interfaces/srv/create_servo.hpp"
 
 #include <unordered_map>
 
@@ -14,6 +15,11 @@ public:
 
 private:
     void setpoint_callback(const rov_interfaces::msg::ManipulatorSetpoints::SharedPtr msg);
+    void register_servos();
+
+    rclcpp::CallbackGroup::SharedPtr pca9685_registration_callbackgroup;
+    rclcpp::Client<rov_interfaces::srv::CreateServo>::SharedPtr pca9685_client;
+    std::array<std::shared_future<std::shared_ptr<rov_interfaces::srv::CreateServo_Response>>, 2> pca9685_requests;
 
     rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr pwm_pub;
     rclcpp::Subscription<rov_interfaces::msg::ManipulatorSetpoints>::SharedPtr manip_setpoints;
