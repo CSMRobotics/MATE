@@ -383,6 +383,8 @@ class RovControl(Node):
 
         self._lights_timeout = Timeout(self)
 
+        self._mode_change_acknowledged = False
+
     def on_panic(self):
         self.get_logger().warn(f"{self.__name__} has panicked")
         pass
@@ -415,7 +417,7 @@ class RovControl(Node):
                     manipulator_axis: max(-1.0, min(
                         self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
                         * self
-                            ._joystick.axis(joystick_axis)
+                            ._joystick.axis(joystick_axis.value)
                             .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
                     1.0))
                     for manipulator_axis, joystick_axis in
@@ -436,23 +438,15 @@ class RovControl(Node):
                 seconds = self.get_parameter("control.other.lights.timeout_seconds").value
             )
         
-        if self._joystick.button(self.get_parameter("control.other.lights.button").value):
+        mode_change_button = self._joystick.button(self.get_parameter("control.other.mode_switching.button").value)
+        if mode_change_button and not self._mode_change_acknowledged:
+            self._mode_change_acknowledged = True
             self.change_operating_mode()
+        elif not mode_change_button and self._mode_change_acknowledged:
+            self._mode_change_acknowledged = False
 
     def send_rotation_hold(self):
-        self._thruster_setpoint_publisher.publish(
-            ThrusterSetpoints(**{
-                thruster_axis: max(-1.0, min(
-                    self.get_parameter(f"control.drive.scale.{thruster_axis}").value
-                    * self
-                        ._joystick.axis(joystick_axis.value)
-                        .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
-                1.0))
-                for thruster_axis, joystick_axis in
-                    self.get_parameters_by_prefix("control.drive.axis").items()
-                if thruster_axis.startswith("omega")
-            })
-        )
+        self._thruster_setpoint_publisher.publish(ThrusterSetpoints())
 
 def main():
     rclpy.init()

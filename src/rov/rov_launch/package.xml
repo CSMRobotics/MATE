@@ -23,6 +23,7 @@
   <depend>rov_cameras</depend>
   <depend>bar02</depend>
   <depend>rov_gpio</depend>  
+  <depend>manipulator_controller</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -39,6 +39,11 @@ def generate_launch_description():
         name="rov_control",
         parameters=[os.path.join(get_package_share_directory("rov_control"), "config", "default.yaml")]
     )
+    manipulator_controller = Node(
+        package="manipulator_controller",
+        executable="manipulator_controller",
+        parameters=[os.path.join(get_package_share_directory("manipulator_controller"), "config", "params.yaml")]
+    )
 
     ld.add_action(bno055)
     ld.add_action(flight_controller)
@@ -47,4 +52,5 @@ def generate_launch_description():
     ld.add_action(control)
     ld.add_action(bar02)
     ld.add_action(gpio)
+    ld.add_action(manipulator_controller)
     return ld
