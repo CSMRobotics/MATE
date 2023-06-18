@@ -7,12 +7,12 @@ namespace {
         node->declare_parameter("wrist_lower_bound", 90.0);
         node->declare_parameter("wrist_upper_bound", 180.0);
         node->declare_parameter("wrist_pwm_pin", 11);
-        node->declare_parameter("wrist_scale", 0.1);
+        node->declare_parameter("wrist_scale", 2.5);
         node->declare_parameter("clamp_invert", false);
         node->declare_parameter("clamp_lower_bound", 20.0);
-        node->declare_parameter("clamp_upper_bound", 160.0);
+        node->declare_parameter("clamp_upper_bound", 135.0);
         node->declare_parameter("clamp_pwm_pin", 14);
-        node->declare_parameter("clamp_scale", 0.1);
+        node->declare_parameter("clamp_scale", 5);
     }
 
     void clamp(float* toClamp, double lower, double upper) {
