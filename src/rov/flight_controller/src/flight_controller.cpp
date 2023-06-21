@@ -186,6 +186,13 @@ void FlightController::updateNone() {
     if(std::chrono::high_resolution_clock::now() >= this->startUpdateLoopTime) {
         pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
     }
+    rov_interfaces::msg::PWM msg;
+    msg.angle_or_throttle = 0;
+
+    for(int i=0; i < NUM_THRUSTERS; i++) {
+        msg.channel = i;
+        this->pwm_publisher->publish(msg);
+    }
 }
 
 void FlightController::updateSimple() {
