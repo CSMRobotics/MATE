@@ -9,4 +9,4 @@ manipulator_controller:
     clamp_lower_bound: 20.0
     clamp_upper_bound: 135.0
     clamp_pwm_pin: 14
-    clamp_scale: 5
+    clamp_scale: 5.0

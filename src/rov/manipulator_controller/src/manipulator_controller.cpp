@@ -12,7 +12,7 @@ namespace {
         node->declare_parameter("clamp_lower_bound", 20.0);
         node->declare_parameter("clamp_upper_bound", 135.0);
         node->declare_parameter("clamp_pwm_pin", 14);
-        node->declare_parameter("clamp_scale", 5);
+        node->declare_parameter("clamp_scale", 5.0);
     }
 
     void clamp(float* toClamp, double lower, double upper) {
