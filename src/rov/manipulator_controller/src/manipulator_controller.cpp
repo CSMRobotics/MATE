@@ -73,8 +73,10 @@ void ManipulatorController::setpoint_callback(const rov_interfaces::msg::Manipul
     wrist_pos_last = wrist;
     clamp_pos_last = clamp;
 
+#if(DEBUG_OUTPUT)
     RCLCPP_INFO(this->get_logger(), "Attempting to set wrist to %f", wrist);
     RCLCPP_INFO(this->get_logger(), "Attempting to set clamp to %f", clamp);
+#endif
 
     // publish PWM
     // wrist pwm
