@@ -27,6 +27,7 @@ private:
     void toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr request, std_srvs::srv::Empty_Response::SharedPtr response);
     void setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints);
     void bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data);
+    void updateNone();
     void updateSimple();
     void updatePID();
     void clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles);
@@ -59,6 +60,8 @@ private:
     Eigen::Vector3d linear_velocity = Eigen::Vector3d(0,0,0);
     Eigen::Vector3d linear_velocity_err = Eigen::Vector3d(0,0,0);
     Eigen::Vector3d linear_velocity_err_last = Eigen::Vector3d(0,0,0);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> startUpdateLoopTime;
 
     std::array<Thruster, NUM_THRUSTERS> thrusters;
     Eigen::Matrix<double, 6, NUM_THRUSTERS> thruster_geometry;

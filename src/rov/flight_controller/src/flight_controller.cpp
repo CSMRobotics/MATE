@@ -115,7 +115,8 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     RCLCPP_INFO(this->get_logger(), "Flight Controller Successfully Initialized");
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
+    this->startUpdateLoopTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(5);
+    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), std::bind(&FlightController::updateNone, this));
 
     // Creates service responsible for toggling between updateSimple and updatePID
     toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", 
@@ -179,6 +180,12 @@ void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetp
 void FlightController::bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data) {
     std::lock_guard<std::mutex>(this->bno_mutex);
     this->bno_data = *bno_data.get();
+}
+
+void FlightController::updateNone() {
+    if(std::chrono::high_resolution_clock::now() >= this->startUpdateLoopTime) {
+        pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
+    }
 }
 
 void FlightController::updateSimple() {
