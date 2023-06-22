@@ -10,7 +10,9 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/core/types.hpp>
 
-#define PIPELINE_H264_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=320,height=240,format=I420 ! appsink"
+#define WIDTH 960
+#define HEIGHT 540
+#define PIPELINE_H264_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=%d,height=%d,format=I420 ! appsink"
 
 class H264_Camera : public rclcpp::Node {
 public:
@@ -18,8 +20,8 @@ public:
 private:
     void poll();
 
-    cv::Mat img_i420 = cv::Mat(240*3/2, 320, CV_8UC1);
-    cv::Mat img_bgr = cv::Mat(240,320,CV_8UC3);
+    cv::Mat img_i420 = cv::Mat(HEIGHT*3/2, WIDTH, CV_8UC1);
+    cv::Mat img_bgr = cv::Mat(HEIGHT,WIDTH,CV_8UC3);
     cv::VideoCapture cap;
 
     sensor_msgs::msg::CameraInfo camera_info_msg;
