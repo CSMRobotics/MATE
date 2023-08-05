@@ -29,6 +29,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(csm_common_interfaces REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
 
 add_executable(listener src/listener.cpp)
 target_include_directories(listener PUBLIC
@@ -39,6 +40,7 @@ ament_target_dependencies(
   rclcpp
   csm_common_interfaces
   builtin_interfaces
+  std_msgs
 )
 
 add_executable(producer src/producer.cpp)
