@@ -1,0 +1,32 @@
+name: ROS 2 Humble Colcon Build and Test with Docker
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: Build and Test ROS 2 Workspace
+    runs-on: ubuntu-20.04
+
+    container:
+      image: csmmaterobotics/commonv8_3:latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up ROS 2 Environment
+      run: source /opt/ros/humble/setup.bash
+
+    - name: Colcon Build
+      run: |
+        colcon build --packages-up-to rov_launch bs_launch
+        colcon test --packages-up-to rov_launch bs_launch
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: log
