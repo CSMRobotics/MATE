@@ -6,6 +6,8 @@ from std_msgs.msg import Float32
 from threading import Lock
 
 import psutil
+import subprocess
+import json
 
 class ROV_Statistics(Node):
     def __init__(self) -> None:
@@ -32,13 +34,13 @@ class ROV_Statistics(Node):
 
         msg.memory_usage = psutil.virtual_memory().used
 
-        # TODO: decode this crap into cpu core temps, package temps, and carrier board temps
-        sensors = psutil.sensors_temperatures()
-        for name, entries in sensors.items():
-            print(name)
-            for entry in entries:
-                print("    %-20s %s °C (high = %s °C, critical = %s °C)" % (entry.label or name, entry.current, entry.high, entry.critical))
-            print()
+        #Put sensor data in a JSON
+        sensors = subprocess.run(['sensors', '-j'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        sensor_list = json.loads(sensors)
+
+        #CPU package temps
+        msg.cpu_package_cur_temp = sensor_list["tmp102-i2c-0-49"]["temp1"]["temp1_input"]
+        msg.cpu_package_max_temp = sensor_list["tmp102-i2c-0-49"]["temp1"]["temp1_max"]
 
         self.statistics_publisher.publish(msg)
     
