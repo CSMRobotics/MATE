@@ -112,7 +112,7 @@ RUN udevadm trigger
 WORKDIR /tmp
 # they are submodules
 COPY ./src/external .
-RUN apt-get install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-devel
+RUN apt-get update && apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev
 RUN mkdir raylib/build && cd raylib/build && \
     # see https://github.com/raysan5/raylib/wiki/CMake-Build-Options
     cmake -DBUILD_SHARED_LIBS=ON .. && \
