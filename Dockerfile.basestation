@@ -1,4 +1,4 @@
-FROM csmmaterobotics/commonv8_4:latest
+FROM csmmaterobotics/commonv8-humble:latest
 
 # Location where source files will be copied in and built
 # By default, this is root, which makes colcon build not work at all
@@ -6,29 +6,24 @@ WORKDIR /opt/ros/CSM_MATE_WS
 
 # Base station specific dependencies
 
-## raylib
+## raylib and raygui
 # dependencies
-RUN apt-get install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-dev
-
-RUN git clone https://github.com/raysan5/raylib.git raylib && \
-    cd raylib && \
-    mkdir build && cd build && \
+WORKDIR /tmp
+# they are submodules
+COPY ./src/external .
+RUN apt-get install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-devel
+RUN mkdir raylib/build && cd raylib/build && \
     # see https://github.com/raysan5/raylib/wiki/CMake-Build-Options
     cmake -DBUILD_SHARED_LIBS=ON .. && \
-    make && \
-    make install
-
+    make && make install && \
 ## raygui
-RUN apt-get install -y unzip && \
-    wget https://github.com/raysan5/raygui/archive/refs/tags/3.2.zip && \
-    unzip raygui-3.2.zip && \
-    cd raygui-3.2 && \
+    cd ../../raygui && \
     cp src/raygui.h /usr/local/include/ && \
     mv src/raygui.h src/raygui.c && \
     gcc -o raygui.so src/raygui.c -shared -fpic -DRAYGUI_IMPLEMENTATION -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 && \
     cp raygui.so /usr/local/lib && \
     ldconfig
-    
+WORKDIR /opt/ros/CSM_MATE_WS
     
 # Probably don't use VENV. Colcon has a rough time with it and it's not worth it
 # RUN python3.6 -m venv /BASE_VENV
@@ -54,5 +49,5 @@ COPY worlds_driverstation_setup.bash /worlds_driverstation_setup.bash
 COPY setup/ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x /ros_entrypoint.sh
 ENTRYPOINT [ "/ros_entrypoint.sh" ]
-# CMD ["ros2", "launch", "driverstation_gui", "driverstation_gui_launch.py"]
+# CMD ["ros2", "launch", "driverstation_gui", "driverstation_gui_launch.py"] # auto start
 CMD ["/bin/bash"]
