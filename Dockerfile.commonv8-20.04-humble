@@ -100,6 +100,31 @@ COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
 
 RUN echo 'source ${ROS_ROOT}/install/setup.bash' >> /root/.bashrc
 
+COPY setup/99-gpio.rules /etc/udev/rules.d
+RUN groupadd -f -r gpio && \
+    usermod -a -G gpio $(id -u -n)
+# udevadm control --reload rules has a non-zero exit status (https://www.reddit.com/r/docker/comments/jeaw9c/comment/g9g8buu)
+RUN udevadm control --reload-rules || echo 'rules reloaded'
+RUN udevadm trigger
+
+## raylib and raygui
+# dependencies
+WORKDIR /tmp
+# they are submodules
+COPY ./src/external .
+RUN apt-get install -y libasound2-dev mesa-common-dev libx11-dev libxrandr-dev libxi-dev xorg-dev libgl1-mesa-dev libglu1-mesa-devel
+RUN mkdir raylib/build && cd raylib/build && \
+    # see https://github.com/raysan5/raylib/wiki/CMake-Build-Options
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make && make install && \
+## raygui
+    cd ../../raygui && \
+    cp src/raygui.h /usr/local/include/ && \
+    mv src/raygui.h src/raygui.c && \
+    gcc -o raygui.so src/raygui.c -shared -fpic -DRAYGUI_IMPLEMENTATION -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 && \
+    cp raygui.so /usr/local/lib && \
+    ldconfig
+
 # install common apt packages
 RUN apt-get update && apt-get install -y \
     libi2c-dev \
@@ -109,7 +134,8 @@ RUN apt-get update && apt-get install -y \
 RUN python3 -m pip install \
     Jetson.GPIO \
     dbus-next \
-    evdev
+    evdev \
+    transitions
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

@@ -3,9 +3,6 @@ FROM csmmaterobotics/commonv8-humble:latest
 # Location where source files will be copied in and built
 WORKDIR /opt/ros/CSM_MATE_WS
 
-# ROV specific dependencies
-RUN python3 -m pip install transitions
-
 COPY src .
 
 # ensure dependencies are updated, and build

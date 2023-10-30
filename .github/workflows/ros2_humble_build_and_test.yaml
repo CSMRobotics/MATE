@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     container:
-      image: csmmaterobotics/commonv8_4:latest
+      image: csmmaterobotics/commonv8-humble:latest
 
     steps:
     - name: Checkout Repository
