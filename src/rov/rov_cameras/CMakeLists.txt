@@ -42,7 +42,7 @@ ament_target_dependencies(
   "compressed_image_transport"
 )
 
-target_link_libraries(rov_cameras ${OpenCV_LIBS} udev pthread avutil avformat avdevice avcodec)
+target_link_libraries(rov_cameras ${OpenCV_LIBS} udev pthread)
 
 install(TARGETS rov_cameras
   DESTINATION lib/${PROJECT_NAME})
