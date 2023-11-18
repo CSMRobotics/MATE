@@ -32,16 +32,7 @@ namespace driverstation::gui{
 		OrientationViewport(const char* model_file_name, int width, int height) : dynamic_texture::DynamicRenderTexture2D(width, height){
 			this->model = LoadModel(model_file_name);
 			this->scale = util::getNormalizingScale(this->model, 20.0f);
-
-			// SetCameraMode(this->camera, CAMERA_CUSTOM);
-			// NOTE: It looks like this should be called upon drawing if using multiple cameras
-			SetCameraMode(this->camera, CAMERA_FREE);
 		}
-
-		// NOTE: It seems like this is better put in the `current_texture()` method
-		// void update(){
-		// 	UpdateCamera(&this->camera);
-		// }
 
 		void unload() override{
 			UnloadModel(this->model);
@@ -49,8 +40,7 @@ namespace driverstation::gui{
 		}
 
 		Texture2D current_texture() override{
-			// SetCameraMode(this->camera, CAMERA_ORBITAL);  // NOTE: It doesn't like this
-			UpdateCamera(&this->camera);
+			UpdateCamera(&this->camera, CAMERA_ORBITAL);
 
 			// When orbiting, only one axis position changes sign at a time; so if both change at once, flip back the signs
 			// if(previous_camera_position.x * this->camera.position.x < 0.0f && previous_camera_position.z * this->camera.position.z < 0.0f){

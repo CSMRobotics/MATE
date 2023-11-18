@@ -78,7 +78,7 @@ namespace driverstation::gui{
 				this->multi_cell
 					// ->from(3, 0).to(9, 8).set(chosen_config::InitializeCameraGrid())
 					->from(3, 0).to(9, 8).set(camera_grid)
-					->from(9, 0).to(12, 6).tapSizePixels(&w, &h).set(std::make_shared<gui::OrientationViewport>("assets/rov.obj", w, h))
+					->from(9, 0).to(12, 6).tapSizePixels(&w, &h).set(std::make_shared<gui::OrientationViewport>(horrible_ros_path::prepend_prefix("assets/rov.obj").c_str(), w, h))
 					->from(9, 6).to(12, 8).tapSizePixels(&w, &h).set(std::make_shared<gui::ArtificialHorizon>(w, h))
 					->from(4, 8).to(8, 12).set(this->ssh_display)
 					->from(11, 9).to(12, 11).tapSizePixels(&w, &h).set(std::make_shared<gui::EStop>(w, h, 2, std::bind(&DriverstationUi::callAllEstopCallbacks, this)));
@@ -120,15 +120,15 @@ namespace driverstation::gui{
 						switch(this->ssh_connect_popup_mode){
 							case SshConnectPopupMode::Host:
 								text_target = this->ssh_host;
-								this->ssh_connect_popup_show_text = 1;
+								this->ssh_connect_popup_show_text = true;
 								break;
 							case SshConnectPopupMode::Username:
 								text_target = this->ssh_username;
-								this->ssh_connect_popup_show_text = 1;
+								this->ssh_connect_popup_show_text = true;
 								break;
 							case SshConnectPopupMode::Password:
 								text_target = this->ssh_password;
-								this->ssh_connect_popup_show_text = 0;
+								this->ssh_connect_popup_show_text = false;
 								break;
 						}
 
@@ -192,7 +192,7 @@ namespace driverstation::gui{
 			char ssh_host[32];
 			char ssh_username[32];
 			char ssh_password[32];
-			int ssh_connect_popup_show_text;
+			bool ssh_connect_popup_show_text;
 			std::shared_ptr<dynamic_texture::ImageFeed> camera_feeds[4];
 			std::vector<std::function<void(void)>> estop_callbacks;
 		

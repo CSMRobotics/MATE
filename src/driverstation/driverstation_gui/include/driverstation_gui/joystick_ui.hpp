@@ -37,19 +37,20 @@ namespace driverstation::gui{
 			else GuiDisable();
 
 			for(size_t i = 0; i < this->button_indicators.size(); i++){
+				bool button_state = IsGamepadButtonDown(this->joystick_id, i + 1);
 				GuiCheckBox(
 					this->button_indicators[i] + Vector2{(float)x, (float)y},
 					TextFormat("%d", i + 1),
-					IsGamepadButtonDown(this->joystick_id, i + 1)
+					&button_state
 				);
 			}
 			for(size_t i = 0; i < this->axis_indicators.size(); i++){
 				// NOTE: Buttons are 1-indexed, Axes are 0-indexed
-				float axis_value = GetGamepadAxisMovement(this->joystick_id, i);
+				float axis_value = GetGamepadAxisMovement(this->joystick_id, i) + 1.0f;
 				GuiProgressBar(
 					this->axis_indicators[i] + Vector2{(float)x, (float)y},
 					nullptr, TextFormat(this->axis_labels[i], axis_value),
-					axis_value + 1.0f, 0.0f, 2.0f  // NOTE: Progress bars don't seem to like negative values
+					&axis_value, 0.0f, 2.0f  // NOTE: Progress bars don't seem to like negative values
 				);
 			}
 
