@@ -1,9 +1,7 @@
-rov_interfaces/QuaternionD orientation
-rov_interfaces/VectorD accelerometer
-rov_interfaces/VectorD magnetometer
-rov_interfaces/VectorD gyroscope
 rov_interfaces/VectorD euler
-rov_interfaces/VectorD linearaccel
+rov_interfaces/VectorD accel
 rov_interfaces/VectorD gravity
-int8 temp
+sensor_msgs/Imu imu
+sensor_msgs/MagneticField magnetometer
+sensor_msgs/Temperature temp
 uint8 calibration

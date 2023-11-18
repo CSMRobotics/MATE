@@ -1,5 +1,6 @@
 #include "bno055/CSMBNO055.hpp"
 
+
 // constants for this translation unit only
 namespace {
     const uint8_t CHOSEN_AXIS_MAP_CONFIG = 0x06;
@@ -18,11 +19,13 @@ BNO055::BNO055(int32_t sensorID, uint8_t address) {
     m_fdBNO = open(filename, O_RDWR);
     if(m_fdBNO < 0) {
         perror("Failed to open I2c bus file");
-        exit(1);
+        throw std::domain_error("Failed to open I2C bus file.");
+        //exit(1);
     }
     if(ioctl(m_fdBNO, I2C_SLAVE, address) < 0) {
-        perror("Failed to open i2c bus");
-        exit(1);
+        perror("Failed to open i2c device on bus.");
+        throw std::runtime_error("Failed to open i2c device on bus.");
+        //exit(1);
     }
 }
 
