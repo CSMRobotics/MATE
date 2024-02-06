@@ -8,10 +8,10 @@ on:
 jobs:
   build:
     name: Build and Test ROS 2 Workspace
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     container:
-      image: csmmaterobotics/commonv8-humble:latest
+      image: ros:ros-humble-perception
 
     steps:
     - name: Checkout Repository
