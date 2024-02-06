@@ -19,11 +19,13 @@ jobs:
 
     - name: Set up ROS 2 Environment
       run: source /opt/ros/humble/setup.bash
+      shell: bash
 
     - name: Colcon Build
       run: |
         colcon build --packages-up-to rov_launch bs_launch
         colcon test --packages-up-to rov_launch bs_launch
+      shell: bash
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v2
