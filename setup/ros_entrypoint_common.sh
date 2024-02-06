@@ -2,7 +2,7 @@
 set -e
 export _WS=/opt/ros/humble
 
-ros_env_setup="$_WS/install/setup.bash"
+ros_env_setup="$_WS/setup.bash"
 echo "sourcing   $ros_env_setup"
 source "$ros_env_setup"
 
