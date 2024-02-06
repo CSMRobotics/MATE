@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     container:
-      image: ros:ros-humble-perception
+      image: ros:humble-perception
 
     steps:
     - name: Checkout Repository
