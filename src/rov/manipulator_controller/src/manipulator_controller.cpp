@@ -19,11 +19,6 @@ namespace {
         *toClamp = std::min(*toClamp, static_cast<float>(upper));
         *toClamp = std::max(*toClamp, static_cast<float>(lower));
     }
-
-    auto registration_callback = [](rclcpp::Client<rov_interfaces::srv::CreateServo>::SharedFuture future) {
-        auto result = future.get();
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered servo on channel %i", result->channel);
-    };
 }
 
 ManipulatorController::ManipulatorController() : Node(std::string("manipulator_controller")) {
@@ -54,9 +49,14 @@ void ManipulatorController::register_servos() {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
     }
 
+    auto registration_callback = [logger = this->get_logger()](rclcpp::Client<rov_interfaces::srv::CreateServo>::SharedFutureWithRequest future) {
+        auto result = future.get();
+        RCLCPP_INFO(logger, "Successfully registered servo on channel %i", result.second->channel);
+    };
+
     // asynchronously send these servo creation requests
-    pca9685_requests[0] = pca9685_client->async_send_request(servo1, registration_callback);
-    pca9685_requests[1] = pca9685_client->async_send_request(servo2, registration_callback);
+    pca9685_requests[0] = std::move(pca9685_client->async_send_request(servo1, std::move(registration_callback)).future);
+    pca9685_requests[1] = std::move(pca9685_client->async_send_request(servo2, std::move(registration_callback)).future);
 }
 
 void ManipulatorController::setpoint_callback(const rov_interfaces::msg::ManipulatorSetpoints::SharedPtr msg) {

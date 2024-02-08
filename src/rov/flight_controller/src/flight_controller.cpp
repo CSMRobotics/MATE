@@ -111,7 +111,6 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // publishes PWM commands to PCA9685
     pwm_publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
-
     RCLCPP_INFO(this->get_logger(), "Flight Controller Successfully Initialized");
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
@@ -123,17 +122,15 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         std::bind(&FlightController::toggle_PID, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-namespace {
-    auto registration_callback = [](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFuture future) {
-        auto result = future.get();
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Successfully registered continuous servo on channel %i", result->channel);
-    };
-}
-
 void FlightController::registerThrusters() {
+    auto registration_callback = [logger = this->get_logger()](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFutureWithRequest future) {
+        auto result = future.get();
+        RCLCPP_INFO(logger, "Successfully registered continuous servo on channel %i", result.second->channel);
+    };
+
     for(int i=0; i < NUM_THRUSTERS; i++) {
         // create continuous servo creation requests on channels in thruster pwm pin map
-        auto req = std::make_shared<rov_interfaces::srv::CreateContinuousServo_Request>();
+        auto req = std::make_shared<rov_interfaces::srv::CreateContinuousServo::Request>();
 
         try {
             req->channel = thruster_index_to_PWM_pin.at(i);
@@ -152,7 +149,7 @@ void FlightController::registerThrusters() {
         }
 
         // asynchronously send these servo creation requests
-        pca9685_requests[i] = pca9685_client->async_send_request(req, registration_callback);
+        pca9685_requests[i] = std::move(pca9685_client->async_send_request(req, std::move(registration_callback)).future);
     }
 }
 

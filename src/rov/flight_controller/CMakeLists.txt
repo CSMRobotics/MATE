@@ -31,6 +31,7 @@ find_package(rclcpp REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 if(BUILD_DISPLAY)
   find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
@@ -53,6 +54,7 @@ ament_target_dependencies(
   "rclcpp"
   "message_filters"
   "std_srvs"
+  "sensor_msgs"
 )
 if(BUILD_DISPLAY)
   target_include_directories(flight_display PUBLIC
