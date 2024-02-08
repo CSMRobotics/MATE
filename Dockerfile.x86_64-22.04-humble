@@ -1,4 +1,4 @@
-FROM ros:humble
+FROM osrf/ros:humble-desktop-full
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL /bin/bash
@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /tmp
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     software-properties-common \ 
     wget \
@@ -52,59 +52,6 @@ RUN add-apt-repository universe && apt-get update && \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 
-# upgrade cmake - https://stackoverflow.com/a/56690743
-# this is needed to build some of the ROS2 packages
-#
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-          libssl-dev \
-		  software-properties-common \
-		  apt-transport-https \
-		  ca-certificates \
-		  gnupg \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean && \	  	  
-# install cmake
-    wget https://github.com/Kitware/CMake/releases/download/v3.23.0-rc2/cmake-3.23.0-rc2.tar.gz && \
-    tar -xzf cmake-3.23.0-rc2.tar.gz && \
-    cd cmake-3.23.0-rc2 && cmake . -DCMAKE_BUILD_TYPE=Release && \
-    make -j 12 && \
-    make install && \
-    rm -rf cmake-3.23.0-rc2.tar.gz && \
-    rm -rf cmake-3.23.0-rc2
-
-# boooost
-RUN wget https://downloads.sourceforge.net/project/boost/boost/1.78.0/boost_1_78_0.tar.gz \
-    && tar xfz boost_1_78_0.tar.gz \
-    && rm boost_1_78_0.tar.gz \
-    && cd boost_1_78_0 \
-    && ./bootstrap.sh --prefix=/usr/local \
-    && ./b2 install \
-    && cd .. \
-    && rm -rf boost_1_78_0
-
-# build joystick drivers
-RUN add-apt-repository universe && apt-get update && \
-    git clone -b 3.3.0 https://github.com/ros-drivers/joystick_drivers && \
-    source /opt/ros/$ROS_DISTRO/setup.bash && \
-    rosdep install -y --from-paths joystick_drivers && \
-    cd joystick_drivers && \
-    colcon build --merge-install --install-base /opt/ros/${ROS_DISTRO} --packages-up-to joy --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-    cd .. && rm -rf joystick_drivers
-
-# setup entrypoint
-COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
-
-RUN echo 'source ${ROS_ROOT}/install/setup.bash' >> /root/.bashrc
-
-COPY setup/99-gpio.rules /etc/udev/rules.d
-RUN groupadd -f -r gpio && \
-    usermod -a -G gpio $(id -u -n)
-# udevadm control --reload rules has a non-zero exit status (https://www.reddit.com/r/docker/comments/jeaw9c/comment/g9g8buu)
-RUN udevadm control --reload-rules || echo 'rules reloaded'
-# RUN udevadm trigger
-
 ## raylib and raygui
 # they are submodules
 COPY ./src/external .
@@ -124,11 +71,17 @@ RUN mkdir raylib/build && cd raylib/build && \
 # install common python packages
 RUN apt-get install -y python3-pip
 RUN python3 -m pip install \
-    Jetson.GPIO \
     dbus-next \
     evdev \
     transitions
 
+# setup entrypoint
+COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
+
+# build default packages
+WORKDIR /opt/CSM_MATE_WS
+COPY src .
+
+WORKDIR /
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
-WORKDIR /
