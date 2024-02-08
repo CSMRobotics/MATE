@@ -1,0 +1,87 @@
+FROM osrf/ros:humble-desktop-full
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"] 
+
+WORKDIR /tmp
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    software-properties-common \ 
+    wget \
+    libi2c-dev \
+    vim
+
+# install gstreamer
+RUN add-apt-repository universe && apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgstreamer1.0-0 \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-bad1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer1.0 \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgtk-3-dev \
+    gstreamer1.0-x && \
+# install v4l2
+    apt-get install -y libv4l-dev v4l-utils && \
+    apt-get install -y libopenjp2-7 \
+    libopenjp2-7-dev \
+    libglew-dev \
+    libtiff5-dev \
+    libdc1394-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libpostproc-dev \
+    libswscale-dev \
+    libeigen3-dev \
+    libtbb2 \
+    libtbb-dev \
+    libgtk2.0-dev \
+    pkg-config \
+    qv4l2 \
+    libtesseract4 \
+    unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+## raylib and raygui
+# they are submodules
+COPY ./src/external .
+RUN apt-get update && apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev
+RUN mkdir raylib/build && cd raylib/build && \
+    # see https://github.com/raysan5/raylib/wiki/CMake-Build-Options
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make && make install && \
+## raygui
+    cd ../../raygui && \
+    cp src/raygui.h /usr/local/include/ && \
+    mv src/raygui.h src/raygui.c && \
+    gcc -o raygui.so src/raygui.c -shared -fpic -DRAYGUI_IMPLEMENTATION -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 && \
+    cp raygui.so /usr/local/lib && \
+    ldconfig
+
+# install common python packages
+RUN apt-get install -y python3-pip
+RUN python3 -m pip install \
+    dbus-next \
+    evdev \
+    transitions
+
+# setup entrypoint
+COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
+
+# build default packages
+WORKDIR /opt/CSM_MATE_WS
+COPY src .
+
+WORKDIR /
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

@@ -19,7 +19,7 @@ private:
 
     rclcpp::CallbackGroup::SharedPtr pca9685_registration_callbackgroup;
     rclcpp::Client<rov_interfaces::srv::CreateServo>::SharedPtr pca9685_client;
-    std::array<std::shared_future<std::shared_ptr<rov_interfaces::srv::CreateServo_Response>>, 2> pca9685_requests;
+    std::array<rclcpp::Client<rov_interfaces::srv::CreateServo>::SharedFutureWithRequest, 2> pca9685_requests;
 
     rclcpp::Publisher<rov_interfaces::msg::PWM>::SharedPtr pwm_pub;
     rclcpp::Subscription<rov_interfaces::msg::ManipulatorSetpoints>::SharedPtr manip_setpoints;
