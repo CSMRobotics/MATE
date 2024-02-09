@@ -75,6 +75,10 @@ RUN python3 -m pip install \
     evdev \
     transitions
 
+# install common system packages
+RUN apt-get install -y --no-install-recommends \
+    libssh-dev
+
 # setup entrypoint
 COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
 
