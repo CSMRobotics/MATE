@@ -72,3 +72,6 @@ _site/
 
 # no python shenanigans
 *.pyc
+
+# OBJ models for driverstation
+!/src/driverstation/driverstation_gui/assets/**/*.obj
