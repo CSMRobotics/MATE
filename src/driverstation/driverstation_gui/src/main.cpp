@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 		estop_triggered = true;
 	});
 
-	while(!estop_triggered && driverstation_ui->refresh()) {
+	while(!estop_triggered && rclcpp::ok() && driverstation_ui->refresh()) {
 		exec.spin_all(std::chrono::milliseconds(1000/60));
 	}
 

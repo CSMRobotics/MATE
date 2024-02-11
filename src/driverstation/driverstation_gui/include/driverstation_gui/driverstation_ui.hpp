@@ -28,14 +28,6 @@
 namespace chosen_config = driverstation::configs::main;
 
 namespace driverstation::gui{
-	namespace{
-		enum class SshConnectPopupMode {
-			Host,
-			Username,
-			Password
-		};
-	}
-
 	class DriverstationUi{
 		public:
 			DriverstationUi(int screen_width, int screen_height, const char* window_title, rclcpp::Node::SharedPtr node){
@@ -182,6 +174,12 @@ namespace driverstation::gui{
 			}
 
 		protected:
+			enum class SshConnectPopupMode {
+				Host,
+				Username,
+				Password
+			};
+
 			rclcpp::Node::SharedPtr node;
 			// rclcpp::Publisher<>::SharedPtr pub;
 			

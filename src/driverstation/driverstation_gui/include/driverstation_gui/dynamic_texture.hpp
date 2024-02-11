@@ -261,13 +261,11 @@ namespace driverstation::dynamic_texture{
 		}
 	};
 
-	namespace{
-		struct MultiCellDynamicTextureGrid2DCell{
-			std::shared_ptr<DynamicTexture2D> value;
-			uint8_t cell_count_x;
-			uint8_t cell_count_y;
-		};
-	}
+	struct MultiCellDynamicTextureGrid2DCell{
+		std::shared_ptr<DynamicTexture2D> value;
+		uint8_t cell_count_x;
+		uint8_t cell_count_y;
+	};
 
 	template<uint8_t row_count, uint8_t column_count>
 	struct MultiCellDynamicTextureGrid2DSelectFrom;
@@ -372,7 +370,6 @@ namespace driverstation::dynamic_texture{
 		}
 
 		private:
-			// TODO: FIXME: MultiCellDynamicTextureGrid2DCell type is defined in anonymous namespace but is in header file
 			std::array<std::array<MultiCellDynamicTextureGrid2DCell, column_count>, row_count> cells;
 			Vector2 cell_view_size;
 	};
@@ -406,7 +403,7 @@ namespace driverstation::dynamic_texture{
 
 		MultiCellDynamicTextureGrid2D<row_count, column_count>* set(std::shared_ptr<DynamicTexture2D>&& value){
 			this->multi_cell->cells[this->from_y][this->from_x] = MultiCellDynamicTextureGrid2DCell{
-				std::move(value), this->to_x - this->from_x, this->to_y - this->from_y
+				std::move(value), static_cast<uint8_t>(this->to_x - this->from_x), static_cast<uint8_t>(this->to_y - this->from_y)
 			};
 
 			return this->multi_cell;
