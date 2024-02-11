@@ -19,7 +19,7 @@ jobs:
 
     - name: Set up ROS 2 Environment and Colcon Build
       run: |
-        source /opt/ros/humble/setup.bash && colcon build --packages-up-to rov_launch bs_launch
+        source /opt/ros/humble/setup.bash && PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources colcon build --packages-up-to rov_launch bs_launch
       shell: bash
 
     - name: Upload Test Results
