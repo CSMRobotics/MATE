@@ -13,10 +13,8 @@ using namespace std::chrono_literals;
 #define max_attempts 5
 
 // create cursed functions only available in this translation unit
-namespace
-{
-    rov_interfaces::msg::VectorD toVectorDMSG(const Eigen::Vector3d vector)
-    {
+namespace{
+    rov_interfaces::msg::VectorD toVectorDMSG(const Eigen::Vector3d vector){
         auto toret = rov_interfaces::msg::VectorD();
         toret.i = vector.x();
         toret.j = vector.y();
@@ -36,30 +34,41 @@ namespace
 }
 
 // its a bno055 using i2c, its a ros2 node :o
-class BNO055_Node : public rclcpp::Node
-{
+class BNO055_Node : public rclcpp::Node{
 public:
-    BNO055_Node() : Node("bno055_node"), bno(-1, BNO055_ADDRESS_A)
-    {
+    BNO055_Node() : Node("bno055_node"), bno(-1, BNO055_ADDRESS_A){
         this->bno_publisher = this->create_publisher<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS());
-        
-        //use parameter "update_ms" to control the update rate of the BNO055 reporting
+
+        // use parameter "update_ms" to control the update rate of the BNO055 reporting
         this->declare_parameter("update_ms", 100);
         param_handle = std::make_shared<rclcpp::ParameterEventHandler>(this);
-        auto update_ms_callback = [&](const rclcpp::Parameter& param){
-            if (param.as_int() > 0)
-                bno_timer = this->create_wall_timer(std::chrono::milliseconds(param.as_int()), std::bind(&BNO055_Node::bno_callback, this));
+
+        auto update_timer = [&](int update_ms)
+        {
+            // delete the old timer if it exists
+            if (bno_timer){
+                delete bno_timer;
+            }
+            // Create a new timer with the updated update_ms parameter
+            if (update_ms > 0){
+                bno_timer = this->create_wall_timer(std::chrono::milliseconds(update_ms), std::bind(&BNO055_Node::bno_callback, this));
+            }  
         };
-        bno_timer = this->create_wall_timer(std::chrono::milliseconds(this->get_parameter("update_ms").as_int()), std::bind(&BNO055_Node::bno_callback, this));
-        callback_handle = param_handle->add_parameter_callback("update_ms", update_ms_callback);  
         
+        auto update_ms_callback = [&](const rclcpp::Parameter &param){
+            update_timer(param.as_int())
+        };
+
+        //start initial timer and create callback handle
+        update_timer(this->get_parameter("update_ms").as_int());
+        callback_handle = param_handle->add_parameter_callback("update_ms", update_ms_callback);
+
         bno.begin();
     }
 
 private:
     // Create and send new BNO055 Data msg
-    void bno_callback()
-    {
+    void bno_callback(){
         uint8_t sys, gyro, accel, mag;
         uint8_t calib;
         geometry_msgs::msg::Vector3 magnetometer;
@@ -113,26 +122,30 @@ private:
     std::shared_ptr<rclcpp::ParameterCallbackHandle> callback_handle;
 };
 
-int main(int argc, char **argv)
-{
-    
+int main(int argc, char **argv) {
+
     rclcpp::init(argc, argv);
-    int current_attempt = 0;
-    
-    //retry spinning with exponential backoff, hardcoded to 5 for now 
-    while(rclcpp::ok() && current_attempt < max_attempts){
+    int current_attempt = 1;
+    int wait_time = 0;
+
+    // retry spinning with exponential backoff, hardcoded to 5 for now
+    while (rclcpp::ok() && current_attempt < max_attempts){
         try{
-            rclcpp::spin(std::make_shared<BNO055_Node>());   
-        } catch(std::runtime_error& e){
-            RCLCPP_FATAL(rclcpp::get_logger("bno055_node"), "Failed to open i2c device on bus");
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000*(++current_attempt*2)));
-        } catch(std::domain_error& e){
-            RCLCPP_FATAL(rclcpp::get_logger("bno055_node"), "Failed to open I2C bus file");
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000*(current_attempt*2)));
+            // square currentAttempt to get exponential backoff in case the device fails to open.
             current_attempt++;
+            wait_time = current_attempt * current_attempt;
+            rclcpp::spin(std::make_shared<BNO055_Node>());
+        }
+        catch (std::runtime_error &e){
+            RCLCPP_FATAL(rclcpp::get_logger("bno055_node"), "Failed to open i2c device on bus");
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 * (wait_time)));
+        }
+        catch (std::domain_error &e){
+            RCLCPP_FATAL(rclcpp::get_logger("bno055_node"), "Failed to open I2C bus file");
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 * (wait_time)));
         }
     }
-    
+
     rclcpp::shutdown();
     return 0;
 }
