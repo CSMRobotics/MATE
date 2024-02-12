@@ -46,9 +46,6 @@ public:
         auto update_timer = [&](int update_ms)
         {
             // delete the old timer if it exists
-            if (bno_timer){
-                delete bno_timer;
-            }
             // Create a new timer with the updated update_ms parameter
             if (update_ms > 0){
                 bno_timer = this->create_wall_timer(std::chrono::milliseconds(update_ms), std::bind(&BNO055_Node::bno_callback, this));
