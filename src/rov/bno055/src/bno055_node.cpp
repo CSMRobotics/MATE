@@ -53,7 +53,7 @@ public:
         };
         
         auto update_ms_callback = [&](const rclcpp::Parameter &param){
-            update_timer(param.as_int())
+            update_timer(param.as_int());
         };
 
         //start initial timer and create callback handle
