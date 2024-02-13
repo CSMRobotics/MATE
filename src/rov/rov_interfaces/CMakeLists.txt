@@ -25,7 +25,7 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Bar02Data.msg"
+  "msg/Bar30Data.msg"
   "msg/ManipulatorSetpoints.msg"
   "msg/ThrusterSetpoints.msg"
   "msg/PWM.msg"
