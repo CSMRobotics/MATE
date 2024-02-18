@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/QuaternionD.msg"
   "msg/VectorD.msg"
   "msg/BNO055Data.msg"
+  "msg/TSYS01Data.msg"
   "srv/CreateContinuousServo.srv"
   "srv/CreateServo.srv"
   DEPENDENCIES
