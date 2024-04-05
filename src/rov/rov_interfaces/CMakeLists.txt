@@ -25,7 +25,7 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Bar02Data.msg"
+  "msg/Bar30Data.msg"
   "msg/ManipulatorSetpoints.msg"
   "msg/ThrusterSetpoints.msg"
   "msg/PWM.msg"
@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/QuaternionD.msg"
   "msg/VectorD.msg"
   "msg/BNO055Data.msg"
+  "msg/TSYS01Data.msg"
   "srv/CreateContinuousServo.srv"
   "srv/CreateServo.srv"
   DEPENDENCIES

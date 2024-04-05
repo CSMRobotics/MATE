@@ -263,15 +263,16 @@ void FlightController::updatePID() {
     // fill the matrixes based on bno and setpoint data
     this->setpoint_mutex.lock();
     this->bno_mutex.lock();
-    Eigen::Vector3d linear_accel(bno_data.linearaccel.i, bno_data.linearaccel.j,bno_data.linearaccel.k); // m/s^2
+    Eigen::Vector3d linear_accel(bno_data.imu.linear_acceleration.x, bno_data.imu.linear_acceleration.y,bno_data.imu.linear_acceleration.z); // m/s^2
     linear_velocity += linear_accel * dt_ms / 1000; // get an approximation of linear velocity
     linear_velocity_err_last = linear_velocity_err;
     linear_velocity_err[0] = translation_setpoints(0,0) - linear_velocity[0];
     linear_velocity_err[1] = translation_setpoints(1,0) - linear_velocity[1];
     linear_velocity_err[2] = translation_setpoints(2,0) - linear_velocity[2];
     Eigen::Vector3d ha = dt_ms * 0.5 * attitude_setpoints; // vector of half angle
-    Eigen::Vector3d omega = Eigen::Vector3d(bno_data.gyroscope.i, bno_data.gyroscope.j, bno_data.gyroscope.k);
-    auto quaternion_measured = Eigen::Quaterniond(bno_data.orientation.w, bno_data.orientation.i, bno_data.orientation.j, bno_data.orientation.k);
+    // Gyroscope vector from the sensor is stored in angular_velcoity, but shouldn't it be "angular_acceleration"?
+    Eigen::Vector3d omega = Eigen::Vector3d(bno_data.imu.angular_velocity.x, bno_data.imu.angular_velocity.y, bno_data.imu.angular_velocity.z);
+    auto quaternion_measured = Eigen::Quaterniond(bno_data.imu.orientation.w, bno_data.imu.orientation.x, bno_data.imu.orientation.y, bno_data.imu.orientation.z);
     this->setpoint_mutex.unlock();
     this->bno_mutex.unlock();
 
