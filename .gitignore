@@ -54,7 +54,8 @@ log/
 build/
 
 # my doo dads
-scripts/
+# *OUR* DOO DADS
+# scripts/
 
 # documentation with jekyll
 _posts/
