@@ -344,6 +344,7 @@ class RovControl(Node):
             ]
         )
 
+        #create timer to run on_update at the frequency defined in "update_frequency_hz"
         self.create_timer(
             1 / self.get_parameter("update_frequency_hz").value,
             self.on_update
@@ -356,18 +357,21 @@ class RovControl(Node):
             button_names = {parameter_name: parameter.value for parameter_name, parameter in self.get_parameters_by_prefix("mapping.button").items()}
         )
 
+        #Manipulator control publisher
         self._manipulator_setpoint_publisher = self.create_publisher(
             msg_type = ManipulatorSetpoints,
             topic = "manipulator_setpoints",
             qos_profile = 10
         )
 
+        #Thruster control publisher
         self._thruster_setpoint_publisher = self.create_publisher(
             msg_type = ThrusterSetpoints,
             topic = "thruster_setpoints",
             qos_profile = 10
         )
 
+        #Lights publisher
         self._lights_publisher = self.create_publisher(
             msg_type = PinState,
             topic = "set_rov_gpio",
@@ -424,7 +428,34 @@ class RovControl(Node):
                         self.get_parameters_by_prefix("control.manipulator.axis").items()
                 })
             )
+        elif self.state == RovControlState.OFF :
+            #send all manipulators zero command
+            self._manipulator_setpoint_publisher.publish(
+                ManipulatorSetpoints(**{
+                    manipulator_axis: 0.0
+                    for manipulator_axis in
+                        self.get_parameters_by_prefix("control.manipulator.axis").items()
+                })
+            )
+            #set all thrusters to zero
+            self._thruster_setpoint_publisher.publish(
+                ThrusterSetpoints(**{
+                    thruster_axis: 0.0
+                    for thruster_axis in
+                        self.get_parameters_by_prefix("control.drive.axis").items()
+                })
+            )
+            #turn off the light
+            self._lights_publisher.publish(
+                PinState(
+                    pin = self.get_parameter("control.other.lights.pin").value,
+                    state = False
+                )
+            )
+            #skip controller checks (this assumes that the estop has been pressed and we do not want it to reenable)
+            rclpy.shutdown()
         
+        #check light_toggle_button and toggle the lights on or off accordingly
         light_toggle_button = self._joystick.button(self.get_parameter("control.other.lights.button").value)
         if self._lights_timeout.passed() and light_toggle_button:
             self._lights_publisher.publish(
@@ -438,6 +469,7 @@ class RovControl(Node):
                 seconds = self.get_parameter("control.other.lights.timeout_seconds").value
             )
         
+        #if the mode_change_button is pressed, trigger change_operating_mode to switch what is being controlled
         mode_change_button = self._joystick.button(self.get_parameter("control.other.mode_switching.button").value)
         if mode_change_button and not self._mode_change_acknowledged:
             self._mode_change_acknowledged = True
