@@ -390,15 +390,15 @@ class RovControl(Node):
         self._mode_change_acknowledged = False
 
     def on_panic(self):
-        self.get_logger().warn(f"{self.__name__} has panicked")
+        self.get_logger().warn(f"{self.get_name()} has panicked")
         pass
 
     def on_suspend(self):
-        self.get_logger().warn(f"{self.__name__} is now suspended")
+        self.get_logger().warn(f"{self.get_name()} is now suspended")
         pass
 
     def on_unsuspend(self):
-        self.get_logger().warn(f"{self.__name__} is no longer suspended")
+        self.get_logger().warn(f"{self.get_name()} is no longer suspended")
         pass
 
     def on_update(self):
@@ -433,15 +433,15 @@ class RovControl(Node):
             self._manipulator_setpoint_publisher.publish(
                 ManipulatorSetpoints(**{
                     manipulator_axis: 0.0
-                    for manipulator_axis in
-                        self.get_parameters_by_prefix("control.manipulator.axis").items()
+                for manipulator_axis, joystick_axis in
+                    self.get_parameters_by_prefix("control.manipulator.axis").items()
                 })
             )
             #set all thrusters to zero
             self._thruster_setpoint_publisher.publish(
                 ThrusterSetpoints(**{
                     thruster_axis: 0.0
-                    for thruster_axis in
+                    for thruster_axis, joystick_axis in
                         self.get_parameters_by_prefix("control.drive.axis").items()
                 })
             )
@@ -452,8 +452,9 @@ class RovControl(Node):
                     state = False
                 )
             )
-            #skip controller checks (this assumes that the estop has been pressed and we do not want it to reenable)
+            #shut down the node (this assumes that the estop has been pressed and we do not want it to reenable)
             rclpy.shutdown()
+            return
         
         #check light_toggle_button and toggle the lights on or off accordingly
         light_toggle_button = self._joystick.button(self.get_parameter("control.other.lights.button").value)
