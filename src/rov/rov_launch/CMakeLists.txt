@@ -22,6 +22,8 @@ find_package(ament_cmake REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 install (DIRECTORY launch/
+  DIRECTORY config/
+  DIRECTORY media/
   DESTINATION share/${PROJECT_NAME}
 )
 

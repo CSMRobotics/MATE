@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import os
 import glob
+import yaml
  
 # Defining the dimensions of checkerboard
 CHECKERBOARD = (6,9)
@@ -78,3 +79,46 @@ print("rvecs : \n")
 print(rvecs)
 print("tvecs : \n")
 print(tvecs)
+
+# Write to a file following this format:
+# /vslam_node:
+#   ros__parameters:
+#     camera_distortion:
+#     - (...)
+#     camera_fourcc: MJPG
+#     camera_framerate: 30.0
+#     camera_idx: 0
+#     camera_intrinsics:
+#     - (...)
+#     camera_resolution:
+#     -  (...)
+#     enable_3d_viewer: true
+#     enable_preview: true
+#     enable_video_feedback: true
+#     field_of_view: 100.0
+#     real_world_position: false
+#     start_without_mapping: false
+#     use_sim_time: false
+
+data = {
+    "vslam_node": {
+        "ros__parameters": {
+            "camera_distortion": dist.flatten().tolist(),
+            "camera_fourcc": "MJPG",
+            "camera_framerate": 30.0,
+            "camera_idx": 0,
+            "camera_intrinsics": mtx.flatten().tolist(),
+            "camera_resolution": prev_img_shape[::-1],
+            "enable_3d_viewer": True,
+            "enable_preview": True,
+            "enable_video_feedback": True,
+            "field_of_view": 100.0,
+            "real_world_position": False,
+            "start_without_mapping": False,
+            "use_sim_time": False
+        }
+    }
+}
+
+with open("gen_config.yaml", "w") as f:
+    yaml.safe_dump(data, f)
