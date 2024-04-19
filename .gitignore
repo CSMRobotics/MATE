@@ -74,8 +74,5 @@ _site/
 # no python shenanigans
 *.pyc
 
-# CV Media
-*.mp4
-
 # OBJ models for driverstation
 !/src/driverstation/driverstation_gui/assets/**/*.obj
