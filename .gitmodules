@@ -4,3 +4,6 @@
 [submodule "src/external/raylib"]
 	path = src/external/raylib
 	url = https://github.com/raysan5/raylib
+[submodule "src/external/vslam"]
+	path = src/external/vslam
+	url = https://github.com/Colorado-School-of-Mines-Robotics-Club/ExternalVslam
