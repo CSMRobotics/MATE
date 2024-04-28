@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import os
 import glob
+import yaml
  
 # Defining the dimensions of checkerboard
 CHECKERBOARD = (6,9)
@@ -78,3 +79,15 @@ print("rvecs : \n")
 print(rvecs)
 print("tvecs : \n")
 print(tvecs)
+
+# Exporting camera calibration coefficients to a yaml file
+data = {
+    'camera_matrix': mtx.tolist(),
+    'dist_coeff': dist.tolist(),
+    'rvecs': [rvec.tolist() for rvec in rvecs],
+    'tvecs': [tvec.tolist() for tvec in tvecs]
+}
+
+
+with open('/home/lucas/mate_ws/scripts/camera_calibration.yaml', 'w') as file:
+    yaml.dump(data, file)
