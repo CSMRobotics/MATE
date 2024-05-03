@@ -3,10 +3,12 @@ from std_msgs.msg import String
 import Jetson.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
+from rainbowio import colorwheel
 
 import board
 import neopixel
 import time
+import random
 
 LED_PIN = 0
 BLACK = (0,0,0)
@@ -29,8 +31,11 @@ class LEDControllerNode(Node):
         self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
         
         self.animations = [
-            "animation1",
-            "animation2"
+            "color_chase",
+            "rainbow_cycle",
+            "pulse",
+            "solid",
+            "seizure_disco"
         ]
         
         # Listen for requests from the UI
@@ -50,17 +55,8 @@ class LEDControllerNode(Node):
     def LED_strip_state(self, message: RGBState):
         pass
 
-
-def main(args=None):
-    rclpy.init(args=args)
-    led_controller = LEDControllerNode()
-    rclpy.spin(led_controller)
-    led_controller.destroy_node()
-    rclpy.shutdown()
-    
-    
     def color_chase(color, wait):
-        for i in range(num_pixels):
+        for i in range(NUM_LIGHTS):
             PIXELS[i] = color
             time.sleep(wait)
             PIXELS.show()
@@ -68,15 +64,40 @@ def main(args=None):
 
     def rainbow_cycle(wait):
         for j in range(255):
-            for i in range(num_pixels):
-                rc_index = (i * 256 // num_pixels) + j
+            for i in range(NUM_LIGHTS):
+                rc_index = (i * 256 // NUM_LIGHTS) + j
                 PIXELS[i] = colorwheel(rc_index & 255)
             PIXELS.show()
             time.sleep(wait)
 
     def pulse(color, wait):
-        for i in range(225):
-            
+        PIXELS.fill(color)
+        for i in range(255):
+            PIXELS.setBrightness(i)
+            time.sleep(wait)
+            PIXELS.show()
+        time.sleep(wait)
+
+    def solid(color):
+        PIXELS.fill(color)
+        PIXELS.show()
+
+    def seizure_disco(wait):
+        for i in range(NUM_LIGHTS):
+            R = random.randint(0,255)
+            G = random.randint(0,255)
+            B = random.randint(0,255)
+            PIXELS[i].fill(R, G, B)
+        PIXELS.show()
+        time.sleep(wait)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    led_controller = LEDControllerNode()
+    rclpy.spin(led_controller)
+    led_controller.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
