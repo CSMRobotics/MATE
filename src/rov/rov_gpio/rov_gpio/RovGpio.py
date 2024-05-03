@@ -1,6 +1,7 @@
 from csm_common_interfaces.msg import JetsonNanoGpio, PinPublisherConfig, PinState
 import Jetson.GPIO as GPIO
 import rclpy
+
 from rclpy.node import Node
 from std_msgs.msg import Bool
 
