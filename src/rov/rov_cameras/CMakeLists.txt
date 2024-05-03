@@ -28,6 +28,24 @@ find_package(cv_bridge REQUIRED)
 find_package(compressed_image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+pkg_search_module(GST REQUIRED gstreamer-1.0>=1.4
+        gstreamer-sdp-1.0>=1.4
+        gstreamer-app-1.0>=1.4
+        gstreamer-video-1.0>=1.4)
+pkg_search_module(GSTREAMER_RTSP_SERVER REQUIRED gstreamer-rtsp-server-1.0)
+
+# gstreamer mipi camera exec
+add_executable(mipi src/mipi.cpp)
+target_include_directories(mipi PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(mipi PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(mipi PRIVATE ${GTK3_INCLUDE_DIRS} ${GST_INCLUDE_DIRS} ${GSTREAMER_RTSP_SERVER_INCLUDE_DIRS})
+target_link_libraries(mipi ${GTK3_LIBRARIES} ${GST_LIBRARIES} ${GSTREAMER_RTSP_SERVER_LDFLAGS})
+
+# usb camera exec
 add_executable(rov_cameras src/main.cpp src/mjpeg_camera.cpp src/h264_camera.cpp src/camera_to_file.cpp)
 target_include_directories(rov_cameras PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -44,7 +62,7 @@ ament_target_dependencies(
 
 target_link_libraries(rov_cameras ${OpenCV_LIBS} udev pthread)
 
-install(TARGETS rov_cameras
+install(TARGETS rov_cameras mipi
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
