@@ -1,4 +1,5 @@
 from common.csm_common_interfaces.msg import PinState
+from std_msgs.msg import String
 import Jetson.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
@@ -10,23 +11,33 @@ import time
 LED_PIN = 0
 BLACK = (0,0,0)
 WHITE = (255,255,255)
+NUM_LIGHTS = 100
 RED = (255, 0, 0)
 YELLOW = (255, 150, 0)
 GREEN = (0, 255, 0)
 CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
-PIXELS = neopixel.NeoPixel(LED_PIN, 100)
+PIXELS = neopixel.NeoPixel(LED_PIN, NUM_LIGHTS)
 
-class RovGpio(Node):
+class LEDControllerNode(Node):
     
     def __init__(self):
         super().__init__(node_name="LEDController")
         self.state_subscriber = self.create_subscription(PinState, "set_rov_gpio", self.on_set_rov_gpio, 10)
         self.rgb_subscriber = self.create_subscription(RGBState, "LED_strip_state", self.on_set_rgb, 10)
+        self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
+        
+        self.animations = [
+            "animation1",
+            "animation2"
+        ]
+        
+        # Listen for requests from the UI
+        self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
+
 
         GPIO.setmode(GPIO.BOARD)
-        
         GPIO.setup(LED_PIN, GPIO.OUT)
         PIXELS.fill(BLACK)
 
@@ -38,6 +49,15 @@ class RovGpio(Node):
 
     def LED_strip_state(self, message: RGBState):
         pass
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    led_controller = LEDControllerNode()
+    rclpy.spin(led_controller)
+    led_controller.destroy_node()
+    rclpy.shutdown()
+    
     
     def color_chase(color, wait):
         for i in range(num_pixels):
