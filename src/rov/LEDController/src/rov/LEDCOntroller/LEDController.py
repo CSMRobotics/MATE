@@ -6,7 +6,7 @@ from rclpy.node import Node
 from rainbowio import colorwheel
 
 import board
-import neopixel
+import neopixel_spi
 import time
 import random
 
@@ -20,7 +20,7 @@ GREEN = (0, 255, 0)
 CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
-PIXELS = neopixel.NeoPixel(LED_PIN, NUM_LIGHTS)
+PIXELS = neopixel_spi.NeoPixel_SPI(board.SPI(), NUM_LIGHTS)
 global ledState
 global ledColor
 
@@ -52,9 +52,7 @@ class LEDControllerNode(Node):
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
-
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(LED_PIN, GPIO.OUT)
+        
         PIXELS.fill(BLACK)
 
     def ui_request_callback(self, msg):
