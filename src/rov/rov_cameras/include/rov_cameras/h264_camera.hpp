@@ -12,7 +12,7 @@
 
 #define WIDTH 960
 #define HEIGHT 540
-#define PIPELINE_H264_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=%d,height=%d,format=I420 ! appsink"
+#define PIPELINE_H264_F "v4l2src device=%s ! nvv4l2decoder ! nvvidconv ! video/x-raw,width=%d,height=%d,format=I420 ! appsink max-buffers=1 drop=1"
 
 class H264_Camera : public rclcpp::Node {
 public:
