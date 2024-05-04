@@ -11,7 +11,7 @@ import time
 import random
 
 NUM_LIGHTS = 60
-LED_PIN = 0
+LED_PIN = board.SPI()._pins[0]
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 RED = (255, 0, 0)
@@ -52,7 +52,7 @@ class LEDControllerNode(Node):
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
-        
+
         PIXELS.fill(BLACK)
 
     def ui_request_callback(self, msg):
