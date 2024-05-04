@@ -6,3 +6,4 @@ opencv-python
 Jetson.GPIO
 dbus-python
 transitions
+adafruit-circuitpython-neopixel-spi
