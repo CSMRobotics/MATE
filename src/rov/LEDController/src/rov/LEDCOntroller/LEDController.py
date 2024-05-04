@@ -19,6 +19,7 @@ CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
 PIXELS = neopixel.NeoPixel(LED_PIN, NUM_LIGHTS)
+global ledState
 
 class LEDControllerNode(Node):
     
@@ -36,20 +37,32 @@ class LEDControllerNode(Node):
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
 
-
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(LED_PIN, GPIO.OUT)
         PIXELS.fill(BLACK)
 
+    def ui_request_callback(self, msg):
+        if msg.data == 'get_animations':
+            # Send the list of preprogrammed animations to the UI
+            animations_msg = String()
+            animations_msg.data = "\n".join(animation for animation in self.animations if animation.startswith('custom_'))
+            self.publisher_.publish(animations_msg)
+            self.get_logger().info('Sent preprogrammed animations to UI')
+        else:
+            # Check if the requested animation exists
+            if msg.data in self.animations:
+                # Call the method corresponding to the requested animation
+                
+                if ledState and (lastAnimation != msg.data):
+                    getattr(self, lastAnimation)()
+                else:
+                    PIXELS.brightness(0)
+            lastAnimation = msg.data
+
     def on_set_rov_gpio(self, message: PinState):
         if message.pin not in LED_PIN:
             pass
-        
-        PIXELS.fill(WHITE)
-
-    def LED_strip_state(self, message: RGBState):
-        pass
-
+        ledState = message.state
 
 def main(args=None):
     rclpy.init(args=args)
