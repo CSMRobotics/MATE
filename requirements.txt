@@ -1,8 +1,8 @@
 setuptools 
 wheel 
-distlib==0.3.0
-numpy==1.19.4
-opencv-python==4.5.5.64
-Jetson.GPIO==2.0.17
-dbus-python==1.2.16
-transitions==0.8.11
+distlib
+numpy
+opencv-python
+Jetson.GPIO
+dbus-python
+transitions
