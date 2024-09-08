@@ -1,0 +1,31 @@
+vslam_node:
+  ros__parameters:
+    camera_distortion:
+    - -0.0017857436176282196
+    - -0.0033877103243001127
+    - -0.001304048542911958
+    - -0.002767782871785287
+    - 0.001759853699603988
+    camera_fourcc: MJPG
+    camera_framerate: 30.0
+    camera_idx: 0
+    camera_intrinsics:
+    - 1891.9864561472775
+    - 0.0
+    - 1970.9371060671904
+    - 0.0
+    - 1882.7680597860854
+    - 1499.945182209333
+    - 0.0
+    - 0.0
+    - 1.0
+    camera_resolution:
+    - 4000
+    - 3000
+    enable_3d_viewer: true
+    enable_preview: true
+    enable_video_feedback: true
+    field_of_view: 100.0
+    real_world_position: false
+    start_without_mapping: false
+    use_sim_time: false

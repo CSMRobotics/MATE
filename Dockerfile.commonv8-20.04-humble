@@ -3,6 +3,7 @@
 #   https://docs.ros.org/en/humble/Installation/Ubuntu-Development-Setup.html
 #
 ARG BASE_IMAGE=dustynv/ros:humble-desktop-l4t-r35.3.1
+#ARG BASE_IMAGE=dustynv/ros:latest
 FROM ${BASE_IMAGE}
 
 ARG ROS_PKG=ros_base

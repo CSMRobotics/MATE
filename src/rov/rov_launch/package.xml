@@ -24,6 +24,7 @@
   <depend>bar02</depend>
   <depend>rov_gpio</depend>  
   <depend>manipulator_controller</depend>
+  <depend>vslam_node</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

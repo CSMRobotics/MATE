@@ -80,14 +80,45 @@ print(rvecs)
 print("tvecs : \n")
 print(tvecs)
 
-# Exporting camera calibration coefficients to a yaml file
+# Write to a file following this format:
+# /vslam_node:
+#   ros__parameters:
+#     camera_distortion:
+#     - (...)
+#     camera_fourcc: MJPG
+#     camera_framerate: 30.0
+#     camera_idx: 0
+#     camera_intrinsics:
+#     - (...)
+#     camera_resolution:
+#     -  (...)
+#     enable_3d_viewer: true
+#     enable_preview: true
+#     enable_video_feedback: true
+#     field_of_view: 100.0
+#     real_world_position: false
+#     start_without_mapping: false
+#     use_sim_time: false
+
 data = {
-    'camera_matrix': mtx.tolist(),
-    'dist_coeff': dist.tolist(),
-    'rvecs': [rvec.tolist() for rvec in rvecs],
-    'tvecs': [tvec.tolist() for tvec in tvecs]
+    "vslam_node": {
+        "ros__parameters": {
+            "camera_distortion": dist.flatten().tolist(),
+            "camera_fourcc": "MJPG",
+            "camera_framerate": 30.0,
+            "camera_idx": 0,
+            "camera_intrinsics": mtx.flatten().tolist(),
+            "camera_resolution": prev_img_shape[::-1],
+            "enable_3d_viewer": True,
+            "enable_preview": True,
+            "enable_video_feedback": True,
+            "field_of_view": 100.0,
+            "real_world_position": False,
+            "start_without_mapping": False,
+            "use_sim_time": False
+        }
+    }
 }
 
-
-with open('/home/lucas/mate_ws/scripts/camera_calibration.yaml', 'w') as file:
-    yaml.dump(data, file)
+with open("gen_config.yaml", "w") as f:
+    yaml.safe_dump(data, f)
