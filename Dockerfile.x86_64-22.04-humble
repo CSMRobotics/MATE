@@ -1,6 +1,6 @@
 FROM osrf/ros:humble-desktop-full
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 ENV SHELL /bin/bash
 SHELL ["/bin/bash", "-c"] 
 

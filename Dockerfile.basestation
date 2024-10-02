@@ -1,4 +1,4 @@
-FROM csmmaterobotics/commonv8-humble:latest
+FROM osrf/ros:humble-desktop-full
 
 # Location where source files will be copied in and built
 # By default, this is root, which makes colcon build not work at all
