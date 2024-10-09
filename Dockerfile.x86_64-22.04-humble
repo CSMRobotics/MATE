@@ -49,35 +49,16 @@ RUN add-apt-repository universe && apt-get update && \
     qv4l2 \
     libtesseract4 \
     unzip \
+    python3-pip \
+    libssh-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-## raylib and raygui
-# they are submodules
-COPY ./src/external .
-RUN apt-get update && apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev
-RUN mkdir raylib/build && cd raylib/build && \
-    # see https://github.com/raysan5/raylib/wiki/CMake-Build-Options
-    cmake -DBUILD_SHARED_LIBS=ON .. && \
-    make && make install && \
-## raygui
-    cd ../../raygui && \
-    cp src/raygui.h /usr/local/include/ && \
-    mv src/raygui.h src/raygui.c && \
-    gcc -o raygui.so src/raygui.c -shared -fpic -DRAYGUI_IMPLEMENTATION -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 && \
-    cp raygui.so /usr/local/lib && \
-    ldconfig
-
 # install common python packages
-RUN apt-get install -y python3-pip
 RUN python3 -m pip install \
     dbus-next \
     evdev \
-    transitions
-
-# install common system packages
-RUN apt-get install -y --no-install-recommends \
-    libssh-dev
+    transitions    
 
 # setup entrypoint
 COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
