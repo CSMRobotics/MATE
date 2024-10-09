@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   common:
-    image: csmmaterobotics/commonx64-humble:latest
+    image: csmmaterobotics/common:x64-humble
     build: 
       context: .
       dockerfile: Dockerfile.x86_64-22.04-humble
