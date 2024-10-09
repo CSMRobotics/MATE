@@ -47,6 +47,4 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile.basestation
-    depends_on:
-      - common
     network_mode: host
