@@ -1,6 +1,3 @@
-[submodule "src/external/raygui"]
-	path = src/external/raygui
-	url = https://github.com/raysan5/raygui
-[submodule "src/external/raylib"]
-	path = src/external/raylib
-	url = https://github.com/raysan5/raylib
+[submodule "src/external/ros-imu-bno055"]
+	path = src/external/ros-imu-bno055
+	url = https://github.com/dheera/ros-imu-bno055
