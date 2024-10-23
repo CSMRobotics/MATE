@@ -12,6 +12,7 @@ jobs:
 
     container:
       image: csmmaterobotics/rov:latest
+      options: --platform linux/amd64
 
     steps:
     - name: Checkout Repository
