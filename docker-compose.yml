@@ -1,25 +1,18 @@
 version: '3.8'
 
 services:
-  common:
-    image: csmmaterobotics/common:latest
-    build: 
-      context: .
-      dockerfile: Dockerfile.x86_64-22.04-humble
-  
   rov:
     image: csmmaterobotics/rov:latest
     build: 
       context: .
       dockerfile: Dockerfile.rov
-    depends_on:
-      - common
     runtime: nvidia
     environment:
-      - UID=${UID}
-      - GID=${GID}
       - DISPLAY=${DISPLAY}
       - LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
+    # For future me when you're trying to set these variables:
+    # echo 'export DOCKER_USER="$(id -u):$(id -g)"' >> ~/.bash_profile
+    user: ${DOCKER_USER}
     pid: host
     ipc: host
     deploy:

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     container:
-      image: csmmaterobotics/common:x64-humble
+      image: csmmaterobotics/rov:latest
 
     steps:
     - name: Checkout Repository
