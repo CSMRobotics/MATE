@@ -1,6 +1,7 @@
 services:
   rov:
     image: csmmaterobotics/rov:latest
+    platform: linux/arm64
     build: 
       context: .
       dockerfile: Dockerfile.rov
