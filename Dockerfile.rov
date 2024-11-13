@@ -8,7 +8,7 @@ WORKDIR /tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    software-properties-common \ 
+    software-properties-common \
     wget \
     libi2c-dev \
     vim
