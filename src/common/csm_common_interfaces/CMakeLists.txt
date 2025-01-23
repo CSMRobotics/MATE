@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PinState.msg"
   "srv/Handshake.srv"
   "srv/HeartbeatControl.srv"
+  "srv/Heartbeat.srv"
 )
 
 if(BUILD_TESTING)
