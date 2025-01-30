@@ -17,6 +17,7 @@
   <depend>std_msgs</depend>
   <depend>csm_common_interfaces</depend>
   <depend>std_srvs</depend>
+  <depend>boost/circular_buffer</depend>
   
 
   <export>

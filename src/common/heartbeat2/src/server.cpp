@@ -1,12 +1,8 @@
-#include <iostream>
-#include <sstream>
 #include <chrono>
-
+#include <memory>
 #include <rclcpp/rclcpp.hpp>
-#include <builtin_interfaces/msg/time.hpp>
 
 #include "csm_common_interfaces/msg/e_stop.hpp"
-#include "csm_common_interfaces/srv/handshake.hpp"
 #include "csm_common_interfaces/srv/heartbeat.hpp"
 
 class Server : public rclcpp::Node {
