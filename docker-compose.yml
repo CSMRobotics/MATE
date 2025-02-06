@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   rov:
     image: csmmaterobotics/rov:latest
+    platform: linux/arm64
     build: 
       context: .
       dockerfile: Dockerfile.rov
@@ -60,7 +59,7 @@ services:
       - /run/udev:/run/udev:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /usr/lib/aarc
-
+      
   basestation:
     image: csmmaterobotics/basestation:latest
     build: 
