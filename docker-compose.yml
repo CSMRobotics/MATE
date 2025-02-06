@@ -35,6 +35,32 @@ services:
       - /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstnvcompositor.so:/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstnvcompositor.so
     restart: "no"
 
+  rov_amd64:
+    image: csmmaterobotics/rov:amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.rov.amd64
+      platforms:
+        - linux/amd64
+    environment:
+      - DISPLAY=${DISPLAY}
+      - LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
+    # For future me when you're trying to set these variables:
+    # echo 'export DOCKER_USER="$(id -u):$(id -g)"' >> ~/.bash_profile
+    user: ${DOCKER_USER}
+    pid: host
+    ipc: host
+    volumes:
+      - /dev/shm:/dev/shm
+      - /bin/systemctl:/bin/systemctl
+      - /run/systemd/system:/run/systemd/system
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+      - /sys:/sys:ro
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /usr/lib/aarc
+
   basestation:
     image: csmmaterobotics/basestation:latest
     build: 
