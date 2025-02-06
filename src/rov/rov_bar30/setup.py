@@ -1,11 +1,11 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
-package_name = 'tsys01'
+package_name = 'rov_bar30'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='catfishjw',
-    maintainer_email='james.wiley@live.com',
-    description='library and node for TSYS01 Temperature Sensor',
+    maintainer='Zac Stanton',
+    maintainer_email='zac71113@gmail.com',
+    description='ROS 2 package for MS5837-30BA Blue Robotics Depth Sensor',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'tsys01 = tsys01.main:main'
+            'bar30 = rov_bar30.bar30:main'
         ],
     },
 )

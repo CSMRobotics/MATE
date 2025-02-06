@@ -16,14 +16,14 @@
   <depend>csm_common_interfaces</depend>
   <depend>heartbeat</depend>
 
-  <depend>bno055</depend>
-  <depend>flight_controller</depend>
-  <depend>pca9685</depend>
+  <depend>rov_bno055</depend>
+  <depend>rov_flight_controller</depend>
+  <depend>rov_pca9685</depend>
   <depend>rov_control</depend>
   <depend>rov_cameras</depend>
   <depend>bar02</depend>
   <depend>rov_gpio</depend>  
-  <depend>manipulator_controller</depend>
+  <depend>rov_manipulator_controller</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

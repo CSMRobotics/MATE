@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(flight_controller)
+project(rov_flight_controller)
 
 add_compile_options(-g)
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(manipulator_controller)
+project(rov_bno055)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -15,42 +15,28 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-if(DEBUG_OUTPUT)
-  add_compile_definitions(DEBUG_OUTPUT=true)
-endif()
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(rov_interfaces REQUIRED)
+find_package(rclcpp REQUIRED)
 
-add_library(manipulator_controller_lib STATIC src/manipulator_controller.cpp)
-add_executable(manipulator_controller src/main.cpp)
-
-target_include_directories(manipulator_controller_lib PUBLIC
+add_executable(bno055_node src/bno055_node.cpp src/CSMBNO055.cpp)
+target_include_directories(bno055_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
-  manipulator_controller_lib
-  rclcpp
-  rov_interfaces)
+  bno055_node
+  "rov_interfaces"
+  "rclcpp"
+)
 
-target_link_libraries(manipulator_controller manipulator_controller_lib)
+target_link_libraries(bno055_node i2c)
 
-install(TARGETS manipulator_controller manipulator_controller_lib
+install(TARGETS bno055_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
   DESTINATION include/)
-
-install(DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME}/config/)
-
-install(DIRECTORY launch/
-  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

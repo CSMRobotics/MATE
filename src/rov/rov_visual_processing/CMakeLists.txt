@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(visual_processing)
+project(rov_visual_processing)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)

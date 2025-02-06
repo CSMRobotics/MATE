@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>tsys01</name>
+  <name>rov_tsys01</name>
   <version>0.0.0</version>
   <description>library and node for TSYS01 Temperature Sensor</description>
   <maintainer email="james.wiley@live.com">James Wiley</maintainer>
