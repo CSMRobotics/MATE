@@ -61,7 +61,7 @@ GstElement* CameraStreamFactory::create_element([[maybe_unused]] GstRTSPMediaFac
 }
 
 CameraStream::CameraStream(Camera camera, int argc, char** argv) {
-    gst_thread = std::thread(std::bind(&CameraStream::run_stream, this, camera, argc, argv));
+    gst_thread = std::thread(std::bind(&CameraStream::run_dummy_stream, this, camera, argc, argv));
     gst_thread.detach();
 }
 
@@ -103,6 +103,28 @@ void CameraStream::run_stream(Camera camera, int argc, char** argv) {
     g_main_loop_run(g_main_loop_new(nullptr, false));
 }
 
+void CameraStream::run_dummy_stream([[maybe_unused]] Camera camera, int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    gst_init(&argc, &argv);
+
+    GstElement* pipeline = gst_parse_launch(PIPELINE_TEST, nullptr);
+
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
+    GstBus* bus = gst_element_get_bus(pipeline);
+    GstMessage* msg = gst_bus_timed_pop_filtered(bus, GST_CLOCK_TIME_NONE, GstMessageType(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+
+    if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
+        // RCLCPP_ERROR(rclcpp::get_logger(), "Error occured during the stream");
+    }
+
+    gst_message_unref(msg);
+    gst_object_unref(bus);
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref(pipeline);
+    rclcpp::shutdown();
+}
+
 CameraManager::CameraManager() : Node("camera_manager") {
     _camera_stream_requests = this->create_service<rov_interfaces::srv::CameraStreamCommand>("rov_camera_commands", 
         std::bind(&CameraManager::handleRequest, this, std::placeholders::_1, std::placeholders::_2));
@@ -125,21 +147,21 @@ CameraManager* CameraManager::getInstance(int _argc, char** _argv) {
 
 bool CameraManager::playStream(Camera camera) {
     if (cameras.count(camera)) {
-        return sendRTSPCommand(camera, Command::PLAY);
+        // return sendRTSPCommand(camera, Command::PLAY);
     }
     return false;
 }
 
 bool CameraManager::pauseStream(Camera camera) {
     if (cameras.count(camera)) {
-        return sendRTSPCommand(camera, Command::PAUSE);
+        // return sendRTSPCommand(camera, Command::PAUSE);
     }
     return false;
 }
 
 bool CameraManager::stopStream(Camera camera) {
     if (cameras.count(camera)) {
-        return sendRTSPCommand(camera, Command::STOP);
+        // return sendRTSPCommand(camera, Command::STOP);
     }
     return false;
 }
@@ -225,15 +247,19 @@ void CameraManager::handleRequest(const rov_interfaces::srv::CameraStreamCommand
 
     switch (request->command) {
         case static_cast<uint8_t>(Command::PLAY):
-            response->result = playStream(camera);
+            RCLCPP_INFO(this->get_logger(), "PLAYING STREAM");
+            // response->result = playStream(camera);
             break;
         case static_cast<uint8_t>(Command::PAUSE):
-            response->result = pauseStream(camera);
+            RCLCPP_INFO(this->get_logger(), "PAUSING STREAM");
+            // response->result = pauseStream(camera);
             break;
         case static_cast<uint8_t>(Command::STOP):
-            response->result = stopStream(camera);
+            RCLCPP_INFO(this->get_logger(), "STOPPING STREAM");
+            // response->result = stopStream(camera);
             break;
         case static_cast<uint8_t>(Command::START):
+            RCLCPP_INFO(this->get_logger(), "STARTING STREAM");
             response->result = startStream(camera);
             break;
     }

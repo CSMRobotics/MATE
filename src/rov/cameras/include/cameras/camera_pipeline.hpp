@@ -34,6 +34,7 @@ public:
     CameraStream(Camera camera, int argc, char** argv);
 private:
     void run_stream(Camera camera, int argc, char** argv);
+    void run_dummy_stream(Camera camera, int argc, char** argv);
 
     std::thread gst_thread;
 friend CameraManager;
