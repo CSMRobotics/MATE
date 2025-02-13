@@ -19,7 +19,7 @@ pkg_search_module(GST_RTSP REQUIRED gstreamer-rtsp-server-1.0)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(cameras src/cameras.cpp src/camera_pipeline.cpp)
+add_executable(cameras src/cameras.cpp src/main.cpp)
 target_include_directories(cameras PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
