@@ -27,8 +27,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/JetsonNanoGpio.msg"
   "msg/PinPublisherConfig.msg"
   "msg/PinState.msg"
-  "srv/Handshake.srv"
-  "srv/HeartbeatControl.srv"
+  "srv/Heartbeat.srv"
 )
 
 if(BUILD_TESTING)
