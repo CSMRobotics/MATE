@@ -5,7 +5,7 @@
 #include <mutex>
 #include <cstdint>
 
-#include <rclcpp/rclcpp/rclcpp.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <gst/rtsp-server/rtsp-server.h>
 
