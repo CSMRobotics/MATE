@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <unordered_map>
 
+#define RTSP_DEFAULT_PORT "8554"
+static const char* port = (char*) RTSP_DEFAULT_PORT;
+
 #define FRONT_CAMERA_ARGUS_SENSOR_ID 0
 #define TRANSECT_CAMERA_ARGUS_SENSOR_ID 1
 
@@ -107,21 +110,26 @@ void CameraStream::run_dummy_stream([[maybe_unused]] Camera camera, int argc, ch
     rclcpp::init(argc, argv);
     gst_init(&argc, &argv);
 
-    GstElement* pipeline = gst_parse_launch(PIPELINE_TEST, nullptr);
+    // create the server
+    GstRTSPServer* server = gst_rtsp_server_new();
+    GstRTSPMountPoints* mounts;
+    GstRTSPMediaFactory* factory;
 
-    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    // create the pipeline
+    g_object_set(server, "service", port, NULL);
+    mounts = gst_rtsp_server_get_mount_points(server);
+    factory = gst_rtsp_media_factory_new();
+    gst_rtsp_media_factory_set_launch(factory, PIPELINE_TEST);
 
-    GstBus* bus = gst_element_get_bus(pipeline);
-    GstMessage* msg = gst_bus_timed_pop_filtered(bus, GST_CLOCK_TIME_NONE, GstMessageType(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+    // add mount point (/rov_front, etc)
+    gst_rtsp_mount_points_add_factory(mounts, mount_strs[camera].c_str(), factory);
 
-    if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
-        // RCLCPP_ERROR(rclcpp::get_logger(), "Error occured during the stream");
+    if (gst_rtsp_server_attach(server, NULL) == 0) {
+        // it no working
     }
-
-    gst_message_unref(msg);
-    gst_object_unref(bus);
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref(pipeline);
+    GMainLoop* loop = g_main_loop_new(NULL, false);
+    g_main_loop_run(loop);
+    
     rclcpp::shutdown();
 }
 
