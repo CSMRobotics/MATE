@@ -1,4 +1,5 @@
-FROM osrf/ros:humble-desktop-full
+ARG BASE_IMAGE=osrf/ros:humble-desktop-full
+FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV SHELL /bin/bash
