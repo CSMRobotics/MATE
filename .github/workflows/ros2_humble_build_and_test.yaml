@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     container:
-      image: csmmaterobotics/common:x86_64-22.04-humble
+      image: csmmaterobotics/rov:amd64
+      options: --platform linux/amd64
 
     steps:
     - name: Checkout Repository
@@ -19,12 +20,12 @@ jobs:
 
     - name: Set up ROS 2 Environment and Colcon Build
       run: |
-        source /opt/ros/humble/setup.bash && PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources colcon build --packages-up-to rov_launch driverstation_gui
+        source /opt/ros/humble/setup.bash && PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources colcon build --packages-up-to rov_launch
 
       shell: bash
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: log

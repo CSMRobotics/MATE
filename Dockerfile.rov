@@ -1,16 +1,73 @@
-FROM csmmaterobotics/commonv8-humble:latest
+ARG BASE_IMAGE=osrf/ros:humble-desktop-full
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"] 
+
+WORKDIR /tmp
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    software-properties-common \ 
+    wget \
+    libi2c-dev \
+    vim
+
+# install gstreamer
+RUN add-apt-repository universe && apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgstreamer1.0-0 \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-bad1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer1.0 \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgtk-3-dev \
+    gstreamer1.0-x && \
+# install v4l2
+    apt-get install -y libv4l-dev v4l-utils && \
+    apt-get install -y libopenjp2-7 \
+    libopenjp2-7-dev \
+    libglew-dev \
+    libtiff5-dev \
+    libdc1394-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libpostproc-dev \
+    libswscale-dev \
+    libeigen3-dev \
+    libtbb2 \
+    libtbb-dev \
+    libgtk2.0-dev \
+    pkg-config \
+    qv4l2 \
+    libtesseract4 \
+    unzip \
+    python3-pip \
+    libssh-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# install common python packages
+RUN python3 -m pip install \
+    dbus-next \
+    evdev \
+    transitions
 
 # Location where source files will be copied in and built
 WORKDIR /opt/ros/CSM_MATE_WS
 
 COPY src .
 
-# ensure dependencies are updated, and build
-# RUN rosdep update && \
-#     rosdep install --ignore-src -y src/rov/
-
 RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \ 
-    source /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    source /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build --symlink-install --packages-up-to \
     rov_launch \
     --cmake-args --no-warn-unused-cli -D DEBUG_OUTPUT=False
@@ -18,8 +75,9 @@ RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptool
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
 # CMD is the "go" button, and can be overriden
-COPY setup/rov_entrypoint.sh /rov_entrypoint.sh
-RUN chmod +x /rov_entrypoint.sh
-ENTRYPOINT [ "/rov_entrypoint.sh" ]
+# setup entrypoint
+COPY ./setup/ros_entrypoint_common.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+ENTRYPOINT [ "/ros_entrypoint.sh" ]
 # CMD ["ros2", "launch", "rov_launch", "rov.launch.py"] # auto start code
 CMD ["/bin/bash"]
