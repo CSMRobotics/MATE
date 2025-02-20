@@ -38,11 +38,10 @@ services:
     extends: 
       service: rov
     image: csmmaterobotics/rov:amd64
+    platform: linux/amd64
     build:
       args:
         - BASE_IMAGE=osrf/ros:humble-desktop-full
-      platforms:
-        - linux/amd64
     volumes:
       - /dev/shm:/dev/shm
       - /bin/systemctl:/bin/systemctl
