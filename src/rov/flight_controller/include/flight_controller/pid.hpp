@@ -1,34 +1,89 @@
 #ifndef PID_HPP
 #define PID_HPP
 
+#include <algorithm>
+
+template<typename T>
 class PID {
 public:
-    PID(bool P_enabled=true, bool I_enabled=true, bool D_enabled=true);
+    PID(bool P_enabled=true, bool I_enabled=true, bool D_enabled=true) {
+        p_en = P_enabled;
+        i_en = I_enabled;
+        d_en = D_enabled;
+        max_i = T{};
+        min_i = T{};
+        kp = ki = kd = 1.0f;
+        last_output = T{};
+    };
 
-    float update(float dt, float measurement, float setpoint);
+    T update(float dt, T measurement, T setpoint) {
+        T error = setpoint-measurement;
+        T p = p_en ? P(error) : T{};
+        T i = i_en ? I(dt, error) : T{};
+        T d = d_en ? D(dt, error) : T{};
+        last_output = p+i+d;
+        return last_output;
+    }
 
-    void setWindupMax(float maximum_integral_value);
-    void setWindupMin(float minimum_integral_value);
-    void setWindupMaxMin(float maximum_abs_integral_value);
+    void setWindupMax(T maximum_integral_value) {
+        max_i = maximum_integral_value;
+    };
 
-    void setKP(float kp);
-    void setKI(float ki);
-    void setKD(float kd);
+    void setWindupMin(T minimum_integral_value) {
+        min_i = minimum_integral_value;
+    };
+
+    void setWindupMaxMin(T maximum_abs_integral_value) {
+        max_i = min_i = maximum_abs_integral_value;
+    };
+
+    void setKP(float kp) {
+        this->kp = kp;
+    };
+    void setKI(float ki) {
+        this->ki = ki;
+    };
+    void setKD(float kd) {
+        this->kd = kd;
+    };
     
-    void setTi(float Ti);
-    void setTi(float Ti, float kp);
-    void setTd(float Td);
-    void setTd(float Td, float kp);
+    void setTi(float Ti) {
+        ki = kp/Ti;
+    };
+    void setTi(float Ti, float kp) {
+        this->kp = kp;
+        ki = kp/Ti;
+    };
+    void setTd(float Td) {
+        kd = kp/Td;
+    };
+    void setTd(float Td, float kp) {
+        this->kp = kp;
+        kd = kp/Td;
+    };
 private:
-    float P(float error);
-    float I(float dt, float error);
-    float D(float dt, float error);
+    T P(T error) {return kp*error;};
+    T I(float dt, T error) {
+        static T integral = T{};
+        integral += dt*error;
+        // TODO: how to do this with templates that could be Eigen::Vector?
+        // integral = std::max(integral, min_i);
+        // integral = std::min(integral, max_i);
+    
+        return integral;
+    };
+    T D(float dt, T error) {
+        static T e_last = T{};
+        T val = (e_last - error)/dt;
+        e_last = error;
+        return val;
+    };
 
     float kp, ki, kd;
-    float max_i;
-    float min_i;
+    T max_i;
+    T min_i;
     bool p_en, i_en, d_en;
-    float last_output;
+    T last_output;
 };
 
 #endif
