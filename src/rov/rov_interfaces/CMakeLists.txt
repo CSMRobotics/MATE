@@ -34,6 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/VectorD.msg"
   "msg/BNO055Data.msg"
   "msg/TSYS01Data.msg"
+  "srv/CameraStreamCommand.srv"
   "srv/CreateContinuousServo.srv"
   "srv/CreateServo.srv"
   DEPENDENCIES
