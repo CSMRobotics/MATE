@@ -21,6 +21,7 @@ public:
 private:
     void updatePID();
     void updateSetpoints(rov_interfaces::msg::ThrusterSetpoints::ConstSharedPtr msg);
+    void registerThrusters();
 
     PID<Eigen::Vector<float, 6>> position_pid;
     PID<Eigen::Vector<float, 6>> velocity_pid;

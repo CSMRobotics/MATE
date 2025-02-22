@@ -35,6 +35,24 @@ void declare_parameters(FlightController* node) {
 
 }
 
+bool wait_for_service_or_timeout(FlightController* controller, rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedPtr client, std::chrono::seconds timeout) {
+    auto time_start = std::chrono::high_resolution_clock::now();
+    while (!client->wait_for_service(std::chrono::seconds(1))) {
+        if (!rclcpp::ok()) {
+            return false;
+        }
+
+        auto time_current = std::chrono::high_resolution_clock::now();
+        RCLCPP_INFO(controller->get_logger(), "Failed to lock pca9685 service, waiting again...");
+
+        if (std::chrono::duration_cast<std::chrono::seconds>(time_current - time_start) > timeout) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 FlightController::FlightController() : Node("flight_controller") {
     // create ros objects
     ::declare_parameters(this);
@@ -87,40 +105,39 @@ FlightController::FlightController() : Node("flight_controller") {
 
     // create async requests to pca9685 to initalize pwm outputs
     this->pca9685_callback_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    registerThrusters();
+
+    RCLCPP_INFO(this->get_logger(), "Initialization Complete");
+}
+
+void FlightController::registerThrusters() {
     auto client = this->create_client<rov_interfaces::srv::CreateContinuousServo>("create_continuous_servo", rmw_qos_profile_services_default, this->pca9685_callback_group);
-    auto pca9685_registration_callback = [this](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFuture future) {
+    static auto pca9685_registration_callback = [this](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFuture future) {
         this->pwm_pin_ready[future.get()->channel] = future.get()->result;
         return;
     };
+
     for (uint8_t i = 0; i < NUM_THRUSTERS; i++) {
-        // TODO: create client and call service async
         pwm_pin_ready[pwm_pin_lookup[i]] = false;
-        auto time_start = std::chrono::high_resolution_clock::now();
         // wait for service to be ready, complain and move on if it takes too long
         // TODO: when moving on, spin up some threads dedicated to eventually getting the pins registered so we dont prevent this node from ever functioning
-        while (!client->wait_for_service(std::chrono::seconds(1))) {
-            auto time_current = std::chrono::high_resolution_clock::now();
-            RCLCPP_INFO(this->get_logger(), "Failed to lock pca9685 service, waiting again...");
-
-            if (std::chrono::duration_cast<std::chrono::seconds>(time_current - time_start).count() > 5) {
-                RCLCPP_WARN(this->get_logger(), std::string("More than 5 seconds have elapsed when attempting to register thruster,"
-                    " is the pca9685 node online? Skipping registration of pin " + boost::lexical_cast<std::string>(i)).c_str());
-                goto skip_pca9685_pin_registration; // nasty but its either a jmp or a cmp and jmp, you know what they say "as I say not as I do"
+        auto timeout = std::chrono::seconds(3);
+        if (!wait_for_service_or_timeout(this, client, timeout)) {
+            RCLCPP_WARN(this->get_logger(), std::string("More than " + boost::lexical_cast<std::string>(std::chrono::duration_cast<std::chrono::seconds>(timeout).count()) + " seconds have elapsed when attempting to register thruster,"
+            " is the pca9685 node online? Skipping registration of pin " + boost::lexical_cast<std::string>(i)).c_str());
+            if (rclcpp::ok()) {
+                continue;
             }
+            return;
         }
-        
-        { // prevent the goto from being mad as the future and request id type default constructor is deleted
+
+        RCLCPP_INFO(this->get_logger(), "bruh");
         auto request = std::make_shared<rov_interfaces::srv::CreateContinuousServo::Request>();
         request->channel = pwm_pin_lookup[i];
         auto future_and_request_id = client->async_send_request(request, pca9685_registration_callback);
         pca9685_response_futures[i] = future_and_request_id.future;
         pca9685_request_ids[i] = future_and_request_id.request_id;
-        }
-
-        skip_pca9685_pin_registration:
     }
-
-    RCLCPP_INFO(this->get_logger(), "Initialization Complete");
 }
 
 void FlightController::updatePID() {
@@ -142,6 +159,7 @@ void FlightController::updatePID() {
 
     // TODO: implement default thrust to pwm functions, currently just returns the input
     for (uint8_t i = 0; i < 6; i++) {
+        if (!pwm_pin_ready[pwm_pin_lookup[i]]) continue;
         U(i) = thrust_to_pwm_function(T(i));
         // apply U to PCA9685
         auto msg = std::make_unique<rov_interfaces::msg::PWM>();
