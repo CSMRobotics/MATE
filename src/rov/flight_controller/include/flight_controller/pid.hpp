@@ -2,6 +2,18 @@
 #define PID_HPP
 
 #include <algorithm>
+#include <eigen3/Eigen/Eigen>
+
+struct ClassAwareLexicographicLess {
+    template<class T>
+    constexpr bool operator()(const T& a, const T& b) {
+        if constexpr (!std::is_class<T>::value) {
+            return a < b;
+        } else {
+            return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+        }
+    }
+};
 
 template<typename T>
 class PID {
@@ -66,9 +78,8 @@ private:
     T I(float dt, T error) {
         static T integral = T{};
         integral += dt*error;
-        // TODO: how to do this with templates that could be Eigen::Vector?
-        // integral = std::max(integral, min_i);
-        // integral = std::min(integral, max_i);
+        integral = std::max(integral, min_i, ClassAwareLexicographicLess{});
+        integral = std::min(integral, max_i, ClassAwareLexicographicLess{});
     
         return integral;
     };

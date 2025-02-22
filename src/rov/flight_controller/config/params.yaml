@@ -1,46 +1,41 @@
 flight_controller:
   ros__parameters:
-    thruster0:
-      position: [-1.0, 0.5, 0.0]
-      thrust: [0.0, 0.0, 1.0]
-      Pin: 0
-    thruster1:
-      position: [1.0, 0.5, 0.0]
-      thrust: [0.0, 0.0, 1.0]
-      Pin: 1
-    thruster2:
-      position: [1.0, 0.5, 0.0]
-      thrust: [0.707106781, -0.707106781, 0.0]
-      Pin: 2
-    thruster3:
-      position: [-1.0, 0.5, 0.0]
-      thrust: [0.707106781, 0.707106781, 0.0]
-      Pin: 3
-    thruster4:
-      position: [-1.0, -0.5, 0.0]
-      thrust: [0.707106781, -0.707106781, 0.0]
-      Pin: 4
-    thruster5:
-      position: [1.0, -0.5, 0.0]
-      thrust: [0.707106781, 0.707106781, 0.0]
-      Pin: 5
-    thruster6:
-      position: [-1.0, -0.5, 0.0]
-      thrust: [0.0, 0.0, 1.0]
-      pin: 6
-    thruster7:
-      position: [1.0, -0.5, 0.0]
-      thrust: [0.0, 0.0, 1.0]
-      pin: 7
-    kp: 1.0
-    kq: 1.0
-    kw: 1.0
-    kdp: 1.0
-    kdi: 0.1
-    depth_tare: 0.0
-    depth_integral_max_contrib: 0.2
-    max_depth_m: 6.0
-    mass_kg: 1.0
-    volume_m3: 1.0
-    cg: [0.0, 0.0, 0.0]
-    cb: [0.0, 0.0, 0.0]
+    Thruster0:
+      Position: [-1.0, 0.5, 0.0]
+      Forward: [0.0, 0.0, 1.0]
+      PWM_Pin: 0
+    Thruster1:
+      Position: [1.0, 0.5, 0.0]
+      Forward: [0.0, 0.0, 1.0]
+      PWM_Pin: 1 
+    Thruster2:
+      Position: [1.0, 0.5, 0.0]
+      Forward: [0.707106781, -0.707106781, 0.0]
+      PWM_Pin: 2
+    Thruster3:
+      Position: [-1.0, 0.5, 0.0]
+      Forward: [0.707106781, 0.707106781, 0.0]
+      PWM_Pin: 3
+    Thruster4:
+      Position: [-1.0, -0.5, 0.0]
+      Forward: [0.707106781, -0.707106781, 0.0]
+      PWM_Pin: 4
+    Thruster5:
+      Position: [1.0, -0.5, 0.0]
+      Forward: [0.707106781, 0.707106781, 0.0]
+      PWM_Pin: 5
+    Thruster6:
+      Position: [-1.0, -0.5, 0.0]
+      Forward: [0.0, 0.0, 1.0]
+      PWM_Pin: 6
+    Thruster7:
+      Position: [1.0, -0.5, 0.0]
+      Forward: [0.0, 0.0, 1.0]
+      PWM_Pin: 7
+    Use_PCA9685: true
+    pos_kp: 1.0
+    pos_ki: 1.0
+    pos_kd: 1.0
+    vel_kp: 1.0
+    vel_ki: 1.0
+    vel_kd: 1.0

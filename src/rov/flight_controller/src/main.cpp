@@ -1,11 +1,15 @@
 #include <rclcpp/rclcpp.hpp>
-#include <flight_controller/40.hpp>
+#include <flight_controller/controller.hpp>
 
 #include <csignal>
 
 void signal_handler(int signal) {
-    if (signal == SIGINT) {
-        rclcpp::shutdown();
+    try {
+        if (signal == SIGINT) {
+            rclcpp::shutdown();
+        }
+    } catch (const rclcpp::exceptions::RCLError& err) {
+        rcutils_reset_error();
     }
 }
 
@@ -18,7 +22,8 @@ int main(int argc, char ** argv) {
     rclcpp::executors::MultiThreadedExecutor exec;
     exec.add_node(node);
     exec.spin();
-    
+
     rclcpp::shutdown();
+    
     return 0;
 }

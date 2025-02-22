@@ -15,11 +15,6 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
-if(DEBUG_OUTPUT)
-  message(INFO " Compiling with Debug Output")
-  add_compile_definitions(DEBUG_OUTPUT=true)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -35,7 +30,7 @@ find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(Boost 1.71.0 REQUIRED)
 
-add_library(flight_controller_lib STATIC src/40.cpp)
+add_library(flight_controller_lib STATIC src/controller.cpp)
 add_executable(flight_controller src/main.cpp)
 
 target_include_directories(flight_controller_lib PUBLIC
@@ -50,10 +45,6 @@ ament_target_dependencies(
   "sensor_msgs"
   "csm_common_interfaces"
 )
-if(BUILD_DISPLAY)
-  target_include_directories(flight_display PUBLIC
-    ${Boost_INCLUDE_DIRS})
-endif()
 
 target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
