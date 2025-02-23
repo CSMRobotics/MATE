@@ -15,10 +15,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-if(DEBUG_OUTPUT)
-  add_compile_definitions(DEBUG_OUTPUT=true)
-endif()
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
@@ -27,9 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_subdirectory(external/JHPWMPCA9685)
-add_library(pca9685 src/PCA9685_Node.cpp src/ServoDriver.cpp)
-target_include_directories(pca9685 PUBLIC JHPWMPCA9685_INCLUDE_DIRS)
+add_library(pca9685 src/PCA9685_Node.cpp src/ServoDriver.cpp src/PCA9685.cpp)
 add_executable(pca9685_node src/main.cpp)
 add_executable(pca9685_interactive_test src/main_interactive.cpp)
 target_include_directories(pca9685 PUBLIC
@@ -37,7 +31,6 @@ target_include_directories(pca9685 PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(pca9685 jhpwmpca9685)
 target_link_libraries(pca9685_node pca9685)
 target_link_libraries(pca9685_interactive_test pca9685)
 

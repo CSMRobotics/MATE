@@ -2,18 +2,20 @@
 #include <iostream>
 
 #define NUM_COUNTS 4177
+#define BUS_DEV 7
+#define ADDRESS 0x40
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
     return ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
 }
 
 ServoDriver::ServoDriver(){
-    this->driver_board = PCA9685(0x41);
-    if(!this->driver_board.openPCA9685()) {
+    this->driver_board = PCA9685(BUS_DEV, ADDRESS);
+    if(!this->driver_board.Open()) {
         throw std::runtime_error("Failed to open PCA9685");
     }
     this->driver_board.setAllPWM(0,0);
-    this->driver_board.reset();
+    this->driver_board.Reset();
     this->setPWMFrequency(this->driver_board_frequency);
 }
 
@@ -122,9 +124,6 @@ void ServoDriver::setPWMBounds(int channel, int minimum_us, int maximum_us){
 
 void ServoDriver::setPWM(int channel, int value){
     if(this->isChannelInUse(channel)){
-#if DEBUG_OUTPUT
-        printf("Setting pin %i to pwm %i", channel, (int)(value * (1e6 / this->driver_board_frequency / NUM_COUNTS)));
-#endif
         this->driver_board.setPWM(channel, 0, value);
     }
 }
