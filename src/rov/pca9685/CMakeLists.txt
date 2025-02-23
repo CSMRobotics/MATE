@@ -23,28 +23,35 @@ find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_library(pca9685 src/PCA9685_Node.cpp src/ServoDriver.cpp src/PCA9685.cpp)
-add_executable(pca9685_node src/main.cpp)
+add_library(pca9685 src/ServoDriver.cpp src/PCA9685.cpp)
+add_executable(pca9685_node src/main.cpp src/PCA9685_Node.cpp)
 add_executable(pca9685_interactive_test src/main_interactive.cpp)
 target_include_directories(pca9685 PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-
-target_link_libraries(pca9685_node pca9685)
-target_link_libraries(pca9685_interactive_test pca9685)
+target_include_directories(pca9685_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 ament_target_dependencies(pca9685
   rclcpp
   rov_interfaces
 )
+ament_target_dependencies(pca9685_node
+  rclcpp
+  rov_interfaces
+)
 
-install(TARGETS pca9685_node pca9685 pca9685_interactive_test
+target_link_libraries(pca9685 i2c)
+target_link_libraries(pca9685_node i2c pca9685)
+target_link_libraries(pca9685_interactive_test i2c pca9685)
+
+install(TARGETS pca9685 pca9685_node pca9685_interactive_test
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
-  DESTINATION include/)
-install(DIRECTORY external/JHPWMPCA9685/include/
   DESTINATION include/)
 
 if(BUILD_TESTING)
