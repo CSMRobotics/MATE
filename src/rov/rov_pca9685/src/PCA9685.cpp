@@ -1,7 +1,9 @@
 #include "pca9685/PCA9685.hpp"
 
+extern "C" {
 #include "linux/i2c-dev.h"
 #include "i2c/smbus.h"
+}
 
 #include <cstddef>
 #include <sys/ioctl.h>
@@ -15,7 +17,7 @@
 
 #define US_PER_S 1e6
 
-PCA9685::PCA9685(uint8_t bus, uint8_t address) : i2c_bus(bus), i2c_address(address) {
+PCA9685::PCA9685(uint8_t bus, uint8_t address) : i2c_address(address), i2c_bus(bus) {
     clock_frequency = 25e6;
     // 1e6 us per s / 25e6 hz = 0.04 us
     clock_us = US_PER_S / 25e6;
@@ -135,12 +137,12 @@ void PCA9685::setUS(uint8_t channel, uint16_t us, uint16_t delay_us) {
 
 void PCA9685::setOn(uint8_t channel) {
     // clear existing full off bit before setting full on
-    i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), i2c_smbus_read_byte_data(i2c_fd, LED0_OFF_H + channel << 2) & ~BIT4);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), i2c_smbus_read_byte_data(i2c_fd, LED0_OFF_H + (channel << 2)) & ~BIT4);
     i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), BIT4);
 }
 
 void PCA9685::setOff(uint8_t channel) {
     // clear existing full on bit before setting full off
-    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), i2c_smbus_read_byte_data(i2c_fd, LED0_ON_H + channel << 2) & ~BIT4);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), i2c_smbus_read_byte_data(i2c_fd, LED0_ON_H + (channel << 2)) & ~BIT4);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), BIT4);
 }

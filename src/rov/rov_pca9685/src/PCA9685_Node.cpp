@@ -13,16 +13,13 @@ PCA9685_Node::PCA9685_Node() : Node(std::string("pca9685")) {
 }
 
 void PCA9685_Node::topic_callback(const rov_interfaces::msg::PWM::SharedPtr msg) {
-#if DEBUG_OUTPUT
-    RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "PCA9685 set channel %i to %f", msg->channel, msg->angle_or_throttle);
-#endif
     servoDriver.setOutput(msg->channel, msg->angle_or_throttle);
 }
 
 void PCA9685_Node::create_continuous_servo(const std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Request> request, 
         std::shared_ptr<rov_interfaces::srv::CreateContinuousServo_Response> response) {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "PCA9685 Received Continuous Servo Creation Request on Channel %i", request->channel);
-    servoDriver.addContinuousServo(request->channel);
+    servoDriver.registerServo(request->channel, ServoType::CONTINUOUS);
     response->result = true;
     response->channel = request->channel;
 }
@@ -30,7 +27,7 @@ void PCA9685_Node::create_continuous_servo(const std::shared_ptr<rov_interfaces:
 void PCA9685_Node::create_servo(const std::shared_ptr<rov_interfaces::srv::CreateServo_Request> request, 
         std::shared_ptr<rov_interfaces::srv::CreateServo_Response> response) {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "PCA9685 Received Servo Creation Request on Channel %i", request->channel);
-    servoDriver.addServo(request->channel);
+    servoDriver.registerServo(request->channel, ServoType::POSITIONAL);
     response->result = true;
     response->channel = request->channel;
 }
