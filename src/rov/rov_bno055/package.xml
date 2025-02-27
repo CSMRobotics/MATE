@@ -3,17 +3,22 @@
 <package format="3">
   <name>rov_bno055</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="zac71113@gmail.com">yameat</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Establish a heartbeat between drivestation and ROV</description>
+  <maintainer email="kadin_le@mines.edu">kadin</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-
   <depend>rclcpp</depend>
   <depend>rov_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+
+  <depend>rclcpp</depend>
+  <depend>csm_common_interfaces</depend>
+  <depend>std_srvs</depend>
+  <depend>boost</depend>
+  
 
   <export>
     <build_type>ament_cmake</build_type>
