@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>bar30</name>
+  <name>rov_bar30</name>
   <version>0.0.0</version>
   <description>ROS 2 package for MS5837-30BA Blue Robotics Depth Sensor</description>
   <maintainer email="zac71113@gmail.com">Zac Stanton</maintainer>

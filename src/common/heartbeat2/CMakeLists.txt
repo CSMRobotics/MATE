@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(heartbeat2)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # find dependencies
@@ -11,38 +11,42 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(csm_common_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(Boost 1.40 REQUIRED COMPONENTS container)
 
 # add executables for ros to recognize
-add_executable(heartbeat_client src/heartbeat_client.cpp)
-target_include_directories(heartbeat_client PUBLIC
+add_executable(client src/client.cpp)
+target_include_directories(client PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
-  heartbeat_client
+  client
   rclcpp
   csm_common_interfaces
-  std_srvs
+  builtin_interfaces
+  std_msgs
 )
-target_include_directories(heartbeat_client PUBLIC ${Boost_INCLUDE_DIR})
-target_link_libraries(heartbeat_client ${Boost_LIBRARIES})
+target_include_directories(client PUBLIC ${Boost_INCLUDE_DIR})
+target_link_libraries(client ${Boost_LIBRARIES})
 
-add_executable(heartbeat_server src/heartbeat_server.cpp)
-target_include_directories(heartbeat_server PUBLIC
+add_executable(server src/server.cpp)
+target_include_directories(server PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
-  heartbeat_server
+  server
   rclcpp
   csm_common_interfaces
+  builtin_interfaces
   std_srvs
 )
 
-install(TARGETS heartbeat_client
+install(TARGETS client
   DESTINATION lib/${PROJECT_NAME})
-install(TARGETS heartbeat_server
+install(TARGETS server
   DESTINATION lib/${PROJECT_NAME})
 
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(pca9685)
+project(rov_pca9685)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
