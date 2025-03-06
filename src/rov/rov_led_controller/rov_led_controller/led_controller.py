@@ -3,15 +3,13 @@ from std_msgs.msg import String
 import Jetson.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
-from rainbowio import colorwheel
 
-import board
-import neopixel_spi
 import time
 import random
 
+from WS2812 import SPItoWS
+
 NUM_LIGHTS = 60
-LED_PIN = board.SPI()._pins[0]
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 RED = (255, 0, 0)
@@ -20,8 +18,8 @@ GREEN = (0, 255, 0)
 CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
-PIXELS = neopixel_spi.NeoPixel_SPI(board.SPI(), NUM_LIGHTS)
-global ledState
+PIXELS = SPItoWS(NUM_LIGHTS)
+
 global ledColor
 
 class LEDControllerNode(Node):
@@ -31,13 +29,13 @@ class LEDControllerNode(Node):
         self.state_subscriber = self.create_subscription(PinState, "set_rov_gpio", self.on_set_rov_gpio, 10)
         self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
         
-        self.animations = [
-            "color_chase",
-            "rainbow_cycle",
-            "pulse",
-            "solid",
-            "seizure_disco"
-        ]
+        self.animations = {
+            "color_chase": self.color_chase, 
+            "rainbow_cycle": self.rainbow_cycle,
+            "pulse": self.pulse,
+            "solid": self.solid,
+            "seizure_disco": self.seizure_disco
+        }
 
         self.colors = [
             "WHITE",
@@ -49,11 +47,17 @@ class LEDControllerNode(Node):
             "BLUE",
             "PURPLE"
         ]
+
+        # Rainbow RGB values
+        self.rainbowR = 255
+        self.rainbowG = 255
+        self.rainbowB = 0
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
 
-        PIXELS.fill(BLACK)
+        PIXELS.LED_OFF_ALL()
+        
 
     def ui_request_callback(self, msg):
         if msg.data == 'get_animations':
@@ -71,58 +75,93 @@ class LEDControllerNode(Node):
             # Check if the requested animation exists
             if msg.data in self.animations:
                 # Call the method corresponding to the requested animation
-                
-                if ledState and (lastAnimation != msg.data):
-                    exec(f"self.{msg.data}({ledColor}, 0.1)")()
-                else:
-                    PIXELS.brightness(0)
-                lastAnimation = msg.data
-            elif msg.data in self.colors:
-                lastColor = ledColor
-                if ledState and (lastColor != msg.data):
-                    exec(f"self.{lastAnimation}({msg.data}, 0.1)")()
+                self.animations[msg.data]()
 
-
-    def on_set_rov_gpio(self, message: PinState):
-        if message.pin not in LED_PIN:
-            pass
-        ledState = message.state
     
     def color_chase(color, wait=0.1):
         for i in range(NUM_LIGHTS):
-            PIXELS[i] = color
+            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
             time.sleep(wait)
-            PIXELS.show()
+        PIXELS.LED_show()
         time.sleep(0.5)
 
-    def rainbow_cycle(color, wait=0.1):
-        for j in range(255):
-            for i in range(NUM_LIGHTS):
-                rc_index = (i * 256 // NUM_LIGHTS) + j
-                PIXELS[i] = colorwheel(rc_index & 255)
-            PIXELS.show()
-            time.sleep(wait)
+
+    def rainbow_cycle(self, color, wait=0.1):
+        print("Hello world")
+        RGBincrement = float(255 * 3.0) / NUM_LIGHTS
+        # LED RGB values
+        tempR = self.rainbowR
+        tempG = self.rainbowG
+        tempB = self.rainbowB
+
+        # Assigning LED RGB values
+        for i in range(NUM_LIGHTS):
+            if tempR == 255 and tempB == 0 and tempG < 255:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempG += RGBincrement
+            elif tempG == 255 and tempB == 0 and tempR > 0:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempR -= RGBincrement
+            elif tempG == 255 and tempR == 0 and tempB < 255:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempB += RGBincrement
+            elif tempB == 255 and tempR == 0 and tempG > 0:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempG -= RGBincrement
+            elif tempB == 255 and tempG == 0 and tempR < 255:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempR += RGBincrement
+            elif tempR == 255 and tempG == 0 and tempB > 0:
+                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
+                tempB -= RGBincrement
+        PIXELS.LED_show()
+        time.sleep(wait)
+
+        # increment first rainbow RGB values to next value
+        if self.rainbowR == 255 and self.rainbowB == 0 and self.rainbowG < 255:
+            self.rainbowG += 1
+        elif self.rainbowG == 255 and self.rainbowB == 0 and self.rainbowR > 0:
+            self.rainbowR -= 1
+        elif self.rainbowG == 255 and self.rainbowR == 0 and self.rainbowB < 255:
+            self.rainbowB += 1
+        elif self.rainbowB == 255 and self.rainbowR == 0 and self.rainbowG > 0:
+            self.rainbowG -= 1
+        elif self.rainbowB == 255 and self.rainbowG == 0 and self.rainbowR < 255:
+            self.rainbowR += 1
+        elif self.rainbowR == 255 and self.rainbowG == 0 and self.rainbowB > 0:
+            self.rainbowB -= 1
+
 
     def pulse(color, wait=0.1):
-        PIXELS.fill(color)
         for i in range(255):
-            PIXELS.setBrightness(i)
+            for j in range(NUM_LIGHTS):
+                PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
             time.sleep(wait)
-            PIXELS.show()
+            PIXELS.LED_show()
         time.sleep(wait)
 
     def solid(color, wait=0.1):
-        PIXELS.fill(color)
-        PIXELS.show()
+        for i in range (NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+        PIXELS.LED_show()
 
     def seizure_disco(color, wait=0.1):
         for i in range(NUM_LIGHTS):
             R = random.randint(0,255)
             G = random.randint(0,255)
             B = random.randint(0,255)
-            PIXELS[i].fill(R, G, B)
-        PIXELS.show()
+            PIXELS.RGBto3Bytes(i, R, G, B)
+        PIXELS.LED_show()
         time.sleep(wait)
+
+    def _set_all_pixels(color):
+        """
+        Sets all pixels to a single
+        :param color: color to set all pixels to
+        """
+        for i in range (NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+
 
 
 def main(args=None):
