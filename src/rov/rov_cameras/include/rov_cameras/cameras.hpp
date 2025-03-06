@@ -3,48 +3,50 @@
 
 #include "gst/gst.h"
 
+#include <cstdint>
 #include <thread>
 #include <unordered_map>
-#include <cstdint>
 
 #include <rclcpp/rclcpp.hpp>
 
-enum class CameraSensor : uint8_t {
-    MIPI_0 = 0,
-    MIPI_1 = 1,
-    TEST = 255
+struct CameraConfig {
+  std::string id;
+  std::string port;
+  std::string pipeline;
 };
 
 class Camera {
 public:
-    Camera() = default;
-    Camera(int argc, char** argv, CameraSensor sensorID);
-private:
-    void run_rtsp_stream(int argc, char** argv, CameraSensor sensorID);
+  Camera() = default;
+  Camera(int argc, char **argv, CameraConfig sensorConfig);
 
-    std::thread gst_rtsp_server_thread;
+private:
+  void run_rtsp_stream(int argc, char **argv, CameraConfig sensorConfig);
+
+  std::thread gst_rtsp_server_thread;
 };
 
 class CameraManager {
 public:
-    static CameraManager* getInstance(int argc, char** argv);
+  static CameraManager *getInstance(int argc, char **argv);
 
-    bool addCamera(CameraSensor sensorID);
+  bool addCamera(CameraConfig sensorConfig);
+
 private:
-    CameraManager(int argc, char** argv);
+  CameraManager(int argc, char **argv);
 
-    int argc;
-    char** argv;
+  int argc;
+  char **argv;
 
-    std::unordered_map<CameraSensor, Camera> cameras;
+  std::unordered_map<std::string, Camera> cameras;
 };
 
 class CameraNode : public rclcpp::Node {
 public:
-    CameraNode(int argc, char** argv);
-private:
-    CameraManager* manager;
-};
+  CameraNode(int argc, char **argv);
 
+private:
+  CameraManager *manager;
+};
 
 #endif

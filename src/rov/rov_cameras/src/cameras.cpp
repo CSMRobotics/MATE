@@ -1,102 +1,104 @@
 #include "rov_cameras/cameras.hpp"
 
-#include <functional>
 #include "gst/rtsp-server/rtsp-server.h"
+#include <functional>
+#include <rcl_interfaces/msg/parameter_descriptor.h>
 
-#define PIPELINE_TEST "videotestsrc is-live=true ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0 pt=96"
-#define PIPELINE_FRONT "\"nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96\""
-#define PIPELINE_TRANSECT "\"nvarguscamerasrc sensor-id=1 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96\""
-
-namespace {
-    std::unordered_map<CameraSensor, std::string> ports = {
-        {CameraSensor::MIPI_0, "8554"},
-        {CameraSensor::MIPI_1, "8555"},
-        {CameraSensor::TEST, "8809"}
-    };
+Camera::Camera(int argc, char **argv, CameraConfig sensorConfig) {
+  gst_rtsp_server_thread = std::thread(
+      std::bind(&Camera::run_rtsp_stream, this, argc, argv, sensorConfig));
+  gst_rtsp_server_thread.detach();
 }
 
-Camera::Camera(int argc, char** argv, CameraSensor sensorID) {
-    gst_rtsp_server_thread = std::thread(std::bind(&Camera::run_rtsp_stream, this, argc, argv, sensorID));
-    gst_rtsp_server_thread.detach();
+void Camera::run_rtsp_stream(int argc, char **argv, CameraConfig sensorConfig) {
+  GMainLoop *loop;
+  GstRTSPServer *server;
+  GstRTSPMountPoints *mounts;
+  GstRTSPMediaFactory *factory;
+
+  gst_init(&argc, &argv);
+
+  // create main loop to spin the server
+  loop = g_main_loop_new(NULL, false);
+
+  // create new server
+  server = gst_rtsp_server_new();
+  g_object_set(server, "service", sensorConfig.port.c_str(), NULL);
+
+  // get mount points to map uri to media factory
+  mounts = gst_rtsp_server_get_mount_points(server);
+
+  // media factory to create pipeline, enables rtcp
+  factory = gst_rtsp_media_factory_new();
+
+  // apply the pertinent pipeline
+  gst_rtsp_media_factory_set_launch(factory, sensorConfig.pipeline.c_str());
+
+  gst_rtsp_media_factory_set_shared(factory, true);
+  gst_rtsp_media_factory_set_enable_rtcp(factory, true);
+
+  // attach this factory to the mount point
+  gst_rtsp_mount_points_add_factory(mounts, "/video", factory);
+
+  // dont need the pointer anymore
+  g_object_unref(mounts);
+
+  // attach server to default context
+  gst_rtsp_server_attach(server, NULL);
+
+  // serve that server
+  std::string msg =
+      "Now serving RTSP video stream on 127.0.0.1:" + sensorConfig.port +
+      "/video";
+  RCLCPP_INFO(rclcpp::get_logger("rtsp_streamer"), msg.c_str());
+  g_main_loop_run(loop);
 }
 
-void Camera::run_rtsp_stream(int argc, char** argv, CameraSensor sensorID) {
-    GMainLoop *loop;
-    GstRTSPServer *server;
-    GstRTSPMountPoints *mounts;
-    GstRTSPMediaFactory *factory;
+CameraManager *CameraManager::getInstance(int argc, char **argv) {
+  static CameraManager instance{argc, argv};
+  return &instance;
+}
 
-    gst_init(&argc, &argv);
+CameraManager::CameraManager(int argc, char **argv) : argc(argc), argv(argv) {}
 
-    // create main loop to spin the server
-    loop = g_main_loop_new(NULL, false);
+bool CameraManager::addCamera(CameraConfig sensorConfig) {
+  if (cameras.count(sensorConfig.id) > 0) {
+    RCLCPP_WARN(rclcpp::get_logger("rtsp_streamer"),
+                "Attempted to overwrite sensor, ignoring");
+    return false;
+  }
 
-    // create new server
-    server = gst_rtsp_server_new();
-    g_object_set(server, "service", ports[sensorID].c_str(), NULL);
+  cameras[sensorConfig.id] = Camera(argc, argv, sensorConfig);
+  return true;
+}
 
-    // get mount points to map uri to media factory
-    mounts = gst_rtsp_server_get_mount_points(server);
+CameraNode::CameraNode(int argc, char **argv) : Node("rov_cameras") {
+  manager = CameraManager::getInstance(argc, argv);
+  this->declare_parameter("cameras", std::vector<std::string>());
 
-    // media factory to create pipeline, enables rtcp
-    factory = gst_rtsp_media_factory_new();
+  std::vector<std::string> camera_ids =
+      get_parameter("cameras").as_string_array();
+  if (camera_ids.size() == 0) {
+    RCLCPP_ERROR(
+        rclcpp::get_logger("rtsp_streamer"),
+        "No cameras found, perhaps you forgot to add the params.yaml file?");
+  }
+  for (auto &name : camera_ids) {
+    this->declare_parameter(name + ".port", "");
+    this->declare_parameter(name + ".pipeline", "");
 
-    // apply the pertinent pipeline
-    switch (sensorID) {
-        case CameraSensor::MIPI_0:
-            gst_rtsp_media_factory_set_launch(factory, PIPELINE_FRONT);
-            break;
-        case CameraSensor::MIPI_1:
-            gst_rtsp_media_factory_set_launch(factory, PIPELINE_TRANSECT);
-            break;
-
-        case CameraSensor::TEST:
-        default:
-            gst_rtsp_media_factory_set_launch(factory, PIPELINE_TEST);
-            break;
+    CameraConfig config;
+    config.id = name;
+    config.port = this->get_parameter(name + ".port").value_to_string();
+    config.pipeline = this->get_parameter(name + ".pipeline").as_string();
+    if (config.port == "" || config.pipeline == "") {
+      RCLCPP_ERROR(rclcpp::get_logger("rtsp_streamer"),
+                   "Missing or empty parameters for camera '%s'", name.c_str());
+      continue;
     }
-
-    gst_rtsp_media_factory_set_shared(factory, true);
-    gst_rtsp_media_factory_set_enable_rtcp(factory, true);
-
-    // attach this factory to the mount point
-    gst_rtsp_mount_points_add_factory(mounts, "/video", factory);
-
-    // dont need the pointer anymore
-    g_object_unref(mounts);
-
-    // attach server to default context
-    gst_rtsp_server_attach(server, NULL);
-
-    // serve that server
-    std::string msg = "Now serving RTSP video stream on 127.0.0.1:" + ports[sensorID] + "/video";
-    RCLCPP_INFO(rclcpp::get_logger("rtsp_streamer") , msg.c_str());
-    g_main_loop_run(loop);
-}
-
-CameraManager* CameraManager::getInstance(int argc, char** argv) {
-    static CameraManager instance{argc, argv};
-    return &instance;
-}
-
-CameraManager::CameraManager(int argc, char** argv) : argc(argc), argv(argv) {
-    
-}
-
-bool CameraManager::addCamera(CameraSensor sensorID) {
-    if (cameras.count(sensorID)) {
-        RCLCPP_WARN(rclcpp::get_logger("rtsp_streamer"),"Attempted to overwrite sensor, ignoring");
-        return false;
+    if (!manager->addCamera(config)) {
+      RCLCPP_ERROR(rclcpp::get_logger("rtsp_streamer"),
+                   "Failed to add camera %s", name.c_str());
     }
-    
-    cameras[sensorID] = Camera(argc, argv, sensorID);
-    return true;
-}
-
-CameraNode::CameraNode(int argc, char** argv) : Node("rov_cameras") {
-    manager = CameraManager::getInstance(argc, argv);
-
-    manager->addCamera(CameraSensor::MIPI_0);
-    manager->addCamera(CameraSensor::MIPI_1);
-    manager->addCamera(CameraSensor::TEST);
+  }
 }
