@@ -4,8 +4,8 @@
 #include "gst/rtsp-server/rtsp-server.h"
 
 #define PIPELINE_TEST "videotestsrc is-live=true ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0 pt=96"
-#define PIPELINE_FRONT "\"nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96\""
-#define PIPELINE_TRANSECT "\"nvarguscamerasrc sensor-id=1 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96\""
+#define PIPELINE_FRONT "\"nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvv4l2h264enc zerolatency=1 maxperf-enable=1 ! rtph264pay name=pay0 pt=96\""
+#define PIPELINE_TRANSECT "\"nvarguscamerasrc sensor-id=1 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvv4l2h264enc zerolatency=1 maxperf-enable=1 ! rtph264pay name=pay0 pt=96\""
 
 namespace {
     std::unordered_map<CameraSensor, std::string> ports = {
