@@ -1,32 +1,17 @@
-from common.csm_common_interfaces.msg import PinState
 from std_msgs.msg import String
-import Jetson.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
-
 import time
 import random
-
 from WS2812 import SPItoWS
 
 NUM_LIGHTS = 60
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-RED = (255, 0, 0)
-YELLOW = (255, 150, 0)
-GREEN = (0, 255, 0)
-CYAN = (0, 255, 255)
-BLUE = (0, 0, 255)
-PURPLE = (180, 0, 255)
 PIXELS = SPItoWS(NUM_LIGHTS)
-
-global ledColor
 
 class LEDControllerNode(Node):
     
     def __init__(self):
         super().__init__(node_name="LEDController")
-        self.state_subscriber = self.create_subscription(PinState, "set_rov_gpio", self.on_set_rov_gpio, 10)
         self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
         
         self.animations = {
@@ -37,21 +22,25 @@ class LEDControllerNode(Node):
             "seizure_disco": self.seizure_disco
         }
 
-        self.colors = [
-            "WHITE",
-            "BLACK",
-            "RED",
-            "YELLOW",
-            "GREEN",
-            "CYAN",
-            "BLUE",
-            "PURPLE"
-        ]
+        self.colors = {
+            "WHITE": (255,255,255),
+            "BLACK": (0,0,0),
+            "RED": (255, 0, 0),
+            "YELLOW": (255, 150, 0),
+            "GREEN": (0, 255, 0),
+            "CYAN": (0, 255, 255),
+            "BLUE": (0, 0, 255),
+            "PURPLE": (180, 0, 255)
+        }
 
         # Rainbow RGB values
         self.rainbowR = 255
         self.rainbowG = 255
         self.rainbowB = 0
+
+        # color value and current animation
+        self.ledColor = "WHITE"
+        self.currentAnimation = "solid"
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
@@ -75,10 +64,20 @@ class LEDControllerNode(Node):
             # Check if the requested animation exists
             if msg.data in self.animations:
                 # Call the method corresponding to the requested animation
-                self.animations[msg.data]()
+                self.currentAnimation = msg.data
+                self.get_logger().info('New animation received: %s' % msg.data)
+                self.animations[msg.data](self.colors[self.ledColor])
+            elif msg.data in self.colors:
+                # Change the color if message changes colors
+                self.ledColor = msg.data
+                self.get_logger().info('New color received: %s' % msg.data)
+                self.animations[self.currentAnimation](self.colors[msg.data])
 
     
-    def color_chase(color, wait=0.1):
+    def color_chase(self, color, wait=0.1):
+        """
+        Animates a single color across the LED strip
+        """
         for i in range(NUM_LIGHTS):
             PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
             time.sleep(wait)
@@ -87,7 +86,9 @@ class LEDControllerNode(Node):
 
 
     def rainbow_cycle(self, color, wait=0.1):
-        print("Hello world")
+        """
+        Cycles a wave of rainbow over the LEDs
+        """
         RGBincrement = float(255 * 3.0) / NUM_LIGHTS
         # LED RGB values
         tempR = self.rainbowR
@@ -132,7 +133,10 @@ class LEDControllerNode(Node):
             self.rainbowB -= 1
 
 
-    def pulse(color, wait=0.1):
+    def pulse(self, color, wait=0.1):
+        """
+        Fades a single color in
+        """
         for i in range(255):
             for j in range(NUM_LIGHTS):
                 PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
@@ -140,12 +144,18 @@ class LEDControllerNode(Node):
             PIXELS.LED_show()
         time.sleep(wait)
 
-    def solid(color, wait=0.1):
+    def solid(self, color, wait=0.1):
+        """
+        Changes all LEDs to solid color
+        """
         for i in range (NUM_LIGHTS):
             PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
         PIXELS.LED_show()
 
-    def seizure_disco(color, wait=0.1):
+    def seizure_disco(self, color, wait=0.1):
+        """
+        Changes all LEDs to a random color
+        """
         for i in range(NUM_LIGHTS):
             R = random.randint(0,255)
             G = random.randint(0,255)
@@ -154,10 +164,9 @@ class LEDControllerNode(Node):
         PIXELS.LED_show()
         time.sleep(wait)
 
-    def _set_all_pixels(color):
+    def _set_all_pixels(self, color):
         """
         Sets all pixels to a single
-        :param color: color to set all pixels to
         """
         for i in range (NUM_LIGHTS):
             PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
