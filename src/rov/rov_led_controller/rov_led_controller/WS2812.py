@@ -9,12 +9,14 @@ class SPItoWS():
         self.X = '' # X is signal of WS281x
         for i in range(self.led_count):
             self.X = self.X + "100100100100100100100100100100100100100100100100100100100100100100100100"
+        self.led_brightness = 1.0
         self.spi = spidev.SpiDev()
         self.spi.open(0, 0)
         self.spi.max_speed_hz = 2400000
 
     def __del__(self):
         self.spi.close()
+        print("destructor")
         
     def _Bytesto3Bytes(self, num, RGB): # num is number of signal, RGB is 8 bits (1 byte) str
         for i in range(8):
@@ -40,18 +42,25 @@ class SPItoWS():
         if (led_num > self.led_count - 1):
             print("Invalid Value: The number is over the number of LED")
             sys.exit(1)
-        RR = format(R, '08b')
-        GG = format(G, '08b')
-        BB = format(B, '08b')
+        RR = format(round(R * self.led_brightness), '08b')
+        GG = format(round(G * self.led_brightness), '08b')
+        BB = format(round(B * self.led_brightness), '08b')
         self._Bytesto3Bytes(led_num * 3, GG)
         self._Bytesto3Bytes(led_num * 3 + 1, RR)
         self._Bytesto3Bytes(led_num * 3 + 2, BB)
+
+        # debug
+        # print("led_num: %d, R: %d G: %d B: %d" % (led_num, round(R * self.led_brightness), round(G * self.led_brightness), round(B * self.led_brightness)))
 
     def LED_OFF_ALL(self):
         self.X = ''
         for i in range(self.led_count):
             self.X = self.X + "100100100100100100100100100100100100100100100100100100100100100100100100"
         self.LED_show()
+
+    def set_brightness(self, brightness):
+        self.led_brightness = brightness
+
 
 if __name__ == "__main__":
     import time

@@ -12,14 +12,15 @@ class LEDControllerNode(Node):
     
     def __init__(self):
         super().__init__(node_name="LEDController")
-        self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
+        self.publisher_ = self.create_publisher(String, 'led_controller_output', 10)
         
         self.animations = {
             "color_chase": self.color_chase, 
             "rainbow_cycle": self.rainbow_cycle,
             "pulse": self.pulse,
             "solid": self.solid,
-            "seizure_disco": self.seizure_disco
+            "seizure_disco": self.seizure_disco,
+            "off": self.off
         }
 
         self.colors = {
@@ -49,29 +50,48 @@ class LEDControllerNode(Node):
         
 
     def ui_request_callback(self, msg):
-        if msg.data == 'get_animations':
+        # Split message
+        split = msg.data.split(",")
+        msgs = [s.strip() for s in split]
+
+        # Change brightness
+        if len(msgs) == 2:
+            try:
+                brightness = float(msgs[1])
+                if brightness > 1.0:
+                    brightness = 1
+                elif brightness < 0:
+                    brightness = 0
+                PIXELS.set_brightness(brightness)
+                self.get_logger().info("Changed brightness to: %f" % brightness)
+            except:
+                self.get_logger().info("Second argument, brightness, should be a float.")
+        
+        # Change animation and colors
+        if msgs[0] == 'get_animations':
             # Send the list of preprogrammed animations to the UI
             animations_msg = String()
             animations_msg.data = "\n".join(animation for animation in self.animations)
             self.publisher_.publish(animations_msg)
             self.get_logger().info('Sent preprogrammed animations to UI')
-        elif msg.data == 'get_colors':
+        elif msgs[0] == 'get_colors':
             colors_msg = String()
             colors_msg.data = "\n".join(color for color in self.colors)
             self.publisher_.publish(colors_msg)
             self.get_logger().info('Sent preprogrammed colors to UI')
         else:
             # Check if the requested animation exists
-            if msg.data in self.animations:
+            if msgs[0] in self.animations:
                 # Call the method corresponding to the requested animation
-                self.currentAnimation = msg.data
-                self.get_logger().info('New animation received: %s' % msg.data)
-                self.animations[msg.data](self.colors[self.ledColor])
-            elif msg.data in self.colors:
+                self.currentAnimation = msgs[0]
+                self.get_logger().info('New animation received: %s' % msgs[0])
+                self.animations[msgs[0]](self.colors[self.ledColor])
+            elif msgs[0] in self.colors:
                 # Change the color if message changes colors
-                self.ledColor = msg.data
-                self.get_logger().info('New color received: %s' % msg.data)
-                self.animations[self.currentAnimation](self.colors[msg.data])
+                self.ledColor = msgs[0]
+                self.get_logger().info('New color received: %s' % msgs[0])
+                self.animations[self.currentAnimation](self.colors[msgs[0]])
+            
 
     
     def color_chase(self, color, wait=0.1):
@@ -163,6 +183,9 @@ class LEDControllerNode(Node):
             PIXELS.RGBto3Bytes(i, R, G, B)
         PIXELS.LED_show()
         time.sleep(wait)
+
+    def off(self, color):
+        PIXELS.LED_OFF_ALL()
 
     def _set_all_pixels(self, color):
         """
