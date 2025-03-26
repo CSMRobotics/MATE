@@ -104,6 +104,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
 
             if(is_pwm) {
                 std::cout << "Setting pin " << pin << " to pwm: " << pwm_or_angle << '\n';
+                servoDriver.setDuty(pin, pwm_or_angle);
             } else {
                 if(isContinuous[pin]) {
                     servoDriver.setThrottle(pin, pwm_or_angle);

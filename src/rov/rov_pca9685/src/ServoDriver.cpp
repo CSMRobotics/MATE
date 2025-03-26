@@ -3,11 +3,14 @@
 #include <rclcpp/rclcpp.hpp>
 
 #define NUM_COUNTS 4177
-#define BUS_DEV 7
-#define ADDRESS 0x40
+#define BUS_DEV 1
+#define ADDRESS 0x41
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
-    return ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
+    int val = ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
+    val = val < to_min ? to_min : val;
+    val = val > to_max ? to_max : val;
+    return val;
 }
 
 ServoDriver::ServoDriver() {
@@ -25,12 +28,14 @@ void ServoDriver::registerServo(uint8_t channel, ServoType type) {
     {
     case ServoType::POSITIONAL:
         servos[channel] = Servo();
+        RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered positional servo on channel %d", channel);
         setAngle(channel, 90.0f);
         break;
     
     case ServoType::CONTINUOUS:
         continuous_servos[channel] = ContinuousServo();
-        setThrottle(channel, 0.0f);
+        RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered continuous servo on channel %d", channel);
+        // setThrottle(channel, 0.0f);
         break;
     }
 }
@@ -65,9 +70,11 @@ void ServoDriver::setUSBounds(uint8_t channel, uint16_t min_us, uint16_t max_us)
     if (servos.count(channel)) {
         servos[channel].us_minimum = min_us;
         servos[channel].us_maximum = max_us;
+        return;
     } else if (continuous_servos.count(channel)) {
         continuous_servos[channel].us_minimum = min_us;
         continuous_servos[channel].us_maximum = max_us;
+        return;
     }
     RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the bounds of an unregistered servo");
 }
@@ -75,8 +82,10 @@ void ServoDriver::setUSBounds(uint8_t channel, uint16_t min_us, uint16_t max_us)
 void ServoDriver::setOutput(uint8_t channel, float angle_or_throttle) {
     if (servos.count(channel)) {
         setAngle(channel, angle_or_throttle);
+        return;
     } else if (continuous_servos.count(channel)) {
         setThrottle(channel, angle_or_throttle);
+        return;
     }
     RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the output of an unregistered servo");
 }

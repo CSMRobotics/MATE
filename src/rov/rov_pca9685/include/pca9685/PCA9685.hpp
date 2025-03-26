@@ -145,6 +145,8 @@ public:
     void setOn(uint8_t channel);
     void setOff(uint8_t channel);
 private:
+    void helloworld();
+
     int i2c_fd;
     uint8_t i2c_address;
     uint8_t i2c_bus;
