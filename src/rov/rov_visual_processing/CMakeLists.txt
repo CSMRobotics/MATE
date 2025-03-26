@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(csm_common_interfaces)
+project(rov_visual_processing)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,18 +17,21 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rov_interfaces REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/EStop.msg"
-  "msg/JetsonNanoGpio.msg"
-  "msg/PinPublisherConfig.msg"
-  "msg/PinState.msg"
-  "srv/Heartbeat.srv"
+add_executable(visual_processing src/visual_processing.cpp)
+target_include_directories(visual_processing PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(
+  visual_processing
+  "rclcpp"
+  "rov_interfaces"
 )
+
+install(TARGETS visual_processing
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(csm_common_interfaces)
+project(rov_manipulator_controller)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -15,20 +15,42 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+if(DEBUG_OUTPUT)
+  add_compile_definitions(DEBUG_OUTPUT=true)
+endif()
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rov_interfaces REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/EStop.msg"
-  "msg/JetsonNanoGpio.msg"
-  "msg/PinPublisherConfig.msg"
-  "msg/PinState.msg"
-  "srv/Heartbeat.srv"
-)
+add_library(manipulator_controller_lib STATIC src/manipulator_controller.cpp)
+add_executable(manipulator_controller src/main.cpp)
+
+target_include_directories(manipulator_controller_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(
+  manipulator_controller_lib
+  rclcpp
+  rov_interfaces)
+
+target_link_libraries(manipulator_controller manipulator_controller_lib)
+
+install(TARGETS manipulator_controller manipulator_controller_lib
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include/)
+
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config/)
+
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

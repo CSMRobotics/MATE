@@ -9,4 +9,6 @@ source "$ros_env_setup"
 echo "ROS_ROOT   $ROS_ROOT"
 echo "ROS_DISTRO $ROS_DISTRO"
 
+export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
+
 exec "$@"

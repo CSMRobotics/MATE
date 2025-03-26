@@ -1,4 +1,4 @@
-FROM csmmaterobotics/commonv8-humble:latest
+FROM osrf/ros:humble-desktop-full
 
 # Location where source files will be copied in and built
 # By default, this is root, which makes colcon build not work at all
@@ -6,17 +6,12 @@ WORKDIR /opt/ros/CSM_MATE_WS
 
 COPY src .
 
-# build all packages defined in basestation_launch file
-RUN export PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources && \
-    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    colcon build --packages-up-to driverstation_gui
-
 # Copy over initial run stuff.
 # Entrypoint can more or less be understood as "run this no matter what". It sources the ROS install.
 # CMD is the "go" button, and can be overriden
 COPY worlds_driverstation_setup.bash /worlds_driverstation_setup.bash
-COPY setup/ros_entrypoint.sh /ros_entrypoint.sh
-RUN chmod +x /ros_entrypoint.sh
-ENTRYPOINT [ "/ros_entrypoint.sh" ]
+# COPY setup/ros_entrypoint.sh /ros_entrypoint.sh
+# RUN chmod +x /ros_entrypoint.sh
+# ENTRYPOINT [ "/ros_entrypoint.sh" ]
 # CMD ["ros2", "launch", "driverstation_gui", "driverstation_gui_launch.py"] # auto start
 CMD ["/bin/bash"]
