@@ -8,7 +8,7 @@ static int f2imap(float value, float from_min, float from_max, int to_min, int t
 }
 
 ServoDriver::ServoDriver(){
-    this->driver_board = PCA9685();
+    this->driver_board = PCA9685(0x41);
     if(!this->driver_board.openPCA9685()) {
         throw std::runtime_error("Failed to open PCA9685");
     }
