@@ -31,7 +31,7 @@ PCA9685::~PCA9685() {
 bool PCA9685::Open() {
     char filename[32];
     sprintf(filename,"/dev/i2c-%d", i2c_bus);
-    printf("%s\n", filename);
+    // printf("%s\n", filename);
     i2c_fd = open(filename, O_RDWR);
     if (i2c_fd < 0) {
         // Could not open the bus
