@@ -48,7 +48,7 @@ void Camera::run_rtsp_stream(int argc, char **argv, CameraConfig sensorConfig) {
 
   // serve that server
   std::string msg =
-      "Now serving RTSP video stream on 127.0.0.1:" + sensorConfig.port +
+      "Now serving RTSP video stream '" + sensorConfig.id + "' on 127.0.0.1:" + sensorConfig.port +
       "/video";
   RCLCPP_INFO(rclcpp::get_logger("rtsp_streamer"), msg.c_str());
   g_main_loop_run(loop);
