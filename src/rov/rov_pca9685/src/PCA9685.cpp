@@ -126,26 +126,31 @@ void PCA9685::setAllOn() {
 }
 
 void PCA9685::setDuty(uint8_t channel, float duty, float _delay) {
-    /* asdf asdf
-    *  this is the datasheet recommended way to use the 9685
-    *  but it breaks when the wanted duty cycle is 0, due
-    *  due to the underflow on time_negate. haven't figured
-    *  out a good way to handle that condition...
-    */ 
-    // uint16_t time_on = static_cast<uint16_t>(std::round(duty * 4096));
-    // uint16_t delay = static_cast<uint16_t>(std::round(_delay * 4096));
-    // uint16_t time_negate = (delay+time_on - 1) & 0xe000 ? 0 : delay+time_on - 1;
-    // time_negate = time_negate > 4096 ? time_negate - 4096 : time_negate;
+    // Hehe duty
 
-    // counts to leading edge
-    uint16_t time_on = 0;
+    uint16_t MAX_COUNT = 4096;
+    uint16_t dur_on = static_cast<uint16_t>(std::round(duty * MAX_COUNT));
+    uint16_t time_on = static_cast<uint16_t>(std::round(_delay * MAX_COUNT));
+    uint16_t time_off;
+    if(dur_on >= MAX_COUNT){
+        // Special case for fully on
+        time_on = (1 << 12); // Bit 12 ON means locked-on
+        time_off = 0; // The count doesn't matter but A) we're already sending all four on/off bytes and B) if bit 12 is on it will override the ON above
+    }else if (dur_on <= 0){
+        // Special case for fully off (same arguments as above)
+        time_on = 0;
+        time_off = (1 << 12); // Bit 12 OFF means locked-off
+    }else{
+        // General case (clamp delay to 12 bits to cover case of duty/delay time very close to but not quite 1, or when the user sets an invalid delay)
+        time_on &= 0xFFF;
+        time_off = time_on + dur_on;
+        time_off &= 0xFFF; // Modulo Again (in case the off time is in the next frame)
+    }
 
-    // counts to trailing edge
-    uint16_t time_off = static_cast<uint16_t>(std::round(duty * 4095));
-    
-    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), (time_on >> 8) & 0xF);
-    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_L + (channel << 2), time_on & 0xFF);
-    i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), (time_off >> 8) & 0xF);
+    // TODO: send the 13th bit for special cases
+    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), (dur_on >> 8) & 0x1F);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_L + (channel << 2), dur_on & 0xFF);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), (time_off >> 8) & 0x1F);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_L + (channel << 2), time_off & 0xFF);
 }
 
