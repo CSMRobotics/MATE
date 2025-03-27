@@ -4,14 +4,14 @@ import spidev
 import sys
  
 class SPItoWS():
-    def __init__(self, ledc):
+    def __init__(self, ledc, bus=1, device=0):
         self.led_count = ledc
         self.X = '' # X is signal of WS281x
         for i in range(self.led_count):
             self.X = self.X + "100100100100100100100100100100100100100100100100100100100100100100100100"
         self.led_brightness = 1.0
         self.spi = spidev.SpiDev()
-        self.spi.open(0, 0)
+        self.spi.open(bus, device)
         self.spi.max_speed_hz = 2400000
 
     def __del__(self):
