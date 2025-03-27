@@ -1,52 +1,49 @@
 #ifndef SERVO_DRIVER_HPP
 #define SERVO_DRIVER_HPP
 
-#include "JHPWMPCA9685/JHPWMPCA9685.h"
+#include "pca9685/PCA9685.hpp"
 #include <string>
+#include <map>
 
-enum class ServoType{
+enum class ServoType : uint8_t {
     POSITIONAL,
     CONTINUOUS
 };
 
-struct Servo{
+struct ServoBase {
     bool initialized = false;
-    ServoType type;
-    float setpoint = 0.0f;
-    float setpoint_minimum = 0.0f;
-    float setpoint_maximum = 0.0f;
-    int pwm_minimum;
-    int pwm_maximum;
 };
 
-class ServoDriver{
-    public:
-        ServoDriver();
-        ~ServoDriver();
-
-        void addServo(int channel);
-        void addContinuousServo(int channel);
-        void removeServo(int channel);
-        void removeContinuousServo(int channel);
-        void setAngle(int channel, float angle);
-        void setThrottle(int channel, float throttle);
-        void setOutput(int channel, float value);
-        void setAngleBounds(int channel, float minimum_angle, float maximum_angle);
-        void setThrottleBounds(int channel, float minimum_throttle, float maximum_throttle);
-        void setPWMBounds(int channel, int minimum_us, int maximum_us);
-
-    private:
-        PCA9685 driver_board;
-        float driver_board_frequency = 60;
-        Servo servos[16];
-
-        void setPWM(int channel, int value);
-        void setPWMFrequency(float frequency);
-        bool isChannelInUse(int channel);
-        bool isChannelNotInUse(int channel);
-        bool isServoChannelInUse(int channel);
-        bool isContinuousServoChannelInUse(int channel);
-        float getCountsPerMicrosecond();
+struct Servo : ServoBase {
+    uint16_t us_minimum;
+    uint16_t us_maximum;
 };
 
-#endif // SERVO_DRIVER_HPP
+struct ContinuousServo : ServoBase {
+    uint16_t us_minimum;
+    uint16_t us_maximum;
+};
+
+class ServoDriver {
+public:
+    ServoDriver();
+    ~ServoDriver();
+
+    void registerServo(uint8_t channel, ServoType type);
+
+    void setDuty(uint8_t channel, float duty);
+    void setUS(uint8_t channel, uint16_t us);
+
+    void setThrottle(uint8_t channel, float throttle);
+    void setAngle(uint8_t channel, float angle);
+
+    void setUSBounds(uint8_t channel, uint16_t min_us, uint16_t max_us);
+
+    void setOutput(uint8_t channel, float angle_or_throttle);
+private:
+    PCA9685 driver_board;
+    std::map<uint8_t, Servo> servos;
+    std::map<uint8_t, ContinuousServo> continuous_servos;
+};
+
+#endif

@@ -8,7 +8,6 @@
 #include "rov_interfaces/srv/create_servo.hpp"
 
 #include "pca9685/ServoDriver.hpp"
-#include "JHPWMPCA9685/JHPWMPCA9685.h"
 
 class PCA9685_Node : public rclcpp::Node {
 public:

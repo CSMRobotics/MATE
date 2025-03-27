@@ -1,8 +1,6 @@
 #include <iostream>
 #include <map>
 
-#include <rclcpp/rclcpp.hpp>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -24,18 +22,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
         if(userInput.at(0) == 'c') {
             // load continuous servo defaults
             for(int i=0; i<16; i++) {
-                servoDriver.addContinuousServo(i);
+                servoDriver.registerServo(i, ServoType::CONTINUOUS);
                 isContinuous[i]=true;
-                servoDriver.setPWMBounds(i, 1100, 1900);
-                servoDriver.setThrottleBounds(i, -1, 1);
+                servoDriver.setUSBounds(i, 1100, 1900);
             }
         } else {
             // load non continuous servo defaults
             for(int i=0; i<16; i++) {
-                servoDriver.addServo(i);
+                servoDriver.registerServo(i, ServoType::POSITIONAL);
                 isContinuous[i]=false;
-                servoDriver.setPWMBounds(i, 500, 2500);
-                servoDriver.setAngleBounds(i, 0, 180);
+                servoDriver.setUSBounds(i, 500, 2500);
             }
         }
     } else {
@@ -47,20 +43,20 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
             boost::algorithm::to_lower(userInput);
             try {
                 if(userInput.at(0) == 'c') {
-                    servoDriver.addContinuousServo(i);
+                    servoDriver.registerServo(i, ServoType::CONTINUOUS);
                     isContinuous[i] = true;
                 } else {
                     // default to non continuous
-                    servoDriver.addServo(i);
+                    servoDriver.registerServo(i, ServoType::POSITIONAL);
                     isContinuous[i] = false;
                 }
             } catch(std::out_of_range &) {
-                servoDriver.addServo(i);
+                servoDriver.registerServo(i, ServoType::POSITIONAL);
                 isContinuous[i] = false;
             }
         }
 
-        std::cout << "\nFor all 16 pins, enter PWM range separated by spaces (newline for default 500-2500)\n";
+        std::cout << "\nFor all 16 pins, enter US range separated by spaces (newline for default 500-2500)\n";
         for(int i = 0; i < 16; i++) {
             std::cout << "Pin " << i << ": ";
             std::getline(std::cin, userInput);
@@ -72,30 +68,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
                 lower_bound = boost::lexical_cast<int>(userInput.substr(0, idx));
                 upper_bound = boost::lexical_cast<int>(userInput.substr(idx+1));
             }
-            servoDriver.setPWMBounds(i, lower_bound, upper_bound);
-        }
-
-        std::cout << "\nFor all 16 pins, set boundaries for Angle/Throttle\n";
-        for(int i = 0; i < 16; i++) {
-            std::cout << "Pin " << i << ": ";
-            std::getline(std::cin, userInput);
-            std::cout << '\n';
-            boost::algorithm::to_lower(userInput);
-            int lower_bound = 0;
-            int upper_bound = 180;
-            size_t idx = userInput.find(' ');
-            if(idx != 0 && idx != std::string::npos) {
-                lower_bound = boost::lexical_cast<int>(userInput.substr(0, idx));
-                upper_bound = boost::lexical_cast<int>(userInput.substr(idx+1));
-            } else {
-                servoDriver.setAngleBounds(i, lower_bound, upper_bound);
-                continue;
-            }
-            if(isContinuous.at(i)) {
-                servoDriver.setThrottleBounds(i, lower_bound, upper_bound);
-            } else {
-                servoDriver.setAngleBounds(i, lower_bound, upper_bound);
-            }
+            servoDriver.setUSBounds(i, lower_bound, upper_bound);
         }
     }
 
@@ -131,6 +104,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
 
             if(is_pwm) {
                 std::cout << "Setting pin " << pin << " to pwm: " << pwm_or_angle << '\n';
+                servoDriver.setDuty(pin, pwm_or_angle);
             } else {
                 if(isContinuous[pin]) {
                     servoDriver.setThrottle(pin, pwm_or_angle);
