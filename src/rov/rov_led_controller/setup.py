@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'src/rov/rov_led_controller'
+package_name = 'led_controller'
 
 setup(
     name=package_name,
@@ -10,17 +10,19 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        # add WS2812
+        ('lib/' + package_name, [package_name+'/WS2812.py'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='catfishjw',
     maintainer_email='james.wiley@live.com',
-    description='TODO: Package description',
+    description='It controls LEDs',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'led_controller = src/rov/rov_led_controller.led_controller:main'
+            'led_controller = led_controller.led_controller:main'
         ],
     },
 )
