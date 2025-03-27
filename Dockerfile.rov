@@ -27,7 +27,6 @@ RUN add-apt-repository universe && apt-get update && \
     libgtk-3-dev \
     libgtk2.0-dev \
     gstreamer1.0-x && \
-# install v4l2
     apt-get install -y libv4l-dev v4l-utils && \
     apt-get install -y libopenjp2-7 \
     libopenjp2-7-dev \
