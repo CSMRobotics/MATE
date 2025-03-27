@@ -15,7 +15,7 @@ static int f2imap(float value, float from_min, float from_max, int to_min, int t
 
 ServoDriver::ServoDriver() {
     this->driver_board = PCA9685(BUS_DEV, ADDRESS);
-    if(!this->driver_board.Open()) {
+    if(!this->driver_board.open()) {
         throw std::runtime_error("Failed to open PCA9685");
     }
     this->driver_board.setAllOff();
@@ -35,7 +35,7 @@ void ServoDriver::registerServo(uint8_t channel, ServoType type) {
     case ServoType::CONTINUOUS:
         continuous_servos[channel] = ContinuousServo();
         RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered continuous servo on channel %d", channel);
-        // setThrottle(channel, 0.0f);
+        setThrottle(channel, 0.0f);
         break;
     }
 }

@@ -92,7 +92,7 @@ public:
         ALL_LED_OFF_L   = 0xFC,
         ALL_LED_OFF_H   = 0xFD,
         PRE_SCALE       = 0xFE,
-        TestMode        = 0xFF
+        TestMode        = 0xFF // NOTE PER DATASHEET: DO NOT USE, UNDOCUMENTED BEHAVIOR
     };
 
     enum RegisterMasks : uint8_t {
@@ -121,13 +121,13 @@ public:
     PCA9685& operator=(PCA9685&&) = default;
 
     // attempt to connect to the pca9685
-    bool Open();
+    bool open();
 
     // invalidate all pwms and close the connection with the pca9685
-    void Close();
+    void close();
 
     // invalidate all pwms and restart the pca9685
-    void Reset(); 
+    void reset(); 
 
     // change the output pwm frequency between 24 and 1526 Hz
     void setFrequency(uint16_t frequency);
@@ -145,7 +145,6 @@ public:
     void setOn(uint8_t channel);
     void setOff(uint8_t channel);
 private:
-    void helloworld();
 
     int i2c_fd;
     uint8_t i2c_address;

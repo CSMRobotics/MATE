@@ -25,14 +25,14 @@ PCA9685::PCA9685(uint8_t bus, uint8_t address) : i2c_address(address), i2c_bus(b
 }
 
 PCA9685::~PCA9685() {
-    Close();
+    close();
 }
 
-bool PCA9685::Open() {
+bool PCA9685::open() {
     char filename[32];
     sprintf(filename,"/dev/i2c-%d", i2c_bus);
     // printf("%s\n", filename);
-    i2c_fd = open(filename, O_RDWR);
+    i2c_fd = ::open(filename, O_RDWR);
     if (i2c_fd < 0) {
         // Could not open the bus
     
@@ -43,65 +43,54 @@ bool PCA9685::Open() {
         return false;
     }
 
-    // external clock?
+    // TODO: enable and test when external clock is available
     // i2c_smbus_write_byte_data(i2c_fd, MODE1, MODE1_SLEEP);
     // usleep(500);
     // i2c_smbus_write_byte_data(ic2_fd, MODE1, MODE1_SLEEP | MODE1_EXTCLK);
 
     usleep(500);
     setFrequency(60);
-    
-    // startup pattern
-    // for (uint8_t idx = 0; idx < 16; idx++) {
-    //     setOn(idx);
-    //     usleep(5000); 
-    //     setAllOff();
-    // }
-    // for (uint8_t idx = 14; idx < 16; idx--) {
-    //     setOn(idx);
-    //     usleep(5000); 
-    //     setAllOff();
-    // }
 
     // clear all registers
-    Reset();
+    reset();
 
     return true;
 }
 
-void PCA9685::Close() {
+void PCA9685::close() {
     setAllOff();
     usleep(500);
     if (i2c_fd > 0) {
-        close(i2c_fd);
+        ::close(i2c_fd);
     }
 }
 
-void PCA9685::Reset() {
-    // stop all pwms
+void PCA9685::reset() {
+    // data sheet restart procedure per 7.3.1.1
+    // stop all pwms (orderly shutdown invalidates all PWM registers)
     i2c_smbus_write_byte_data(i2c_fd, Registers::ALL_LED_OFF_H, BIT4);
     usleep(500);
     
+    // if bit 7 is 1, clear bit 4, wait for clock to stabilize
     uint8_t mode1_current = i2c_smbus_read_byte_data(i2c_fd, Registers::MODE1);
     if (mode1_current & MODE1_RESTART) {
         i2c_smbus_write_byte_data(i2c_fd, Registers::MODE1, mode1_current & ~MODE1_SLEEP);
         usleep(500);
     }
+    // write 1 to bit 7, pwm channels will restart and restart bit will clear
     i2c_smbus_write_byte_data(i2c_fd, Registers::MODE1, (mode1_current & ~MODE1_SLEEP) | MODE1_RESTART);
-}
-
-void PCA9685::helloworld() {
-
 }
 
 void PCA9685::setFrequency(uint16_t frequency) {
     static const uint16_t NUM_COUNTS = 4096; // scaling factor since clock sucks balls lol
+    static const uint16_t MIN_FREQUENCY = 24; // Hz
+    static const uint16_t MAX_FREQUENCY = 1526; // Hz
     // if given frequency is not valid, do nothing
-    if (frequency < 24 || frequency > 1526) {
+    if (frequency < MIN_FREQUENCY || MAX_FREQUENCY > 1526) {
         return;
     }
     output_frequency = frequency;
-    uint8_t prescale = static_cast<uint8_t>(std::round(25e6/(NUM_COUNTS * frequency))) - 1;
+    uint8_t prescale = static_cast<uint8_t>(std::round(clock_frequency/(NUM_COUNTS * frequency))) - 1;
     // printf("prescale: 0x%02x", prescale);
     uint8_t current_mode = i2c_smbus_read_byte_data(i2c_fd, Registers::MODE1);
     // set sleep bit
@@ -137,6 +126,12 @@ void PCA9685::setAllOn() {
 }
 
 void PCA9685::setDuty(uint8_t channel, float duty, float _delay) {
+    /* asdf asdf
+    *  this is the datasheet recommended way to use the 9685
+    *  but it breaks when the wanted duty cycle is 0, due
+    *  due to the underflow on time_negate. haven't figured
+    *  out a good way to handle that condition...
+    */ 
     // uint16_t time_on = static_cast<uint16_t>(std::round(duty * 4096));
     // uint16_t delay = static_cast<uint16_t>(std::round(_delay * 4096));
     // uint16_t time_negate = (delay+time_on - 1) & 0xe000 ? 0 : delay+time_on - 1;
@@ -147,16 +142,11 @@ void PCA9685::setDuty(uint8_t channel, float duty, float _delay) {
 
     // counts to trailing edge
     uint16_t time_off = static_cast<uint16_t>(std::round(duty * 4095));
-
-    // printf("%f\n%f\n", duty, _delay);
-    // printf("%0.2f\n%0.2f\n%04x\n%04x\n%04x\n", duty, _delay, time_on, delay, time_negate);
     
     i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), (time_on >> 8) & 0xF);
     i2c_smbus_write_byte_data(i2c_fd, LED0_ON_L + (channel << 2), time_on & 0xFF);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), (time_off >> 8) & 0xF);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_L + (channel << 2), time_off & 0xFF);
-
-    // printf("%02x\n%02x\n%02x\n%02x\n", i2c_smbus_read_byte_data(i2c_fd, LED0_ON_H + (channel << 2)), i2c_smbus_read_byte_data(i2c_fd, LED0_ON_L + (channel << 2)), i2c_smbus_read_byte_data(i2c_fd, LED0_OFF_H + (channel << 2)), i2c_smbus_read_byte_data(i2c_fd, LED0_OFF_L + (channel << 2)));
 }
 
 void PCA9685::setUS(uint8_t channel, uint16_t us, uint16_t delay_us) {
