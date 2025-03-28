@@ -1,0 +1,3 @@
+[submodule "src/rov/rov_bno085/sh2"]
+	path = src/rov/rov_bno085/sh2
+	url = https://github.com/ceva-dsp/sh2/
