@@ -2,8 +2,19 @@
 
 #include <chrono>
 #include <thread>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
+#include <stdexcept>
+
+#include "jetgpio.h"
+
+extern "C" {
+#include "sh2.h"
+#include "sh2_err.h"
+}
 
 #define SPIDEVICE "/dev/spidev1.0"
 
@@ -40,16 +51,36 @@ static void hal_callback(void *cookie, sh2_AsyncEvent_t *pEvent);
 static void sensorHandler(void *cookie, sh2_SensorEvent_t *pEvent);
 static void hal_hardwareReset(void);
 
-static int& _fd;
+// shared stuff
+static int _fd;
+static unsigned int _reset_pin;
+static unsigned int _interrupt_pin;
 
-BNO08X::BNO08X(uint8_t reset_pin) {
+BNO08X::BNO08X(uint8_t reset_pin, uint8_t interrupt_pin) {
+    int ret;
+    ret = gpioInitialise();
 
+    if (ret < 0) {
+        printf("Jetgpio initialization failed with errco %d\n", ret);
+        throw std::logic_error("Jetgpio failed to initalize");
+    }
+    
+    // setup reset pin as output
+    this->reset_pin = reset_pin;
+    _reset_pin = this->reset_pin;
+    ret = gpioSetMode(reset_pin, JET_OUTPUT);
+
+    // setup "interrupt" pin as input
+    this->interrupt_pin = interrupt_pin;
+    _interrupt_pin = this->interrupt_pin;
+    ret = gpioSetMode(interrupt_pin, JET_INPUT);
 }
 
-bool BNO08X::makeSPI(int32_t sensor_id = 0) {
-    // TODO: setup interrupt pin as input
-    // interrupt_pin;
+BNO08X::~BNO08X() {
+    gpioTerminate();
+}
 
+bool BNO08X::makeSPI(int32_t sensor_id) {
     // if file descriptor is in use, we need to close it
     if (fd != -1) {
         close(fd);
@@ -67,25 +98,25 @@ bool BNO08X::makeSPI(int32_t sensor_id = 0) {
     // set spi mode
     if (ioctl(fd, SPI_IOC_WR_MODE, &spi_mode) == -1) {
         perror("Unable to set SPI mode");
-        return 1;
+        return false;
     }
 
     // set bits per word
     if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spi_bits_per_word) == -1) {
         perror("Unable to set bits per word");
-        return 1;
+        return false;
     }
 
     // set max speed
     if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &spi_speed) == -1) {
         perror("Unable to set max speed");
-        return 1;
+        return false;
     }
 
     // set bit order
     if (ioctl(fd, SPI_IOC_WR_LSB_FIRST, &spi_lsb_first) == -1) {
         perror("Unable to set bitorder to msb first");
-        return 1;
+        return false;
     }
 
     _HAL.open = spihal_open;
@@ -95,6 +126,8 @@ bool BNO08X::makeSPI(int32_t sensor_id = 0) {
     _HAL.getTimeUs = hal_getTimeUs;
 
     spi_start = std::chrono::high_resolution_clock::now();
+
+    return true;
 }
 
 bool BNO08X::_init(int32_t sensor_id) {
@@ -131,7 +164,7 @@ bool BNO08X::wasReset(void) {
     return x;
 }
 
-bool BNO08X::enableReport(sh2_SensorId_t sensor_id, uint32_t interval_us = 10000) {
+bool BNO08X::enableReport(sh2_SensorId_t sensor_id, uint32_t interval_us) {
     static sh2_SensorConfig_t config;
     
     // sane defaults
@@ -190,8 +223,7 @@ static bool spihal_wait_for_int(void) {
     // this is actually really stupid
     // does chip interrupt within 0.5 seconds?
     for (int i = 0; i < 500; i++) {
-        // TODO: read interrupt pin from gpio
-        if (true) {
+        if (gpioRead(_interrupt_pin)) {
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -298,11 +330,10 @@ void sensorHandler(void *cookie, sh2_SensorEvent_t *pEvent) {
 }
 
 void hal_hardwareReset(void) {
-    // TODO: set gpio reset to output
-    // TODO: set reset pin high
+    gpioWrite(_reset_pin, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    // TODO: set reset pin low
+    gpioWrite(_reset_pin, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    // TODO: set reset pin high
+    gpioWrite(_reset_pin, 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
