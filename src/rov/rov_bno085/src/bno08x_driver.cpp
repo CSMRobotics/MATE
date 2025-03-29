@@ -74,6 +74,14 @@ BNO08X::BNO08X(uint8_t reset_pin, uint8_t interrupt_pin) {
     this->interrupt_pin = interrupt_pin;
     _interrupt_pin = this->interrupt_pin;
     ret = gpioSetMode(interrupt_pin, JET_INPUT);
+
+    // spi by default
+    if (!makeSPI()) {
+        printf("Could not initialize BNO085\n");
+        exit(1);
+    }
+
+    printf("Successfully initialized!\n");
 }
 
 BNO08X::~BNO08X() {
@@ -90,32 +98,32 @@ bool BNO08X::makeSPI(int32_t sensor_id) {
     // open the spi device
     fd = open(SPIDEVICE, O_RDWR);
     if (fd < 0) {
-        perror("Unable to open SPI device");
+        printf("Unable to open SPI device");
         return false;
     }
     _fd = fd;
 
     // set spi mode
     if (ioctl(fd, SPI_IOC_WR_MODE, &spi_mode) == -1) {
-        perror("Unable to set SPI mode");
+        printf("Unable to set SPI mode");
         return false;
     }
 
     // set bits per word
     if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spi_bits_per_word) == -1) {
-        perror("Unable to set bits per word");
+        printf("Unable to set bits per word");
         return false;
     }
 
     // set max speed
     if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &spi_speed) == -1) {
-        perror("Unable to set max speed");
+        printf("Unable to set max speed");
         return false;
     }
 
     // set bit order
     if (ioctl(fd, SPI_IOC_WR_LSB_FIRST, &spi_lsb_first) == -1) {
-        perror("Unable to set bitorder to msb first");
+        printf("Unable to set bitorder to msb first");
         return false;
     }
 
