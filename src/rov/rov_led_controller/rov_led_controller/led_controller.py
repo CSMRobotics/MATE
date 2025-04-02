@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 import time
 import random
+import colorsys
 from WS2812 import SPItoWS
 
 NUM_LIGHTS = 60
@@ -57,11 +58,8 @@ class LEDControllerNode(Node):
         # Change brightness
         if len(msgs) == 2:
             try:
-                brightness = float(msgs[1])
-                if brightness > 1.0:
-                    brightness = 1
-                elif brightness < 0:
-                    brightness = 0
+                # set and clamp brightness between 0 and 1
+                brightness = max(0.0, min(float(msgs[1]), 1.0))
                 PIXELS.set_brightness(brightness)
                 self.get_logger().info("Changed brightness to: %f" % brightness)
             except:
@@ -109,48 +107,17 @@ class LEDControllerNode(Node):
         """
         Cycles a wave of rainbow over the LEDs
         """
-        RGBincrement = float(255 * 3.0) / NUM_LIGHTS
-        # LED RGB values
-        tempR = self.rainbowR
-        tempG = self.rainbowG
-        tempB = self.rainbowB
-
-        # Assigning LED RGB values
+        # HSV implementation
+        hueIncrement = 1.0 / NUM_LIGHTS
         for i in range(NUM_LIGHTS):
-            if tempR == 255 and tempB == 0 and tempG < 255:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempG += RGBincrement
-            elif tempG == 255 and tempB == 0 and tempR > 0:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempR -= RGBincrement
-            elif tempG == 255 and tempR == 0 and tempB < 255:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempB += RGBincrement
-            elif tempB == 255 and tempR == 0 and tempG > 0:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempG -= RGBincrement
-            elif tempB == 255 and tempG == 0 and tempR < 255:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempR += RGBincrement
-            elif tempR == 255 and tempG == 0 and tempB > 0:
-                PIXELS.RGBto3Bytes(i, tempR, tempG, tempB)
-                tempB -= RGBincrement
-        PIXELS.LED_show()
-        time.sleep(wait)
-
-        # increment first rainbow RGB values to next value
-        if self.rainbowR == 255 and self.rainbowB == 0 and self.rainbowG < 255:
-            self.rainbowG += 1
-        elif self.rainbowG == 255 and self.rainbowB == 0 and self.rainbowR > 0:
-            self.rainbowR -= 1
-        elif self.rainbowG == 255 and self.rainbowR == 0 and self.rainbowB < 255:
-            self.rainbowB += 1
-        elif self.rainbowB == 255 and self.rainbowR == 0 and self.rainbowG > 0:
-            self.rainbowG -= 1
-        elif self.rainbowB == 255 and self.rainbowG == 0 and self.rainbowR < 255:
-            self.rainbowR += 1
-        elif self.rainbowR == 255 and self.rainbowG == 0 and self.rainbowB > 0:
-            self.rainbowB -= 1
+            for j in range(NUM_LIGHTS):
+                if (j + i) <= NUM_LIGHTS:
+                    rgb = colorsys.hsv_to_rgb(hueIncrement * (j + i + 1), 1, 1)
+                else:
+                    rgb = colorsys.hsv_to_rgb(hueIncrement * (j + i + 1 - 60), 1, 1)
+                PIXELS.RGBto3Bytes(j, rgb[0] * 255, rgb[1] * 255, rgb[2] * 255)
+            PIXELS.LED_show()
+            time.sleep(wait)
 
 
     def pulse(self, color, wait=0.1):

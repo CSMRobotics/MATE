@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'led_controller'
+package_name = 'rov_led_controller'
 
 setup(
     name=package_name,
@@ -22,7 +22,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'led_controller = led_controller.led_controller:main'
+            'led_controller = rov_led_controller.led_controller:main'
         ],
     },
 )
