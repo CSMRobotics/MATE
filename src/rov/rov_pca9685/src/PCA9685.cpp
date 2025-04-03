@@ -127,10 +127,12 @@ void PCA9685::setAllOn() {
 
 void PCA9685::setDuty(uint8_t channel, float duty, float _delay) {
     // Hehe duty
-
-    uint16_t MAX_COUNT = 4096;
+    static const uint16_t MAX_COUNT = 4096;
     uint16_t dur_on = static_cast<uint16_t>(std::round(duty * MAX_COUNT));
-    uint16_t time_on = static_cast<uint16_t>(std::round(_delay * MAX_COUNT));
+    uint16_t time_on = static_cast<uint16_t>(std::round(_delay * MAX_COUNT)) - 1;
+    if (time_on > MAX_COUNT) {
+        time_on = 0;
+    }
     uint16_t time_off;
     if(dur_on >= MAX_COUNT){
         // Special case for fully on
@@ -147,9 +149,8 @@ void PCA9685::setDuty(uint8_t channel, float duty, float _delay) {
         time_off &= 0xFFF; // Modulo Again (in case the off time is in the next frame)
     }
 
-    // TODO: send the 13th bit for special cases
-    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), (dur_on >> 8) & 0x1F);
-    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_L + (channel << 2), dur_on & 0xFF);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_H + (channel << 2), (time_on >> 8) & 0x1F);
+    i2c_smbus_write_byte_data(i2c_fd, LED0_ON_L + (channel << 2), time_on & 0xFF);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_H + (channel << 2), (time_off >> 8) & 0x1F);
     i2c_smbus_write_byte_data(i2c_fd, LED0_OFF_L + (channel << 2), time_off & 0xFF);
 }
