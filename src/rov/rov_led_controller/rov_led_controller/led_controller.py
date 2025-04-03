@@ -4,6 +4,7 @@ from rclpy.node import Node
 import time
 import random
 import colorsys
+import threading
 from WS2812 import SPItoWS
 
 NUM_LIGHTS = 60
@@ -35,10 +36,13 @@ class LEDControllerNode(Node):
             "PURPLE": (180, 0, 255)
         }
 
-        # Rainbow RGB values
-        self.rainbowR = 255
-        self.rainbowG = 255
-        self.rainbowB = 0
+        # Calculate rainbow RGB values
+        self.rainbowValues = []
+        hueIncrement = 1.0 / NUM_LIGHTS
+        for i in range (1, NUM_LIGHTS + 1):
+            rgb = colorsys.hsv_to_rgb(i * hueIncrement, 1, 1)
+            scaled_rgb = tuple(int(value * 255) for value in rgb)
+            self.rainbowValues.append(scaled_rgb)        
 
         # color value and current animation
         self.ledColor = "WHITE"
@@ -60,7 +64,7 @@ class LEDControllerNode(Node):
             try:
                 # set and clamp brightness between 0 and 1
                 brightness = max(0.0, min(float(msgs[1]), 1.0))
-                PIXELS.set_brightness(brightness)
+                PIXELS.set_brightness(brightness * 0.5)
                 self.get_logger().info("Changed brightness to: %f" % brightness)
             except:
                 self.get_logger().info("Second argument, brightness, should be a float.")
@@ -79,7 +83,7 @@ class LEDControllerNode(Node):
             self.get_logger().info('Sent preprogrammed colors to UI')
         else:
             # Check if the requested animation exists
-            if msgs[0] in self.animations:
+            if msgs[0] in self.animations:                    
                 # Call the method corresponding to the requested animation
                 self.currentAnimation = msgs[0]
                 self.get_logger().info('New animation received: %s' % msgs[0])
@@ -103,19 +107,13 @@ class LEDControllerNode(Node):
         time.sleep(0.5)
 
 
-    def rainbow_cycle(self, color, wait=0.1):
+    def rainbow_cycle(self, color, wait = 2 / NUM_LIGHTS):
         """
         Cycles a wave of rainbow over the LEDs
         """
-        # HSV implementation
-        hueIncrement = 1.0 / NUM_LIGHTS
         for i in range(NUM_LIGHTS):
-            for j in range(NUM_LIGHTS):
-                if (j + i) <= NUM_LIGHTS:
-                    rgb = colorsys.hsv_to_rgb(hueIncrement * (j + i + 1), 1, 1)
-                else:
-                    rgb = colorsys.hsv_to_rgb(hueIncrement * (j + i + 1 - 60), 1, 1)
-                PIXELS.RGBto3Bytes(j, rgb[0] * 255, rgb[1] * 255, rgb[2] * 255)
+            for j in range (NUM_LIGHTS):
+                PIXELS.RGBto3Bytes(j, self.rainbowValues[i % NUM_LIGHTS][0], self.rainbowValues[i % NUM_LIGHTS][1], self.rainbowValues[i % NUM_LIGHTS][2])
             PIXELS.LED_show()
             time.sleep(wait)
 
@@ -131,6 +129,7 @@ class LEDControllerNode(Node):
             PIXELS.LED_show()
         time.sleep(wait)
 
+
     def solid(self, color, wait=0.1):
         """
         Changes all LEDs to solid color
@@ -138,6 +137,7 @@ class LEDControllerNode(Node):
         for i in range (NUM_LIGHTS):
             PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
         PIXELS.LED_show()
+
 
     def seizure_disco(self, color, wait=0.1):
         """
@@ -161,6 +161,7 @@ class LEDControllerNode(Node):
         for i in range (NUM_LIGHTS):
             PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
 
+        
 
 
 def main(args=None):
