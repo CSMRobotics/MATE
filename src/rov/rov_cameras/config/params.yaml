@@ -1,0 +1,13 @@
+rov_cameras:
+  ros__parameters:
+    # cameras: ["test", "front", "transect"]
+    cameras: ["test"]
+    test:
+      port: "8809"
+      pipeline: videotestsrc is-live=true ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0 pt=96
+    front:
+      port: "8554"
+      pipeline: nvarguscamerasrc sensor-id=0 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96
+    transect:
+      port: "8555"
+      pipeline: nvarguscamerasrc sensor-id=1 ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvvidconv ! nvv4l2h264enc ! h264parse ! rtph264pay name=pay0 pt=96
