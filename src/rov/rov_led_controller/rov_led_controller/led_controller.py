@@ -1,128 +1,212 @@
-from common.csm_common_interfaces.msg import PinState
 from std_msgs.msg import String
-import Jetson.GPIO as GPIO
 import rclpy
 from rclpy.node import Node
-from rainbowio import colorwheel
-
-import board
-import neopixel_spi
 import time
 import random
+import colorsys
+import threading
+from WS2812 import SPItoWS
 
 NUM_LIGHTS = 60
-LED_PIN = board.SPI()._pins[0]
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-RED = (255, 0, 0)
-YELLOW = (255, 150, 0)
-GREEN = (0, 255, 0)
-CYAN = (0, 255, 255)
-BLUE = (0, 0, 255)
-PURPLE = (180, 0, 255)
-PIXELS = neopixel_spi.NeoPixel_SPI(board.SPI(), NUM_LIGHTS)
-global ledState
-global ledColor
+PIXELS = SPItoWS(NUM_LIGHTS)
 
 class LEDControllerNode(Node):
     
     def __init__(self):
         super().__init__(node_name="LEDController")
-        self.state_subscriber = self.create_subscription(PinState, "set_rov_gpio", self.on_set_rov_gpio, 10)
-        self.publisher_ = self.create_publisher(String, 'preprogrammed_animations', 10)
+        self.publisher_ = self.create_publisher(String, 'led_controller_output', 10)
         
-        self.animations = [
-            "color_chase",
-            "rainbow_cycle",
-            "pulse",
-            "solid",
-            "seizure_disco"
-        ]
+        self.animations = {
+            "color_chase": self.color_chase, 
+            "rainbow_cycle": self.rainbow_cycle,
+            "pulse": self.pulse,
+            "solid": self.solid,
+            "seizure_disco": self.seizure_disco,
+            "off": self.off,
+            "boot": self.boot
+        }
 
-        self.colors = [
-            "WHITE",
-            "BLACK",
-            "RED",
-            "YELLOW",
-            "GREEN",
-            "CYAN",
-            "BLUE",
-            "PURPLE"
-        ]
+        self.colors = {
+            "WHITE": (255,255,255),
+            "BLACK": (0,0,0),
+            "RED": (255, 0, 0),
+            "YELLOW": (255, 150, 0),
+            "GREEN": (0, 255, 0),
+            "CYAN": (0, 255, 255),
+            "BLUE": (0, 0, 255),
+            "PURPLE": (180, 0, 255)
+        }
+
+        # Calculate rainbow RGB values
+        self.rainbowValues = []
+        hueIncrement = 1.0 / 256
+        for i in range (1, 257):
+            rgb = colorsys.hsv_to_rgb(i * hueIncrement, 1, 1)
+            scaled_rgb = tuple(int(value * 255) for value in rgb)
+            self.rainbowValues.append(scaled_rgb)        
+
+        # color value and current animation
+        self.ledColor = "WHITE"
+        self.currentAnimation = "solid"
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
 
-        PIXELS.fill(BLACK)
+        # Stop flag
+        self.stopAnim = False
+
+        PIXELS.LED_OFF_ALL()
+        
 
     def ui_request_callback(self, msg):
-        if msg.data == 'get_animations':
+        # Split message
+        split = msg.data.split(",")
+        msgs = [s.strip() for s in split]
+
+        # Change brightness
+        if len(msgs) == 2:
+            try:
+                # set and clamp brightness between 0 and 1
+                brightness = max(0.0, min(float(msgs[1]), 1.0))
+                PIXELS.set_brightness(brightness * 0.5)
+                self.get_logger().info("Changed brightness to: %f" % brightness)
+            except:
+                self.get_logger().info("Second argument, brightness, should be a float.")
+        
+        # Change animation and colors
+        if msgs[0] == 'get_animations':
             # Send the list of preprogrammed animations to the UI
             animations_msg = String()
             animations_msg.data = "\n".join(animation for animation in self.animations)
             self.publisher_.publish(animations_msg)
             self.get_logger().info('Sent preprogrammed animations to UI')
-        elif msg.data == 'get_colors':
+        elif msgs[0] == 'get_colors':
             colors_msg = String()
             colors_msg.data = "\n".join(color for color in self.colors)
             self.publisher_.publish(colors_msg)
             self.get_logger().info('Sent preprogrammed colors to UI')
         else:
             # Check if the requested animation exists
-            if msg.data in self.animations:
+            if msgs[0] in self.animations:                    
+                # Stop current animation
+                self.stopAnim = True
+                while threading.active_count() > 1:
+                    time.sleep(0.1)
+                self.stopAnim = False
                 # Call the method corresponding to the requested animation
-                
-                if ledState and (lastAnimation != msg.data):
-                    exec(f"self.{msg.data}({ledColor}, 0.1)")()
-                else:
-                    PIXELS.brightness(0)
-                lastAnimation = msg.data
-            elif msg.data in self.colors:
-                lastColor = ledColor
-                if ledState and (lastColor != msg.data):
-                    exec(f"self.{lastAnimation}({msg.data}, 0.1)")()
+                self.currentAnimation = msgs[0]
+                self.get_logger().info('New animation received: %s' % msgs[0])
+                tempThread = threading.Thread(target=self.animations[msgs[0]], args=(self.colors[self.ledColor],))
+                tempThread.start()
+            elif msgs[0] in self.colors:
+                # Stop current animation
+                self.stopAnim = True
+                while threading.active_count() > 1:
+                    time.sleep(0.1)
+                self.stopAnim = False
+                # Change the color if message changes colors
+                self.ledColor = msgs[0]
+                self.get_logger().info('New color received: %s' % msgs[0])
+                self.animations[self.currentAnimation](self.colors[msgs[0]])
+            
 
-
-    def on_set_rov_gpio(self, message: PinState):
-        if message.pin not in LED_PIN:
-            pass
-        ledState = message.state
     
-    def color_chase(color, wait=0.1):
-        for i in range(NUM_LIGHTS):
-            PIXELS[i] = color
-            time.sleep(wait)
-            PIXELS.show()
-        time.sleep(0.5)
-
-    def rainbow_cycle(color, wait=0.1):
-        for j in range(255):
+    def color_chase(self, color, wait=1/NUM_LIGHTS):
+        """
+        Animates a single color across the LED strip
+        """
+        PIXELS.LED_OFF_ALL()
+        while self.stopAnim == False:
             for i in range(NUM_LIGHTS):
-                rc_index = (i * 256 // NUM_LIGHTS) + j
-                PIXELS[i] = colorwheel(rc_index & 255)
-            PIXELS.show()
-            time.sleep(wait)
+                PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
+            for i in range(NUM_LIGHTS):
+                PIXELS.RGBto3Bytes(i, 0, 0, 0)
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
 
-    def pulse(color, wait=0.1):
-        PIXELS.fill(color)
-        for i in range(255):
-            PIXELS.setBrightness(i)
-            time.sleep(wait)
-            PIXELS.show()
-        time.sleep(wait)
 
-    def solid(color, wait=0.1):
-        PIXELS.fill(color)
-        PIXELS.show()
+    def rainbow_cycle(self, color, wait = 2 / NUM_LIGHTS):
+        """
+        Cycles a wave of rainbow over the LEDs
+        """
+        while self.stopAnim == False:
+            for i in range(256):
+                for j in range (NUM_LIGHTS):
+                    PIXELS.RGBto3Bytes(j, self.rainbowValues[(j + i) % 256][0], self.rainbowValues[(j + i) % 256][1], self.rainbowValues[(j + i) % 256][2])
+                PIXELS.LED_show()
+                time.sleep(wait)
+                if self.stopAnim == True:
+                    break
 
-    def seizure_disco(color, wait=0.1):
+
+    def pulse(self, color, wait=0.1):
+        """
+        Fades a single color in and out
+        """
+        while self.stopAnim == False:
+            for i in range(255):
+                for j in range(NUM_LIGHTS):
+                    PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
+
+
+    def solid(self, color, wait=0.1):
+        """
+        Changes all LEDs to solid color
+        """
+        for i in range (NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+        PIXELS.LED_show()
+
+
+    def seizure_disco(self, color, wait=0.1):
+        """
+        Changes all LEDs to a random color
+        """
         for i in range(NUM_LIGHTS):
             R = random.randint(0,255)
             G = random.randint(0,255)
             B = random.randint(0,255)
-            PIXELS[i].fill(R, G, B)
-        PIXELS.show()
+            PIXELS.RGBto3Bytes(i, R, G, B)
+        PIXELS.LED_show()
         time.sleep(wait)
+
+    def off(self, color):
+        PIXELS.LED_OFF_ALL()
+
+    def boot(self, color):
+        """
+        Booting animation
+        """
+        for i in range(NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, 0, 255, 0)
+            PIXELS.LED_show()
+            time.sleep(1/NUM_LIGHTS)
+        time.sleep(0.3)
+        PIXELS.LED_OFF_ALL()
+        time.sleep(0.3)
+        self._set_all_pixels(self.colors["GREEN"])
+        time.sleep(1)
+        PIXELS.LED_OFF_ALL()
+        
+
+    def _set_all_pixels(self, color):
+        """
+        Sets all pixels to a single
+        """
+        for i in range (NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+
+        
 
 
 def main(args=None):
