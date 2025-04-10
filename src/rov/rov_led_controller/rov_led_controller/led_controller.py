@@ -22,7 +22,8 @@ class LEDControllerNode(Node):
             "pulse": self.pulse,
             "solid": self.solid,
             "seizure_disco": self.seizure_disco,
-            "off": self.off
+            "off": self.off,
+            "boot": self.boot
         }
 
         self.colors = {
@@ -38,8 +39,8 @@ class LEDControllerNode(Node):
 
         # Calculate rainbow RGB values
         self.rainbowValues = []
-        hueIncrement = 1.0 / NUM_LIGHTS
-        for i in range (1, NUM_LIGHTS + 1):
+        hueIncrement = 1.0 / 256
+        for i in range (1, 257):
             rgb = colorsys.hsv_to_rgb(i * hueIncrement, 1, 1)
             scaled_rgb = tuple(int(value * 255) for value in rgb)
             self.rainbowValues.append(scaled_rgb)        
@@ -50,6 +51,9 @@ class LEDControllerNode(Node):
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
+
+        # Stop flag
+        self.stopAnim = False
 
         PIXELS.LED_OFF_ALL()
         
@@ -84,11 +88,22 @@ class LEDControllerNode(Node):
         else:
             # Check if the requested animation exists
             if msgs[0] in self.animations:                    
+                # Stop current animation
+                self.stopAnim = True
+                while threading.active_count() > 1:
+                    time.sleep(0.1)
+                self.stopAnim = False
                 # Call the method corresponding to the requested animation
                 self.currentAnimation = msgs[0]
                 self.get_logger().info('New animation received: %s' % msgs[0])
-                self.animations[msgs[0]](self.colors[self.ledColor])
+                tempThread = threading.Thread(target=self.animations[msgs[0]], args=(self.colors[self.ledColor],))
+                tempThread.start()
             elif msgs[0] in self.colors:
+                # Stop current animation
+                self.stopAnim = True
+                while threading.active_count() > 1:
+                    time.sleep(0.1)
+                self.stopAnim = False
                 # Change the color if message changes colors
                 self.ledColor = msgs[0]
                 self.get_logger().info('New color received: %s' % msgs[0])
@@ -96,38 +111,52 @@ class LEDControllerNode(Node):
             
 
     
-    def color_chase(self, color, wait=0.1):
+    def color_chase(self, color, wait=1/NUM_LIGHTS):
         """
         Animates a single color across the LED strip
         """
-        for i in range(NUM_LIGHTS):
-            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
-            time.sleep(wait)
-        PIXELS.LED_show()
-        time.sleep(0.5)
+        PIXELS.LED_OFF_ALL()
+        while self.stopAnim == False:
+            for i in range(NUM_LIGHTS):
+                PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
+            for i in range(NUM_LIGHTS):
+                PIXELS.RGBto3Bytes(i, 0, 0, 0)
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
 
 
     def rainbow_cycle(self, color, wait = 2 / NUM_LIGHTS):
         """
         Cycles a wave of rainbow over the LEDs
         """
-        for i in range(NUM_LIGHTS):
-            for j in range (NUM_LIGHTS):
-                PIXELS.RGBto3Bytes(j, self.rainbowValues[i % NUM_LIGHTS][0], self.rainbowValues[i % NUM_LIGHTS][1], self.rainbowValues[i % NUM_LIGHTS][2])
-            PIXELS.LED_show()
-            time.sleep(wait)
+        while self.stopAnim == False:
+            for i in range(256):
+                for j in range (NUM_LIGHTS):
+                    PIXELS.RGBto3Bytes(j, self.rainbowValues[(j + i) % 256][0], self.rainbowValues[(j + i) % 256][1], self.rainbowValues[(j + i) % 256][2])
+                PIXELS.LED_show()
+                time.sleep(wait)
+                if self.stopAnim == True:
+                    break
 
 
     def pulse(self, color, wait=0.1):
         """
-        Fades a single color in
+        Fades a single color in and out
         """
-        for i in range(255):
-            for j in range(NUM_LIGHTS):
-                PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
-            time.sleep(wait)
-            PIXELS.LED_show()
-        time.sleep(wait)
+        while self.stopAnim == False:
+            for i in range(255):
+                for j in range(NUM_LIGHTS):
+                    PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
+                time.sleep(wait)
+                PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
 
 
     def solid(self, color, wait=0.1):
@@ -153,6 +182,22 @@ class LEDControllerNode(Node):
 
     def off(self, color):
         PIXELS.LED_OFF_ALL()
+
+    def boot(self, color):
+        """
+        Booting animation
+        """
+        for i in range(NUM_LIGHTS):
+            PIXELS.RGBto3Bytes(i, 0, 255, 0)
+            PIXELS.LED_show()
+            time.sleep(1/NUM_LIGHTS)
+        time.sleep(0.3)
+        PIXELS.LED_OFF_ALL()
+        time.sleep(0.3)
+        self._set_all_pixels(self.colors["GREEN"])
+        time.sleep(1)
+        PIXELS.LED_OFF_ALL()
+        
 
     def _set_all_pixels(self, color):
         """
