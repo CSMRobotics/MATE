@@ -31,7 +31,9 @@ def generate_launch_description():
     )
     cameras = Node(
         package="rov_cameras",
-        executable="rov_cameras"
+        executable="rov_cameras",
+        name="rov_cameras",
+        parameters=[os.path.join(get_package_share_directory("rov_cameras"), "config", "params.yaml")],
     )
     control = Node(
         package="rov_control",

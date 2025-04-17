@@ -1,2 +1,3 @@
 OpenCV4 >= 4.2
 Eigen3 >= 3.3.7
+libi2c >= 4.3
