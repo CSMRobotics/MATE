@@ -5,10 +5,13 @@ import time
 import random
 import colorsys
 import threading
-from WS2812 import SPItoWS
+from rov_led_controller.WS2812 import SPItoWS
+from rov_led_controller.SK6812RGBW import SPItoSK
+
 
 NUM_LIGHTS = 60
-PIXELS = SPItoWS(NUM_LIGHTS)
+RGB_PIXELS = SPItoWS(NUM_LIGHTS)
+RGBW_PIXELS = SPItoSK(NUM_LIGHTS) 
 
 class LEDControllerNode(Node):
     
@@ -55,7 +58,8 @@ class LEDControllerNode(Node):
         # Stop flag
         self.stopAnim = False
 
-        PIXELS.LED_OFF_ALL()
+        RGB_PIXELS.LED_OFF_ALL()
+        RGBW_PIXELS.set_LED_color(40, 255, 255, 255, 255)
         
 
     def ui_request_callback(self, msg):
@@ -68,7 +72,7 @@ class LEDControllerNode(Node):
             try:
                 # set and clamp brightness between 0 and 1
                 brightness = max(0.0, min(float(msgs[1]), 1.0))
-                PIXELS.set_brightness(brightness * 0.5)
+                RGB_PIXELS.set_brightness(brightness * 0.5)
                 self.get_logger().info("Changed brightness to: %f" % brightness)
             except:
                 self.get_logger().info("Second argument, brightness, should be a float.")
@@ -115,18 +119,18 @@ class LEDControllerNode(Node):
         """
         Animates a single color across the LED strip
         """
-        PIXELS.LED_OFF_ALL()
+        RGB_PIXELS.LED_OFF_ALL()
         while self.stopAnim == False:
             for i in range(NUM_LIGHTS):
-                PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+                RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
                 time.sleep(wait)
-                PIXELS.LED_show()
+                RGB_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
             for i in range(NUM_LIGHTS):
-                PIXELS.RGBto3Bytes(i, 0, 0, 0)
+                RGB_PIXELS.set_LED_color(i, 0, 0, 0)
                 time.sleep(wait)
-                PIXELS.LED_show()
+                RGB_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
 
@@ -138,8 +142,8 @@ class LEDControllerNode(Node):
         while self.stopAnim == False:
             for i in range(256):
                 for j in range (NUM_LIGHTS):
-                    PIXELS.RGBto3Bytes(j, self.rainbowValues[(j + i) % 256][0], self.rainbowValues[(j + i) % 256][1], self.rainbowValues[(j + i) % 256][2])
-                PIXELS.LED_show()
+                    RGB_PIXELS.set_LED_color(j, self.rainbowValues[(j + i) % 256][0], self.rainbowValues[(j + i) % 256][1], self.rainbowValues[(j + i) % 256][2])
+                RGB_PIXELS.LED_show()
                 time.sleep(wait)
                 if self.stopAnim == True:
                     break
@@ -152,9 +156,9 @@ class LEDControllerNode(Node):
         while self.stopAnim == False:
             for i in range(255):
                 for j in range(NUM_LIGHTS):
-                    PIXELS.RGBto3Bytes(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
+                    RGB_PIXELS.set_LED_color(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
                 time.sleep(wait)
-                PIXELS.LED_show()
+                RGB_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
 
@@ -164,8 +168,8 @@ class LEDControllerNode(Node):
         Changes all LEDs to solid color
         """
         for i in range (NUM_LIGHTS):
-            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
-        PIXELS.LED_show()
+            RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
+        RGB_PIXELS.LED_show()
 
 
     def seizure_disco(self, color, wait=0.1):
@@ -176,27 +180,27 @@ class LEDControllerNode(Node):
             R = random.randint(0,255)
             G = random.randint(0,255)
             B = random.randint(0,255)
-            PIXELS.RGBto3Bytes(i, R, G, B)
-        PIXELS.LED_show()
+            RGB_PIXELS.set_LED_color(i, R, G, B)
+        RGB_PIXELS.LED_show()
         time.sleep(wait)
 
     def off(self, color):
-        PIXELS.LED_OFF_ALL()
+        RGB_PIXELS.LED_OFF_ALL()
 
     def boot(self, color):
         """
         Booting animation
         """
         for i in range(NUM_LIGHTS):
-            PIXELS.RGBto3Bytes(i, 0, 255, 0)
-            PIXELS.LED_show()
+            RGB_PIXELS.set_LED_color(i, 0, 255, 0)
+            RGB_PIXELS.LED_show()
             time.sleep(1/NUM_LIGHTS)
         time.sleep(0.3)
-        PIXELS.LED_OFF_ALL()
+        RGB_PIXELS.LED_OFF_ALL()
         time.sleep(0.3)
         self._set_all_pixels(self.colors["GREEN"])
         time.sleep(1)
-        PIXELS.LED_OFF_ALL()
+        RGB_PIXELS.LED_OFF_ALL()
         
 
     def _set_all_pixels(self, color):
@@ -204,7 +208,7 @@ class LEDControllerNode(Node):
         Sets all pixels to a single
         """
         for i in range (NUM_LIGHTS):
-            PIXELS.RGBto3Bytes(i, color[0], color[1], color[2])
+            RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
 
         
 

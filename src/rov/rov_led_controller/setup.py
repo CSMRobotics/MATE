@@ -10,8 +10,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        # add WS2812
-        ('lib/' + package_name, [package_name+'/WS2812.py'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,

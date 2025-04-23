@@ -35,7 +35,7 @@ class SPItoWS():
             WS = self._BytesToHex(Y)
             self.spi.xfer3(Y, 2400000,0,8)
 
-    def RGBto3Bytes(self, led_num, R, G, B):
+    def set_LED_color(self, led_num, R, G, B):
         if (R > 255 or G > 255 or B > 255):
             print("Invalid Value: RGB is over 255\n")
             sys.exit(1)
