@@ -12,7 +12,7 @@ class Bar30_Node(Node):
     def __init__(self):
         super().__init__("bar30")
         self._publisher = self.create_publisher(Bar30Data, "bar30", 10)
-        self.sensor = ms5837.MS5837_30BA()
+        self.sensor = ms5837.MS5837_30BA(7)
         self.sensor.setFluidDensity(992.72) # rough estimate of density of pool water (we arent going to use sat liquid tables)
         self.sensor.init()
         sleep(0.01)
