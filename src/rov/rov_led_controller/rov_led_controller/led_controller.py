@@ -9,9 +9,9 @@ from rov_led_controller.WS2812 import SPItoWS
 from rov_led_controller.SK6812RGBW import SPItoSK
 
 
-NUM_LIGHTS = 60
-RGB_PIXELS = SPItoWS(NUM_LIGHTS)
-RGBW_PIXELS = SPItoSK(NUM_LIGHTS) 
+NUM_LEDS = 60
+RGB_PIXELS = SPItoWS(NUM_LEDS)
+RGBW_PIXELS = SPItoSK(NUM_LEDS) 
 
 class LEDControllerNode(Node):
     
@@ -115,35 +115,44 @@ class LEDControllerNode(Node):
             
 
     
-    def color_chase(self, color, wait=1/NUM_LIGHTS):
+    def color_chase(self, color, wait=1/NUM_LEDS):
         """
         Animates a single color across the LED strip
         """
         RGB_PIXELS.LED_OFF_ALL()
         while self.stopAnim == False:
-            for i in range(NUM_LIGHTS):
+            for i in range(NUM_LEDS):
                 RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
+                self._set_RGBW_LED(i, color[0], color[1], color[2])
                 time.sleep(wait)
                 RGB_PIXELS.LED_show()
+                RGBW_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
-            for i in range(NUM_LIGHTS):
+            for i in range(NUM_LEDS):
                 RGB_PIXELS.set_LED_color(i, 0, 0, 0)
+                self._set_RGBW_LED(i, 0, 0, 0)
                 time.sleep(wait)
                 RGB_PIXELS.LED_show()
+                RGBW_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
 
 
-    def rainbow_cycle(self, color, wait = 2 / NUM_LIGHTS):
+    def rainbow_cycle(self, color, wait = 2 / NUM_LEDS):
         """
         Cycles a wave of rainbow over the LEDs
         """
         while self.stopAnim == False:
             for i in range(256):
-                for j in range (NUM_LIGHTS):
-                    RGB_PIXELS.set_LED_color(j, self.rainbowValues[(j + i) % 256][0], self.rainbowValues[(j + i) % 256][1], self.rainbowValues[(j + i) % 256][2])
+                for j in range (NUM_LEDS):
+                    R = self.rainbowValues[(j + i) % 256][0]
+                    G = self.rainbowValues[(j + i) % 256][1]
+                    B = self.rainbowValues[(j + i) % 256][2]
+                    RGB_PIXELS.set_LED_color(j,R ,G ,B)
+                    self._set_RGBW_LED(j, R, G, B)
                 RGB_PIXELS.LED_show()
+                RGBW_PIXELS.LED_show()
                 time.sleep(wait)
                 if self.stopAnim == True:
                     break
@@ -155,10 +164,15 @@ class LEDControllerNode(Node):
         """
         while self.stopAnim == False:
             for i in range(255):
-                for j in range(NUM_LIGHTS):
-                    RGB_PIXELS.set_LED_color(j, color[0] * (i / 255.0), color[1] * (i / 255.0), color[2] * (i / 255.0))
+                for j in range(NUM_LEDS):
+                    R = color[0] * (i / 255.0)
+                    G = color[1] * (i / 255.0)
+                    B = color[2] * (i / 255.0)
+                    RGB_PIXELS.set_LED_color(j ,R ,G ,B)
+                    self._set_RGBW_LED(j, R, G,B)
                 time.sleep(wait)
                 RGB_PIXELS.LED_show()
+                RGBW_PIXELS.LED_show()
                 if self.stopAnim == True:
                     break
 
@@ -167,21 +181,23 @@ class LEDControllerNode(Node):
         """
         Changes all LEDs to solid color
         """
-        for i in range (NUM_LIGHTS):
-            RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
+        self._set_all_pixels(color[0], color[1], color[2])
         RGB_PIXELS.LED_show()
+        RGBW_PIXELS.LED_show()
 
 
     def seizure_disco(self, color, wait=0.1):
         """
         Changes all LEDs to a random color
         """
-        for i in range(NUM_LIGHTS):
+        for i in range(NUM_LEDS):
             R = random.randint(0,255)
             G = random.randint(0,255)
             B = random.randint(0,255)
             RGB_PIXELS.set_LED_color(i, R, G, B)
+            self._set_RGBW_LED(i, R, G, B)
         RGB_PIXELS.LED_show()
+        RGBW_PIXELS.LED_show()
         time.sleep(wait)
 
     def off(self, color):
@@ -191,10 +207,10 @@ class LEDControllerNode(Node):
         """
         Booting animation
         """
-        for i in range(NUM_LIGHTS):
+        for i in range(NUM_LEDS):
             RGB_PIXELS.set_LED_color(i, 0, 255, 0)
             RGB_PIXELS.LED_show()
-            time.sleep(1/NUM_LIGHTS)
+            time.sleep(1/NUM_LEDS)
         time.sleep(0.3)
         RGB_PIXELS.LED_OFF_ALL()
         time.sleep(0.3)
@@ -207,9 +223,22 @@ class LEDControllerNode(Node):
         """
         Sets all pixels to a single
         """
-        for i in range (NUM_LIGHTS):
+        for i in range (NUM_LEDS):
             RGB_PIXELS.set_LED_color(i, color[0], color[1], color[2])
+            self._set_RGBW_LED(i, color[0], color[1], color[2])
+    
 
+    def _set_RGBW_LED(self, ledNum, R, G, B):
+        """
+        Convert RGB value to RGBW value and set RGBW LEDs to new color
+        """
+        newW = min(R, G, B)
+        RGBScale = 255/newW
+        newR = R * RGBScale
+        newG = G * RGBScale
+        newB = B * RGBScale
+        RGBW_PIXELS.set_LED_color(ledNum, newR, newG, newB, newW)
+        
         
 
 

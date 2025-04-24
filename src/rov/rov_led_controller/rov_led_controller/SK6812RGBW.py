@@ -1,5 +1,6 @@
 import spidev
 import sys
+import time
 
 class SPItoSK():
     def __init__(self, numLeds, bus = 1, device = 0):
@@ -42,7 +43,8 @@ class SPItoSK():
             bytesToSend.insert(0, self.binMsg & ((1 << 8) - 1))  # Extract lowest 8 bits
             self.binMsg >>= 8  # Shift right by 8 bits
         self.spi.xfer(bytesToSend, delay_usec = 0, bits_per_word = 8)
-
+        time.sleep(80e-6)
+        
         # debug
         bytesString = []
         for i in bytesToSend:
@@ -56,7 +58,16 @@ class SPItoSK():
         """
         brightness = max(0.0, min(brightness, 1.0))
         self.ledBrightness = brightness
-        
+
+    def LED_OFF_ALL(self):
+        """
+        Turns off LEDs
+        """
+        self.binMsg = 0b100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
+        for i in range(self.ledCount - 1):
+            # 96 bits per led, 3 bits per real bit
+            self.binMsg = (self.binMsg << 96) | 0b100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
+        self.LED_show()
                 
     def _formatBinMsg(self, startPos, colorNum):
         number = format(colorNum, '08b')
