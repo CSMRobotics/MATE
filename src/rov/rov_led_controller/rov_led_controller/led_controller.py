@@ -57,9 +57,10 @@ class LEDControllerNode(Node):
 
         # Stop flag
         self.stopAnim = False
+        self.stopLock = threading.Lock()
 
         RGB_PIXELS.LED_OFF_ALL()
-        RGBW_PIXELS.set_LED_color(40, 255, 255, 255, 255)
+        RGBW_PIXELS.LED_OFF_ALL()
         
 
     def ui_request_callback(self, msg):
@@ -73,6 +74,7 @@ class LEDControllerNode(Node):
                 # set and clamp brightness between 0 and 1
                 brightness = max(0.0, min(float(msgs[1]), 1.0))
                 RGB_PIXELS.set_brightness(brightness * 0.5)
+                RGBW_PIXELS.set_brightness(brightness * 0.5)
                 self.get_logger().info("Changed brightness to: %f" % brightness)
             except:
                 self.get_logger().info("Second argument, brightness, should be a float.")
@@ -93,7 +95,8 @@ class LEDControllerNode(Node):
             # Check if the requested animation exists
             if msgs[0] in self.animations:                    
                 # Stop current animation
-                self.stopAnim = True
+                with self.stopLock:
+                    self.stopAnim = True
                 while threading.active_count() > 1:
                     time.sleep(0.1)
                 self.stopAnim = False
@@ -104,14 +107,16 @@ class LEDControllerNode(Node):
                 tempThread.start()
             elif msgs[0] in self.colors:
                 # Stop current animation
-                self.stopAnim = True
+                with self.stopLock:
+                    self.stopAnim = True
                 while threading.active_count() > 1:
                     time.sleep(0.1)
                 self.stopAnim = False
                 # Change the color if message changes colors
                 self.ledColor = msgs[0]
                 self.get_logger().info('New color received: %s' % msgs[0])
-                self.animations[self.currentAnimation](self.colors[msgs[0]])
+                tempThread = threading.Thread(target=self.animations[self.currentAnimation], args=(self.colors[msgs[0]],))
+                tempThread.start()
             
 
     
@@ -158,18 +163,26 @@ class LEDControllerNode(Node):
                     break
 
 
-    def pulse(self, color, wait=0.1):
+    def pulse(self, color, wait=0.005):
         """
         Fades a single color in and out
         """
         while self.stopAnim == False:
             for i in range(255):
-                for j in range(NUM_LEDS):
-                    R = color[0] * (i / 255.0)
-                    G = color[1] * (i / 255.0)
-                    B = color[2] * (i / 255.0)
-                    RGB_PIXELS.set_LED_color(j ,R ,G ,B)
-                    self._set_RGBW_LED(j, R, G,B)
+                R = color[0] * (i / 255.0)
+                G = color[1] * (i / 255.0)
+                B = color[2] * (i / 255.0)
+                self._set_all_pixels((R, G, B))
+                time.sleep(wait)
+                RGB_PIXELS.LED_show()
+                RGBW_PIXELS.LED_show()
+                if self.stopAnim == True:
+                    break
+            for i in range(255):
+                R = color[0] * ((255 - i) / 255.0)
+                G = color[1] * ((255 - i) / 255.0)
+                B = color[2] * ((255 - i) / 255.0)
+                self._set_all_pixels((R, G, B))
                 time.sleep(wait)
                 RGB_PIXELS.LED_show()
                 RGBW_PIXELS.LED_show()
@@ -181,7 +194,7 @@ class LEDControllerNode(Node):
         """
         Changes all LEDs to solid color
         """
-        self._set_all_pixels(color[0], color[1], color[2])
+        self._set_all_pixels((color[0], color[1], color[2]))
         RGB_PIXELS.LED_show()
         RGBW_PIXELS.LED_show()
 
@@ -202,6 +215,7 @@ class LEDControllerNode(Node):
 
     def off(self, color):
         RGB_PIXELS.LED_OFF_ALL()
+        RGBW_PIXELS.LED_OFF_ALL()
 
     def boot(self, color):
         """
@@ -232,11 +246,39 @@ class LEDControllerNode(Node):
         """
         Convert RGB value to RGBW value and set RGBW LEDs to new color
         """
+        # percentage of RGB in old colorspace
+        RGBTotal = R + G + B
+        if RGBTotal == 0:
+             RGBW_PIXELS.set_LED_color(ledNum, 0, 0, 0, 0)
+             return
+        percentR = R/RGBTotal
+        percentG = G/RGBTotal
+        percentB = B/RGBTotal
+        # set white value as lowest RGB value
         newW = min(R, G, B)
-        RGBScale = 255/newW
-        newR = R * RGBScale
-        newG = G * RGBScale
-        newB = B * RGBScale
+        # To preserve max brightness, set new highest RGB value to corresponding RGBW value
+        # Then scale the value of the 2 other RGB values to preserve original color percentage
+        newR = 0
+        newG = 0
+        newB = 0
+        if max(R, G, B) == R:
+            newR = R
+            RTotal = newR + newW
+            RGBWTotal = RTotal / percentR
+            newG = (RGBWTotal * percentG) - newW
+            newB = (RGBWTotal * percentB) - newW
+        elif max(R, G, B) == G:
+            newG = G
+            GTotal = newG + newW
+            RGBWTotal = GTotal / percentG
+            newR = (RGBWTotal * percentR) - newW
+            newB = (RGBWTotal * percentB) - newW
+        elif max(R, G, B) == B:
+            newB = B
+            BTotal = newB + newW
+            RGBWTotal = BTotal / percentB                
+            newR = (RGBWTotal * percentR) - newW
+            newG = (RGBWTotal * percentG) - newW
         RGBW_PIXELS.set_LED_color(ledNum, newR, newG, newB, newW)
         
         

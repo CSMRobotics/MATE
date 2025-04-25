@@ -26,13 +26,16 @@ class SPItoSK():
         :param R, G, B, W: RGBW values from 0-255
         """
         if (R > 255) or (G > 255) or (B > 255) or (W > 255) or (R < 0) or (G < 0) or (B < 0) or (W < 0):
-            print("RGBW values must be in the rage 0-255")
+            print("RGBW values must be in the range 0-255")
             sys.exit(-1)
         msgStartPos = (ledNum * 96) + 2
         self._formatBinMsg(msgStartPos, int(round(R * self.ledBrightness)))
         self._formatBinMsg(msgStartPos + 24, int(round(G * self.ledBrightness)))
         self._formatBinMsg(msgStartPos + (24 * 2), int(round(B * self.ledBrightness)))
         self._formatBinMsg(msgStartPos + (24 * 3), int(round(W * self.ledBrightness)))
+
+        # debug
+        print("led_num: %d, R: %d G: %d B: %d W: %d" % (ledNum, round(R * self.ledBrightness), round(G * self.ledBrightness), round(B * self.ledBrightness), round(W * self.ledBrightness)))
 
     def LED_show(self):
         """
@@ -44,12 +47,6 @@ class SPItoSK():
             self.binMsg >>= 8  # Shift right by 8 bits
         self.spi.xfer(bytesToSend, delay_usec = 0, bits_per_word = 8)
         time.sleep(80e-6)
-        
-        # debug
-        bytesString = []
-        for i in bytesToSend:
-            bytesString.append(bin(i))
-        print(bytesString)
 
     def set_brightness(self, brightness):
         """
