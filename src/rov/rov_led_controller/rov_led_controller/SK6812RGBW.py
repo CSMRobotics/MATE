@@ -8,7 +8,7 @@ class SPItoSK():
         self.ledBrightness = 1.0
         self.spi = spidev.SpiDev()
         self.spi.open(bus, device)
-        self.spi.max_speed_hz = 2400000
+        self.spi.max_speed_hz = 2500000
         # string of bits to send to spi
         self.binMsg = 0b100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
         for i in range(numLeds - 1):
@@ -35,17 +35,27 @@ class SPItoSK():
         self._formatBinMsg(msgStartPos + (24 * 3), int(round(W * self.ledBrightness)))
 
         # debug
-        print("led_num: %d, R: %d G: %d B: %d W: %d" % (ledNum, round(R * self.ledBrightness), round(G * self.ledBrightness), round(B * self.ledBrightness), round(W * self.ledBrightness)))
+        # print("led_num: %d, R: %d G: %d B: %d W: %d" % (ledNum, round(R * self.ledBrightness), round(G * self.ledBrightness), round(B * self.ledBrightness), round(W * self.ledBrightness)))
 
     def LED_show(self):
         """
         Signals the LEDs
         """
+        print(bin(self.binMsg))
         bytesToSend = []
-        while self.binMsg:
-            bytesToSend.insert(0, self.binMsg & ((1 << 8) - 1))  # Extract lowest 8 bits
-            self.binMsg >>= 8  # Shift right by 8 bits
-        self.spi.xfer(bytesToSend, delay_usec = 0, bits_per_word = 8)
+        binMsgCpy = self.binMsg
+        while binMsgCpy:
+            bytesToSend.insert(0, binMsgCpy & ((1 << 8) - 1))  # Extract lowest 8 bits
+            binMsgCpy >>= 8  # Shift right by 8 bits
+
+        # self.spi.xfer3([0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100], 2400000, 0, 8)
+        self.spi.xfer3(bytesToSend, 2500000, 0, 8)
+
+        # debug
+        offString = 100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
+        print()
+        for i in bytesToSend:  
+            print(bin(i))
         time.sleep(80e-6)
 
     def set_brightness(self, brightness):
@@ -72,7 +82,7 @@ class SPItoSK():
             msgIndexPos = startPos + (3 * i)
             colorBit = number[i]
             if (colorBit == "0") and bin(self.binMsg)[msgIndexPos:msgIndexPos + 3] == "110":
-                self._flipBit(msgIndexPos + 1)
+                self._flipBit(msgIndexPos)
             elif (colorBit == "1") and bin(self.binMsg)[msgIndexPos:msgIndexPos + 3] == "100":
                 self._flipBit(msgIndexPos)
 
