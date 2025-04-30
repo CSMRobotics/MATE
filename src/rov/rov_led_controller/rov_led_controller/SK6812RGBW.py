@@ -29,9 +29,13 @@ class SPItoSK():
             print("RGBW values must be in the range 0-255")
             sys.exit(-1)
         msgStartPos = (ledNum * 96) + 2
-        self._formatBinMsg(msgStartPos, int(round(R * self.ledBrightness)))
-        self._formatBinMsg(msgStartPos + 24, int(round(G * self.ledBrightness)))
+        # Set G in binary message
+        self._formatBinMsg(msgStartPos, int(round(G * self.ledBrightness)))
+        # Set R in binary message
+        self._formatBinMsg(msgStartPos + 24, int(round(R * self.ledBrightness)))
+        # Set B in binary message
         self._formatBinMsg(msgStartPos + (24 * 2), int(round(B * self.ledBrightness)))
+        # Set W in binary message
         self._formatBinMsg(msgStartPos + (24 * 3), int(round(W * self.ledBrightness)))
 
         # debug
@@ -41,22 +45,21 @@ class SPItoSK():
         """
         Signals the LEDs
         """
-        print(bin(self.binMsg))
         bytesToSend = []
         binMsgCpy = self.binMsg
         while binMsgCpy:
             bytesToSend.insert(0, binMsgCpy & ((1 << 8) - 1))  # Extract lowest 8 bits
             binMsgCpy >>= 8  # Shift right by 8 bits
 
-        # self.spi.xfer3([0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100, 0b10010010, 0b01001001, 0b00100100], 2400000, 0, 8)
         self.spi.xfer3(bytesToSend, 2500000, 0, 8)
 
         # debug
-        offString = 100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
-        print()
-        for i in bytesToSend:  
-            print(bin(i))
-        time.sleep(80e-6)
+        # print(bin(self.binMsg))
+        # offString = 100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100100
+        # print()
+        # for i in bytesToSend:  
+        #     print(bin(i))
+        # time.sleep(80e-6)
 
     def set_brightness(self, brightness):
         """
