@@ -61,5 +61,5 @@ def generate_launch_description():
     # ld.add_action(bar02)
     ld.add_action(gpio)
     ld.add_action(manipulator_controller)
-    # ld.add_action(led_controller)
+    ld.add_action(led_controller)
     return ld
