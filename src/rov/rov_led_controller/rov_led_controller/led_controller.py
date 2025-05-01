@@ -5,18 +5,18 @@ import time
 import random
 import colorsys
 import threading
-from rov_led_controller.WS2812 import SPItoWS
 from rov_led_controller.SK6812RGBW import SPItoSK
 
 
-NUM_LEDS = 60
-RGBW_PIXELS = SPItoSK(NUM_LEDS) 
+# Ring leds go first, then strip leds
+NUM_RING_LEDS = 12
+NUM_STRIP_LEDS = 48
+RGBW_PIXELS = SPItoSK(NUM_RING_LEDS + NUM_STRIP_LEDS)
 
 class LEDControllerNode(Node):
     
     def __init__(self):
         super().__init__(node_name="LEDController")
-        self.publisher_ = self.create_publisher(String, 'led_controller_output', 10)
         
         self.animations = {
             "color_chase": self.color_chase, 
@@ -48,124 +48,189 @@ class LEDControllerNode(Node):
             self.rainbowValues.append(scaled_rgb)        
 
         # color value and current animation
-        self.ledColor = "WHITE"
-        self.currentAnimation = "solid"
+        self.ringColor = "WHITE"
+        self.ringCurrAnim = "off"
+        self.stripColor = "WHITE"
+        self.stripCurrAnim = "off"
         
         # Listen for requests from the UI
         self.ui_subscriber = self.create_subscription(String, 'ui_requests', self.ui_request_callback, 10)
 
-        # Stop flag
-        self.stopAnim = False
-        self.stopLock = threading.Lock()
+        # SK6812 Mutex
+        self.LEDMutex = threading.Lock()
 
-        RGBW_PIXELS.LED_OFF_ALL()
+        # Thread management
+        # Can't believe I need to wrap StopAnim in a list to pass by reference
+        self.ringStopAnim = [False]
+        self.stripStopAnim = [False]
+        self.ringStopMutex = threading.Lock()
+        self.stripStopMutex = threading.Lock()
         
+        # Set leds to off when starting
+        self.ringAnimThread = threading.Thread(target=self.animations[self.ringCurrAnim], args=(self.colors[self.ringColor], self._set_ring_LED))
+        self.stripAnimThread = threading.Thread(target=self.animations[self.stripCurrAnim], args=(self.colors[self.stripColor], self._set_strip_LED))
+        self.ringAnimThread.start()
+        self.stripAnimThread.start()
 
     def ui_request_callback(self, msg):
         # Split message
         split = msg.data.split(",")
         msgs = [s.strip() for s in split]
-
+        
         # Change brightness
-        if len(msgs) == 2:
+        if len(msgs) == 3:
             try:
                 # set and clamp brightness between 0 and 1
-                brightness = max(0.0, min(float(msgs[1]), 1.0))
-                RGBW_PIXELS.set_brightness(brightness * 0.5)
+                brightness = max(0.0, min(float(msgs[2]), 1.0))
+                RGBW_PIXELS.set_brightness(brightness)
                 self.get_logger().info("Changed brightness to: %f" % brightness)
             except:
-                self.get_logger().info("Second argument, brightness, should be a float.")
+                self.get_logger().info("Third argument, brightness, should be a number from 0-1.")
+        else:
+            RGBW_PIXELS.set_brightness(0.25)
         
         # Change animation and colors
         if msgs[0] == 'get_animations':
             # Send the list of preprogrammed animations to the UI
             animations_msg = String()
             animations_msg.data = "\n".join(animation for animation in self.animations)
-            self.publisher_.publish(animations_msg)
-            self.get_logger().info('Sent preprogrammed animations to UI')
+            self.get_logger().info(animations_msg)
         elif msgs[0] == 'get_colors':
             colors_msg = String()
             colors_msg.data = "\n".join(color for color in self.colors)
-            self.publisher_.publish(colors_msg)
-            self.get_logger().info('Sent preprogrammed colors to UI')
-        else:
+            self.get_logger().info(colors_msg)
+        elif len(msgs) >= 2:            
+            # Check for which leds the user wants to modify
+            setStripFunc = self._set_ring_LED
+            if msgs[0] == "strip":
+                setStripFunc = self._set_strip_LED
+            elif msgs[0] != "ring":
+                self.get_logger().info("First argument must be \"ring\" or \"strip\", defaulting to ring")
+                msgs[0] = "ring"
             # Check if the requested animation exists
-            if msgs[0] in self.animations:                    
+            if msgs[1] in self.animations:                    
                 # Stop current animation
-                with self.stopLock:
-                    self.stopAnim = True
-                while threading.active_count() > 1:
-                    time.sleep(0.1)
-                self.stopAnim = False
+                if msgs[0] == "ring":
+                    with self.ringStopMutex:
+                        self.ringStopAnim[0] = True
+                    self.ringAnimThread.join()
+                    self.ringStopAnim[0] = False
+                elif msgs[0] == "strip":
+                    with self.stripStopMutex:
+                        self.stripStopAnim[0] = True
+                    self.stripAnimThread.join()
+                    self.stripStopAnim[0] = False
                 # Call the method corresponding to the requested animation
-                self.currentAnimation = msgs[0]
-                self.get_logger().info('New animation received: %s' % msgs[0])
-                tempThread = threading.Thread(target=self.animations[msgs[0]], args=(self.colors[self.ledColor],))
-                tempThread.start()
-            elif msgs[0] in self.colors:
+                if msgs[0] == "ring":
+                    self.ringCurrAnim = msgs[1]
+                    self.get_logger().info('New ring animation received: %s' % msgs[1])
+                    self.ringAnimThread = threading.Thread(target=self.animations[msgs[1]], args=(self.colors[self.ringColor], setStripFunc))
+                    self.ringAnimThread.start()
+                elif msgs[0] == "strip":
+                    self.stripCurrAnim = msgs[1]
+                    self.get_logger().info('New strip animation received: %s' % msgs[1])
+                    self.stripAnimThread = threading.Thread(target=self.animations[msgs[1]], args=(self.colors[self.stripColor], setStripFunc))
+                    self.stripAnimThread.start()
+            elif msgs[1] in self.colors:
                 # Stop current animation
-                with self.stopLock:
-                    self.stopAnim = True
-                while threading.active_count() > 1:
-                    time.sleep(0.1)
-                self.stopAnim = False
+                if msgs[0] == "ring":
+                    with self.ringStopMutex:
+                        self.ringStopAnim[0] = True
+                    self.ringAnimThread.join()
+                    self.ringStopAnim[0] = False
+                elif msgs[0] == "strip":
+                    with self.stripStopMutex:
+                        self.stripStopAnim[0] = True
+                    self.stripAnimThread.join()
+                    self.stripStopAnim[0] = False
                 # Change the color if message changes colors
-                self.ledColor = msgs[0]
-                self.get_logger().info('New color received: %s' % msgs[0])
-                tempThread = threading.Thread(target=self.animations[self.currentAnimation], args=(self.colors[msgs[0]],))
-                tempThread.start()
+                if msgs[0] == "ring":
+                    self.ringColor = msgs[1]
+                    self.get_logger().info('New ring color received: %s' % msgs[1])
+                    self.ringAnimThread = threading.Thread(target=self.animations[self.ringCurrAnim], args=(self.colors[self.ringColor], setStripFunc))
+                    self.ringAnimThread.start()
+                elif msgs[0] == "strip":
+                    self.stripColor = msgs[1]
+                    self.get_logger().info('New strip color received: %s' % msgs[1])
+                    self.stripAnimThread = threading.Thread(target=self.animations[self.stripCurrAnim], args=(self.colors[self.stripColor], setStripFunc))
+                    self.stripAnimThread.start()
+            else:
+                self.get_logger().info("Second argument must be an animation or color. Send \"get_animations\" or \"get_colors\" to view options.")
+        else:
+            self.get_logger().info("Request most be formatted: \"ring\"/\"strip\", animation/color, [brightness]. Send \"get_animations\" or \"get_colors\" to view options.")
             
 
     
-    def color_chase(self, color, wait=1/NUM_LEDS):
+    def color_chase(self, color, setStripFunc):
         """
         Animates a single color across the LED strip
         """
-        while self.stopAnim == False:
-            for i in range(NUM_LEDS):
-                self._set_RGBW_LED(i, color[0], color[1], color[2])
+        numLEDs = 0
+        if setStripFunc == self._set_ring_LED:
+            numLEDs = NUM_RING_LEDS
+            stopAnim = self.ringStopAnim
+        else:
+            numLEDs = NUM_STRIP_LEDS
+            stopAnim = self.stripStopAnim
+        wait = 1/numLEDs
+        while stopAnim == [False]:
+            for i in range(numLEDs):
+                setStripFunc(i, color[0], color[1], color[2])
                 time.sleep(wait)
-                RGBW_PIXELS.LED_show()
-                if self.stopAnim == True:
+                self._LED_show()
+                if stopAnim == [True]:
                     break
-            for i in range(NUM_LEDS):
-                self._set_RGBW_LED(i, 0, 0, 0)
+            for i in range(numLEDs):
+                setStripFunc(i, 0, 0, 0)
                 time.sleep(wait)
-                RGBW_PIXELS.LED_show()
-                if self.stopAnim == True:
+                self._LED_show()
+                if stopAnim == [True]:
                     break
 
 
-    def rainbow_cycle(self, color, wait = 2 / NUM_LEDS):
+    def rainbow_cycle(self, color, setStripFunc):
         """
         Cycles a wave of rainbow over the LEDs
         """
-        while self.stopAnim == False:
+        numLEDs = 0
+        if setStripFunc == self._set_ring_LED:
+            numLEDs = NUM_RING_LEDS
+            stopAnim = self.ringStopAnim
+        else:
+            numLEDs = NUM_STRIP_LEDS
+            stopAnim = self.stripStopAnim
+        wait = 0.05
+        while stopAnim == [False]:
             for i in range(256):
-                for j in range (NUM_LEDS):
+                for j in range (numLEDs):
                     R = self.rainbowValues[(j + i) % 256][0]
                     G = self.rainbowValues[(j + i) % 256][1]
                     B = self.rainbowValues[(j + i) % 256][2]
-                    self._set_RGBW_LED(j, R, G, B)
-                RGBW_PIXELS.LED_show()
+                    setStripFunc(j, R, G, B)
+                self._LED_show()
                 time.sleep(wait)
-                if self.stopAnim == True:
+                if stopAnim == [True]:
                     break
 
 
-    def pulse(self, color, wait=0.005):
+    def pulse(self, color, setStripFunc):
         """
         Fades a single color in and out
         """
-        while self.stopAnim == False:
+        if setStripFunc == self._set_ring_LED:
+            stopAnim = self.ringStopAnim
+        else:
+            stopAnim = self.stripStopAnim
+        wait = 0.005
+        while stopAnim == [False]:
             for i in range(255):
                 R = color[0] * (i / 255.0)
                 G = color[1] * (i / 255.0)
                 B = color[2] * (i / 255.0)
                 self._set_all_pixels((R, G, B))
                 time.sleep(wait)
-                RGBW_PIXELS.LED_show()
-                if self.stopAnim == True:
+                self._LED_show()
+                if stopAnim == [True]:
                     break
             for i in range(255):
                 R = color[0] * ((255 - i) / 255.0)
@@ -173,55 +238,83 @@ class LEDControllerNode(Node):
                 B = color[2] * ((255 - i) / 255.0)
                 self._set_all_pixels((R, G, B))
                 time.sleep(wait)
-                RGBW_PIXELS.LED_show()
-                if self.stopAnim == True:
+                self._LED_show()
+                if stopAnim == [True]:
                     break
 
 
-    def solid(self, color, wait=0.1):
+    def solid(self, color, setStripFunc):
         """
         Changes all LEDs to solid color
         """
-        self._set_all_pixels((color[0], color[1], color[2]))
-        RGBW_PIXELS.LED_show()
+        self._set_all_pixels((color[0], color[1], color[2]), setStripFunc)
+        self._LED_show()
 
 
-    def seizure_disco(self, color, wait=0.1):
+    def seizure_disco(self, color, setStripFunc):
         """
         Changes all LEDs to a random color
         """
-        for i in range(NUM_LEDS):
+        if setStripFunc == self._set_ring_LED:
+            numLEDs = NUM_RING_LEDS
+        else:
+            numLEDs = NUM_STRIP_LEDS
+        for i in range(numLEDs):
             R = random.randint(0,255)
             G = random.randint(0,255)
             B = random.randint(0,255)
-            self._set_RGBW_LED(i, R, G, B)
-        RGBW_PIXELS.LED_show()
-        time.sleep(wait)
+            setStripFunc(i, R, G, B)
+        self._LED_show()
 
-    def off(self, color):
-        RGBW_PIXELS.LED_OFF_ALL()
+    def off(self, color, setStripFunc):
+        if setStripFunc == self._set_ring_LED:
+            numLEDs = NUM_RING_LEDS
+        else:
+            numLEDs = NUM_STRIP_LEDS
+        for i in range(numLEDs):
+            setStripFunc(i, 0, 0, 0)
+        self._LED_show()
 
-    def boot(self, color):
+    def boot(self, color, setStripFunc):
         """
         Booting animation
         """
-        for i in range(NUM_LEDS):
-            self._set_RGBW_LED(i, 0, 255, 0)
-            RGBW_PIXELS.LED_show()
-            time.sleep(1/NUM_LEDS)
+        if setStripFunc == self._set_ring_LED:
+            numLEDs = NUM_RING_LEDS
+        else:
+            numLEDs = NUM_STRIP_LEDS
+        for i in range(numLEDs):
+            setStripFunc(i, 0, 255, 0)
+            self._LED_show()
+            time.sleep(1/numLEDs)
         time.sleep(0.3)
         time.sleep(0.3)
         self._set_all_pixels(self.colors["GREEN"])
         time.sleep(1)
         
 
-    def _set_all_pixels(self, color):
+    def _set_all_pixels(self, color, setStripFunc):
         """
         Sets all pixels to a single
         """
-        for i in range (NUM_LEDS):
-            self._set_RGBW_LED(i, color[0], color[1], color[2])
+        if setStripFunc == self._set_ring_LED:
+            for i in range (NUM_RING_LEDS):
+                setStripFunc(i, color[0], color[1], color[2])
+        elif setStripFunc == self._set_strip_LED:
+            for i in range (NUM_STRIP_LEDS):
+                setStripFunc(i, color[0], color[1], color[2])
     
+    def _set_ring_LED(self, ledNum, R, G, B):
+        if ledNum <= NUM_RING_LEDS - 1 and ledNum >= 0:
+            self._set_RGBW_LED(ledNum, R, G, B)
+    
+    def _set_strip_LED(self, ledNum, R, G, B):
+        if ledNum <= NUM_STRIP_LEDS - 1 and ledNum >= 0:
+            self._set_RGBW_LED(NUM_RING_LEDS + ledNum, R, G, B)
+
+    def _LED_show(self):
+        with self.LEDMutex:
+            RGBW_PIXELS.LED_show()
 
     def _set_RGBW_LED(self, ledNum, R, G, B):
         """
@@ -260,7 +353,8 @@ class LEDControllerNode(Node):
             RGBWTotal = BTotal / percentB                
             newR = (RGBWTotal * percentR) - newW
             newG = (RGBWTotal * percentG) - newW
-        RGBW_PIXELS.set_LED_color(ledNum, newR, newG, newB, newW)
+        with self.LEDMutex:
+            RGBW_PIXELS.set_LED_color(ledNum, newR, newG, newB, newW)
         
         
 
