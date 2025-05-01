@@ -11,10 +11,10 @@ def generate_launch_description():
         package="rov_gpio",
         executable="rov_gpio"
     )
-    bar02 = Node(
-        package="bar02",
-        executable="bar02"
-    )
+    # bar02 = Node(
+    #     package="bar02",
+    #     executable="bar02"
+    # )
     bno055 = Node(
         package="bno055",
         executable="bno055_node"
@@ -46,19 +46,19 @@ def generate_launch_description():
         executable="manipulator_controller",
         parameters=[os.path.join(get_package_share_directory("manipulator_controller"), "config", "params.yaml")]
     )
-    led_controller = Node(
-        package="led_controller",
-        executable="led_controller",
-        parameters=[os.path.join(get_package_share_directory("led_controller"), "config", "params.yaml")]
-    )
+    # led_controller = Node(
+    #     package="led_controller",
+    #     executable="led_controller",
+    #     parameters=[os.path.join(get_package_share_directory("led_controller"), "config", "params.yaml")]
+    # )
 
     ld.add_action(bno055)
     ld.add_action(flight_controller)
     ld.add_action(pca9685)
     ld.add_action(cameras)
     ld.add_action(control)
-    ld.add_action(bar02)
+    # ld.add_action(bar02)
     ld.add_action(gpio)
     ld.add_action(manipulator_controller)
-    ld.add_action(led_controller)
+    # ld.add_action(led_controller)
     return ld
