@@ -16,17 +16,17 @@ def generate_launch_description():
     #     executable="bar02"
     # )
     bno055 = Node(
-        package="bno055",
+        package="rov_bno055",
         executable="bno055_node"
     )
     flight_controller = Node(
-        package="flight_controller",
+        package="rov_flight_controller",
         executable="flight_controller",
-        parameters=[os.path.join(get_package_share_directory("flight_controller"), "config", "params.yaml")]
+        parameters=[os.path.join(get_package_share_directory("rov_flight_controller"), "config", "params.yaml")]
     )
     # manipulator_control = Node()
     pca9685 = Node(
-        package="pca9685",
+        package="rov_pca9685",
         executable="pca9685_node"
     )
     cameras = Node(
@@ -42,15 +42,16 @@ def generate_launch_description():
         parameters=[os.path.join(get_package_share_directory("rov_control"), "config", "default.yaml")]
     )
     manipulator_controller = Node(
-        package="manipulator_controller",
+        package="rov_manipulator_controller",
         executable="manipulator_controller",
-        parameters=[os.path.join(get_package_share_directory("manipulator_controller"), "config", "params.yaml")]
+        parameters=[os.path.join(get_package_share_directory("rov_manipulator_controller"), "config", "params.yaml")]
     )
-    # led_controller = Node(
-    #     package="led_controller",
-    #     executable="led_controller",
-    #     parameters=[os.path.join(get_package_share_directory("led_controller"), "config", "params.yaml")]
-    # )
+
+    led_controller = Node(
+        package="rov_led_controller",
+        executable="led_controller",
+        parameters=[os.path.join(get_package_share_directory("rov_led_controller"), "config", "params.yaml")]
+    )
 
     ld.add_action(bno055)
     ld.add_action(flight_controller)

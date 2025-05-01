@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>rov_launch</name>
+  <name>rov_flight_controller</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="zac71113@gmail.com">yameat</maintainer>
@@ -9,21 +9,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>rov_interfaces</depend>
+  <depend>rclcpp</depend>
+  <depend>std_srv</depend>
+  <depend>message_filters</depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-
-  <depend>rov_interfaces</depend>
-  <depend>csm_common_interfaces</depend>
-  <depend>heartbeat</depend>
-
-  <depend>rov_bno055</depend>
-  <depend>rov_flight_controller</depend>
-  <depend>rov_pca9685</depend>
-  <depend>rov_control</depend>
-  <depend>rov_cameras</depend>
-  <depend>bar02</depend>
-  <depend>rov_gpio</depend>  
-  <depend>rov_manipulator_controller</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
