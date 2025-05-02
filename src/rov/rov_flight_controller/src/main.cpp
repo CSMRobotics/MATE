@@ -1,5 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
-#include <flight_controller/flight_controller.hpp>
+#include <rov_flight_controller/flight_controller.hpp>
 
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);

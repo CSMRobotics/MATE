@@ -2,6 +2,10 @@ flight_controller:
   ros__parameters:
     Debug: False
     Use_PCA9685: True
+    # TODO: TUNE
+    kpd: 1.0
+    kppq: 1.0
+    kdpq: 0.0
     Thruster0:
       Position: [-1.0, 0.5, 0.0]
       Thrust: [0.0, 0.0, 1.0]

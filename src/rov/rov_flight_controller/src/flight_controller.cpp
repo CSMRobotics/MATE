@@ -1,4 +1,4 @@
-#include "flight_controller/flight_controller.hpp"
+#include "rov_flight_controller/flight_controller.hpp"
 
 #include <algorithm>
 #include <array>
@@ -40,13 +40,9 @@ void declare_params(rclcpp::Node* node) {
     
     // declare gain constant parameters
     // TODO: tune these constants
-    node->declare_parameter("Pq", 1.0f);
-    node->declare_parameter("Pw", 1.0f);
-    node->declare_parameter("kp", 1.0f);
-    node->declare_parameter("ki", 1.0f);
-    node->declare_parameter("kd", 1.0f);
-    node->declare_parameter("pc_1", 1.0f);
-    node->declare_parameter("pc_2", 1.0f);
+    node->declare_parameter("kpd", 1.0f);
+    node->declare_parameter("kppq", 1.0f);
+    node->declare_parameter("kdpq", 0.0f);
 }
 }
 
@@ -108,6 +104,10 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     thruster_setpoint_subscription = this->create_subscription<rov_interfaces::msg::ThrusterSetpoints>("thruster_setpoints", 10, std::bind(&FlightController::setpoint_callback, this, std::placeholders::_1));
     // receives orientation and acceleration data from bno055
     bno_data_subscription = this->create_subscription<rov_interfaces::msg::BNO055Data>("bno055_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bno_callback, this, std::placeholders::_1));
+    // depth data from bar30
+    bar_data_subscription = this->create_subscription<rov_interfaces::msg::Bar30Data>("bar30_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::bar_callback, this, std::placeholders::_1));
+    // temperature data from tsys01
+    tsys_data_subscription = this->create_subscription<rov_interfaces::msg::TSYS01Data>("tsys01_data", rclcpp::SensorDataQoS(), std::bind(&FlightController::tsys_callback, this, std::placeholders::_1));
     // publishes PWM commands to PCA9685
     pwm_publisher = this->create_publisher<rov_interfaces::msg::PWM>("pwm", 10);
 
@@ -115,11 +115,17 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
     // about 60 hz update rate
     // TODO: Check that service changes the timer callback
     this->startUpdateLoopTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(5);
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), std::bind(&FlightController::updateNone, this));
+    control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), std::bind(&FlightController::updateNone, this));
 
     // Creates service responsible for toggling between updateSimple and updatePID
     toggle_PID_service = this->create_service<std_srvs::srv::Empty>("toggle_pid", 
         std::bind(&FlightController::toggle_PID, this, std::placeholders::_1, std::placeholders::_2));
+    depth_tare_service = this->create_service<std_srvs::srv::Empty>("tare_depth",
+        std::bind(&FlightController::depthTare, this, std::placeholders::_1, std::placeholders::_2));
+    safe_service = this->create_service<std_srvs::srv::Empty>("safe",
+        std::bind(&FlightController::depthTare, this, std::placeholders::_1, std::placeholders::_2));
+    desafe_service = this->create_service<std_srvs::srv::Empty>("desafe",
+        std::bind(&FlightController::depthTare, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void FlightController::registerThrusters() {
@@ -158,31 +164,46 @@ void FlightController::toggle_PID(const std_srvs::srv::Empty_Request::SharedPtr 
         std_srvs::srv::Empty_Response::SharedPtr response) {
     (void) request;
     (void) response;
-    std::swap(_update, _update2);
     this->last_updated = std::chrono::high_resolution_clock::now();
-    pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
+    control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update_stab);
 }
 
+// TODO: update to new mapping
 void FlightController::setpoint_callback(const rov_interfaces::msg::ThrusterSetpoints::SharedPtr setpoints) {
-    std::lock_guard<std::mutex>(this->setpoint_mutex);
-    std::lock_guard<std::mutex>(this->stall_mutex);
+    const std::lock_guard<std::mutex> l1(this->setpoint_mutex);
+    const std::lock_guard<std::mutex> l2(this->stall_mutex);
     translation_setpoints(0,0) = setpoints->vx; // [-1,1]
     translation_setpoints(1,0) = setpoints->vy; // ^
     translation_setpoints(2,0) = setpoints->vz; // ^
     attitude_setpoints(0,0) = setpoints->omegax; // [-1,1]
     attitude_setpoints(1,0) = setpoints->omegay; // ^
     attitude_setpoints(2,0) = setpoints->omegaz; // ^
+    keep_depth = setpoints->keep_depth;
+    free_orientation = setpoints->free_orientation;
 }
 
 void FlightController::bno_callback(const rov_interfaces::msg::BNO055Data::SharedPtr bno_data) {
-    std::lock_guard<std::mutex>(this->bno_mutex);
-    this->bno_data = *bno_data.get();
+    const std::lock_guard<std::mutex> l1(this->bno_mutex);
+    this->bno_data = bno_data;
+}
+
+void FlightController::bar_callback(const rov_interfaces::msg::Bar30Data::SharedPtr bar_data) {
+    const std::lock_guard<std::mutex> l1(this->bar30_mutex);
+    this->bar30_data = bar_data;
+}
+
+void FlightController::tsys_callback(const rov_interfaces::msg::TSYS01Data::SharedPtr tsys_data) {
+    const std::lock_guard<std::mutex> l1(this->tsys_mutex);
+    this->tsys_data = tsys_data;
 }
 
 void FlightController::updateNone() {
+    // wait 5 seconds before starting
     if(std::chrono::high_resolution_clock::now() >= this->startUpdateLoopTime) {
-        pid_control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update);
+        control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update_simple);
     }
+
+    // safe the thrusters by turning them to 0 pwm
     rov_interfaces::msg::PWM msg;
     msg.angle_or_throttle = 0;
 
@@ -190,6 +211,28 @@ void FlightController::updateNone() {
         msg.channel = i;
         this->pwm_publisher->publish(msg);
     }
+}
+void FlightController::safe(const std_srvs::srv::Empty_Request::SharedPtr request, std_srvs::srv::Empty_Response::SharedPtr response) {
+    (void) request;
+    (void) response;
+    // change the update loop to do nothing
+    control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), [](){});
+
+    // safe the thrusters by turning them to 0 pwm
+    rov_interfaces::msg::PWM msg;
+    msg.angle_or_throttle = 0;
+
+    for(int i=0; i < NUM_THRUSTERS; i++) {
+        msg.channel = i;
+        this->pwm_publisher->publish(msg);
+    }
+}
+
+void FlightController::desafe(const std_srvs::srv::Empty_Request::SharedPtr request, std_srvs::srv::Empty_Response::SharedPtr response) {
+    (void) request;
+    (void) response;
+    // restart the update loop to be update_simple
+    control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), FlightController::_update_simple);
 }
 
 void FlightController::updateSimple() {
@@ -251,92 +294,176 @@ void FlightController::updateSimple() {
     }
 }
 
-void FlightController::updatePID() {
-    Eigen::Vector3d desired_force;
-    Eigen::Vector3d desired_torque;
+// void FlightController::updatePID() {
+//     Eigen::Vector3d desired_force;
+//     Eigen::Vector3d desired_torque;
 
-    // update dt
-    auto now = std::chrono::high_resolution_clock::now();
-    int dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - this->last_updated).count();
-    this->last_updated = now;
+//     // update dt
+//     auto now = std::chrono::high_resolution_clock::now();
+//     int dt_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - this->last_updated).count();
+//     this->last_updated = now;
 
-    // fill the matrixes based on bno and setpoint data
-    this->setpoint_mutex.lock();
-    this->bno_mutex.lock();
-    Eigen::Vector3d linear_accel(bno_data.imu.linear_acceleration.x, bno_data.imu.linear_acceleration.y,bno_data.imu.linear_acceleration.z); // m/s^2
-    linear_velocity += linear_accel * dt_ms / 1000; // get an approximation of linear velocity
-    linear_velocity_err_last = linear_velocity_err;
-    linear_velocity_err[0] = translation_setpoints(0,0) - linear_velocity[0];
-    linear_velocity_err[1] = translation_setpoints(1,0) - linear_velocity[1];
-    linear_velocity_err[2] = translation_setpoints(2,0) - linear_velocity[2];
-    Eigen::Vector3d ha = dt_ms * 0.5 * attitude_setpoints; // vector of half angle
-    // Gyroscope vector from the sensor is stored in angular_velcoity, but shouldn't it be "angular_acceleration"?
-    Eigen::Vector3d omega = Eigen::Vector3d(bno_data.imu.angular_velocity.x, bno_data.imu.angular_velocity.y, bno_data.imu.angular_velocity.z);
-    auto quaternion_measured = Eigen::Quaterniond(bno_data.imu.orientation.w, bno_data.imu.orientation.x, bno_data.imu.orientation.y, bno_data.imu.orientation.z);
-    this->setpoint_mutex.unlock();
-    this->bno_mutex.unlock();
+//     // fill the matrixes based on bno and setpoint data
+//     this->setpoint_mutex.lock();
+//     this->bno_mutex.lock();
+//     Eigen::Vector3d linear_accel(bno_data->imu.linear_acceleration.x, bno_data->imu.linear_acceleration.y,bno_data->imu.linear_acceleration.z); // m/s^2
+//     linear_velocity += linear_accel * dt_ms / 1000; // get an approximation of linear velocity
+//     Eigen::Vector3d ha = dt_ms * 0.5 * attitude_setpoints; // vector of half angle
 
-    // update desired force
-    // Linear, discrete-time PID controller
-    // lambdas for linear PID loop
-    auto PID_params = this->get_parameters(std::vector<std::string>{"kp", "ki", "kd"});
-    auto P = [](rclcpp::Parameter kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
-        return kp.as_double() * linear_velocity_err;
-    };
-    // TODO: anti-windup
-    auto I = [this](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
-        this->linear_integral += ki.as_double() * linear_velocity_err * dt_ms / 1000;
-        return this->linear_integral;
-    };
-    auto D = [](rclcpp::Parameter kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
-        return kd.as_double() * (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
-    };
+//     Eigen::Vector3d omega = Eigen::Vector3d(bno_data->imu.angular_velocity.x, bno_data->imu.angular_velocity.y, bno_data->imu.angular_velocity.z);
+//     auto quaternion_measured = Eigen::Quaterniond(bno_data->imu.orientation.w, bno_data->imu.orientation.x, bno_data->imu.orientation.y, bno_data->imu.orientation.z);
+//     this->setpoint_mutex.unlock();
+//     this->bno_mutex.unlock();
 
-    // P + I + D
-    desired_force = P(PID_params.at(0),linear_velocity_err)
-                    + I(PID_params.at(1), linear_velocity_err, dt_ms)
-                    + D(PID_params.at(2), linear_velocity_err, linear_velocity_err_last, dt_ms);
+//     // update desired force
+//     // Linear, discrete-time PID controller
+//     // lambdas for linear PID loop
+//     auto PID_params = this->get_parameters(std::vector<std::string>{"kp", "ki", "kd"});
+//     auto P = [](rclcpp::Parameter kp, Eigen::Vector3d& linear_velocity_err)->Eigen::Vector3d {
+//         return kp.as_double() * linear_velocity_err;
+//     };
+//     // TODO: anti-windup
+//     auto I = [this](rclcpp::Parameter ki, Eigen::Vector3d& linear_velocity_err, int& dt_ms)->Eigen::Vector3d {
+//         this->linear_integral += ki.as_double() * linear_velocity_err * dt_ms / 1000;
+//         return this->linear_integral;
+//     };
+//     auto D = [](rclcpp::Parameter kd, Eigen::Vector3d& linear_velocity_err, Eigen::Vector3d& linear_velocity_err_last, int& dt_ms)->Eigen::Vector3d {
+//         return kd.as_double() * (linear_velocity_err - linear_velocity_err_last) / (static_cast<double>(dt_ms) / 1000);
+//     };
 
-    // update desired torque
-    // TODO: look at this if performance needs to be improved (loses accuracy tho)
-    // see https://stackoverflow.com/questions/24197182/efficient-quaternion-angular-velocity/24201879#24201879
-    double l = ha.norm(); // magnitude
-    if (l > 0) {
-        ha *= sin(l) / l;
-        quaternion_reference = Eigen::Quaterniond(cos(l), ha.x(), ha.y(), ha.z());
+//     // P + I + D
+//     desired_force = P(PID_params.at(0),linear_velocity_err)
+//                     + I(PID_params.at(1), linear_velocity_err, dt_ms)
+//                     + D(PID_params.at(2), linear_velocity_err, linear_velocity_err_last, dt_ms);
+
+//     // update desired torque
+//     // TODO: look at this if performance needs to be improved (loses accuracy tho)
+//     // see https://stackoverflow.com/questions/24197182/efficient-quaternion-angular-velocity/24201879#24201879
+//     double l = ha.norm(); // magnitude
+//     if (l > 0) {
+//         ha *= sin(l) / l;
+//         quaternion_reference = Eigen::Quaterniond(cos(l), ha.x(), ha.y(), ha.z());
+//     } else {
+//         quaternion_reference = Eigen::Quaterniond(1.0, ha.x(), ha.y(), ha.z());
+//     }
+//     // desired orientation is only known by the pilot, quaternion reference defines a reference from a unity quaternion (1,0,0,0)
+//     // to get actual reference, this must be multiplied with the measured quaternion to get desired orientation
+//     // TODO: ensure that when w = 0, this is close to, or equal to unity
+//     quaternion_reference = quaternion_reference * quaternion_measured;
+
+//     // Non Linear P^2 Quaternion based control scheme
+//     // For derivation of controller see: http://www.diva-portal.org/smash/get/diva2:1010947/FULLTEXT01.pdf
+//     // For derivation of dynamics and control allocation see: https://flex.flinders.edu.au/file/27aa0064-9de2-441c-8a17-655405d5fc2e/1/ThesisWu2018.pdf
+//     auto q_err = quaternion_reference * quaternion_measured.conjugate(); // hamilton product (hopefully)
+//     Eigen::Vector3d axis_err;
+
+//     if(q_err.w() < 0) { // this could be simplified to a negation but eh
+//         axis_err = q_err.conjugate().vec();
+//     } else {
+//         axis_err = q_err.vec();
+//     }
+
+//     auto P2_params = this->get_parameters(std::vector<std::string>{"Pq", "Pw"});
+//     desired_torque = (-P2_params.at(0).as_double() * axis_err) - (P2_params.at(1).as_double() * omega);
+
+//     // control allocation
+//     // u = K^-1 * T^+ * t
+//     // 8x1 = 8x8 * 8x6 * 6x1 :)
+//     Eigen::Matrix<double, 6, 1> forcesAndTorques;
+//     forcesAndTorques << desired_force, desired_torque;
+
+//     //TODO:test
+//     // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
+//     // while scaling thrusters to account for large thrust demands on a single thruster
+//     Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
+//     clampthrottles(&actuations);
+
+//     // publish PWM values
+//     // TODO: consider refactoring this to have 8 separate publishers?
+//     // publishers would be created upon successful return from registerThrusters() if Use_PCA9685 == true
+//     // else defaults would be created from params.yaml
+//     // this method would allow for rqt_topic to more accurately collect PWM values
+//     for(int i = 0; i < NUM_THRUSTERS; i++) {
+//         rov_interfaces::msg::PWM msg;
+//         msg.angle_or_throttle = static_cast<float>(actuations(i,0)); // this is a source of noise in output signals, may cause system instability??
+//         msg.channel = thruster_index_to_PWM_pin.at(i);
+//         pwm_publisher->publish(msg);
+// #if DEBUG_OUTPUT
+//         RCLCPP_DEBUG(this->get_logger(), "PIN:%i THROTTLE:%f", thruster_index_to_PWM_pin.at(i), actuations(i,0));
+// #endif
+//     }
+// }
+
+void FlightController::clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
+    Eigen::Index loc;
+    throttles->minCoeff(&loc);
+    double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0));
+    throttles->maxCoeff(&loc);
+    double ratioB = std::abs(1.0 / std::max((*throttles)(loc), 1.0));
+    if(ratioA < ratioB) {
+        *throttles = *throttles * ratioA;
     } else {
-        quaternion_reference = Eigen::Quaterniond(1.0, ha.x(), ha.y(), ha.z());
+        *throttles = *throttles * ratioB;
     }
-    // desired orientation is only known by the pilot, quaternion reference defines a reference from a unity quaternion (1,0,0,0)
-    // to get actual reference, this must be multiplied with the measured quaternion to get desired orientation
-    // TODO: ensure that when w = 0, this is close to, or equal to unity
-    quaternion_reference = quaternion_reference * quaternion_measured;
+}
 
-    // Non Linear P^2 Quaternion based control scheme
-    // For derivation of controller see: http://www.diva-portal.org/smash/get/diva2:1010947/FULLTEXT01.pdf
-    // For derivation of dynamics and control allocation see: https://flex.flinders.edu.au/file/27aa0064-9de2-441c-8a17-655405d5fc2e/1/ThesisWu2018.pdf
-    auto q_err = quaternion_reference * quaternion_measured.conjugate(); // hamilton product (hopefully)
-    Eigen::Vector3d axis_err;
 
-    if(q_err.w() < 0) { // this could be simplified to a negation but eh
-        axis_err = q_err.conjugate().vec();
-    } else {
-        axis_err = q_err.vec();
+void FlightController::updateDepth(Eigen::Matrix<double, 6, 1>& desired_forces_torques) {
+    const std::lock_guard<std::mutex> l1(bar30_mutex);
+    const std::lock_guard<std::mutex> l2(bno_mutex);
+    const Eigen::Vector3d sensor_offset(-0.36,0,0);
+    float depth = tare_depth - bar30_data->depth;
+    // correct for pitch
+    Eigen::Quaterniond quat(bno_data->imu.orientation.w, bno_data->imu.orientation.x, bno_data->imu.orientation.y, bno_data->imu.orientation.z);
+    Eigen::Vector3d grav(bno_data->gravity.i, bno_data->gravity.j, bno_data->gravity.k);
+    depth += (quat * sensor_offset).dot(grav);
+    float depth_error = depth_setpoint - depth;
+    float kp = static_cast<float>(this->get_parameter("kpd").as_double());
+
+    // we want to stabilize towards no depth delta between setpoint and where we are
+    desired_forces_torques.segment<3>(0) += kp * depth_error * grav.normalized();
+}
+
+void FlightController::depthTare(const std_srvs::srv::Empty_Request::SharedPtr request, std_srvs::srv::Empty_Response::SharedPtr response) {
+    (void) request;
+    (void) response;
+    const std::lock_guard<std::mutex> l1(bar30_mutex);
+    const std::lock_guard<std::mutex> l2(bno_mutex);
+    const Eigen::Vector3d sensor_offset(-0.36,0,0);
+    // correct for pitch
+    Eigen::Quaterniond quat(bno_data->imu.orientation.w, bno_data->imu.orientation.x, bno_data->imu.orientation.y, bno_data->imu.orientation.z);
+    Eigen::Vector3d grav(bno_data->gravity.i, bno_data->gravity.j, bno_data->gravity.k);
+    tare_depth = bar30_data->depth - (quat * sensor_offset).dot(grav);
+}
+
+void FlightController::updatePitchRoll(Eigen::Matrix<double, 6, 1>& desired_forces_torques) {
+    const std::lock_guard<std::mutex> l1(bno_mutex);
+    // remove impact from pitch and roll (!!!!!EULER WARNING!!!!!)
+    Eigen::AngleAxisd yaw_only(bno_data->euler.k, Eigen::Vector3d::UnitZ());
+    Eigen::Quaterniond q_yaw_only(yaw_only);
+    Eigen::Quaterniond quat(bno_data->imu.orientation.w, bno_data->imu.orientation.x, bno_data->imu.orientation.y, bno_data->imu.orientation.z);
+
+    Eigen::Quaterniond q_err = q_yaw_only * quat.conjugate();
+    Eigen::Vector3d angular_velocity(bno_data->imu.angular_velocity.x, bno_data->imu.angular_velocity.y, bno_data->imu.angular_velocity.z);
+    desired_forces_torques.segment<3>(3) -= this->get_parameter("kppq").as_double() * q_err.vec() + this->get_parameter("kdpq").as_double() * angular_velocity;
+}
+
+void FlightController::updateStab() {
+    Eigen::Matrix<double, 6, 1> forces_and_torques;
+
+    // will attempt to drive orientation to horizontal unless disabled
+    if (!free_orientation) {
+        updatePitchRoll(forces_and_torques);
     }
-
-    auto P2_params = this->get_parameters(std::vector<std::string>{"Pq", "Pw"});
-    desired_torque = (-P2_params.at(0).as_double() * axis_err) - (P2_params.at(1).as_double() * omega);
-
-    // control allocation
-    // u = K^-1 * T^+ * t
-    // 8x1 = 8x8 * 8x6 * 6x1 :)
-    Eigen::Matrix<double, 6, 1> forcesAndTorques;
-    forcesAndTorques << desired_force, desired_torque;
+    // TODO: will be a button on the controller that you press to activate depth controller
+    if (keep_depth) {
+        updateDepth(forces_and_torques);
+    }
 
     //TODO:test
-    // solve Ax = b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
+    // solve Ax = b with x = A^+ b and normalize thrust such that it satisfies MIN_THRUST_VALUE <= throttles[j] <= MAX_THRUST_VALUE 
     // while scaling thrusters to account for large thrust demands on a single thruster
-    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forcesAndTorques;
+    Eigen::Matrix<double, NUM_THRUSTERS, 1> actuations = this->thruster_coefficient_matrix_times_geometry * forces_and_torques;
     clampthrottles(&actuations);
 
     // publish PWM values
@@ -355,15 +482,3 @@ void FlightController::updatePID() {
     }
 }
 
-void FlightController::clampthrottles(Eigen::Matrix<double,NUM_THRUSTERS,1>* throttles) {
-    Eigen::Index loc;
-    throttles->minCoeff(&loc);
-    double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0));
-    throttles->maxCoeff(&loc);
-    double ratioB = std::abs(1.0 / std::max((*throttles)(loc), 1.0));
-    if(ratioA < ratioB) {
-        *throttles = *throttles * ratioA;
-    } else {
-        *throttles = *throttles * ratioB;
-    }
-}
