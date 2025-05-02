@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'src/rov/rov_led_controller'
+package_name = 'rov_led_controller'
 
 setup(
     name=package_name,
@@ -15,12 +15,12 @@ setup(
     zip_safe=True,
     maintainer='catfishjw',
     maintainer_email='james.wiley@live.com',
-    description='TODO: Package description',
+    description='It controls LEDs',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'led_controller = src/rov/rov_led_controller.led_controller:main'
+            'led_controller = rov_led_controller.led_controller:main'
         ],
     },
 )
