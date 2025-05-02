@@ -4,7 +4,7 @@
 
 #define NUM_COUNTS 4177
 #define BUS_DEV 1
-#define ADDRESS 0x41
+#define ADDRESS 0x58
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
     int val = ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
