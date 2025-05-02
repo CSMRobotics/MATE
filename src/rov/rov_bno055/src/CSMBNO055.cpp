@@ -3,8 +3,8 @@
 
 // constants for this translation unit only
 namespace {
-    const uint8_t CHOSEN_AXIS_MAP_CONFIG = 0x06;
-    const uint8_t CHOSEN_AXIS_MAP_SIGN = 0x01;
+    const uint8_t CHOSEN_AXIS_MAP_CONFIG = 0x21;
+    const uint8_t CHOSEN_AXIS_MAP_SIGN = 0x02;
 }
 
 /*
