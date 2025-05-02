@@ -139,9 +139,15 @@ class Joystick:
         elif isinstance(button_names, dict):
             self._button_aliases = {name: index for name, index in button_names.items() if index >= 0}
 
+        # values of joystick
         self._axis_values: List[float] = []
         self._button_states: List[bool] = []
         self._button_transitions: List[int] = []
+
+        # number of axes and buttons for each joystick, used for recognizing different joystick messages
+        self._num_axes: List[int] = []
+        self._num_buttons: List[int] = []
+
 
         self._joystick_update_subscription = node.create_subscription(
             Joy,
@@ -149,7 +155,7 @@ class Joystick:
             self.on_joystick_message,
             10
         )
-
+        
     def axis(self, name_or_index: Union[str, int]) -> Axis:
         if type(name_or_index) == str and self._axis_aliases.get(name_or_index) != None:
             try:
@@ -173,25 +179,50 @@ class Joystick:
             return Button(None, False)
 
     def on_joystick_message(self, message: Joy):
-        if len(self._axis_values) < len(message.axes):
-            self._axis_values.extend([0.0] * (len(message.axes) - len(self._axis_values)))
+        # Check length of message to determine which joystick
+        if len(message.axes) not in self._num_axes:
+            self._num_axes.append(len(message.axes))
+            self._axis_values.extend([0.0] * len(message.axes))
+        if len(message.buttons) not in self._num_buttons:
+            self._num_buttons.append(len(message.buttons))
+            self._button_states.extend([0.0] * len(message.buttons))
+            self._button_transitions.extend([0.0] * len(message.buttons))
 
-        for index, axis in enumerate(message.axes):
+        # axes will be listed from controller with least number of axes to most number of axes
+        starting_index = 0
+        for num in self._num_axes:
+            if num < len(message.axes):
+                starting_index += num
+        
+        for index, axis in enumerate(message.axes, start = starting_index):
             self._axis_values[index] = axis
 
-        if len(self._button_states) < len(message.buttons):
-            self._button_states.extend([0.0] * (len(message.buttons) - len(self._button_states)))
+        # buttons will be listed from controller with least number of buttons to most number of buttons
+        starting_index = 0
+        for num in self._num_buttons:
+            if num < len(message.buttons):
+                starting_index += num
 
-        if len(self._button_transitions) < len(message.buttons):
-            self._button_transitions.extend([0.0] * (len(message.buttons) - len(self._button_transitions)))
-
-        for index, button in enumerate(message.buttons):
+        for index, button in enumerate(message.buttons, start = starting_index):
             button_state: bool = bool(button)
 
             if button_state != self._button_states[index]:
                 self._button_transitions[index] += 1
             
             self._button_states[index] = button_state
+
+        # debug
+        debug_message = "Axes: \n"
+        for index, axis in enumerate(self._axis_values):
+            debug_message += "     "
+            debug_message += str(index)
+            debug_message += (". %f\n" % axis)
+        debug_message += "Buttons:\n"
+        for index, button in enumerate(self._button_states):
+            debug_message += "     "
+            debug_message += str(index)
+            debug_message += (". {}".format(button))
+        print(debug_message)
 
 class RovControlState(Enum):
     OFF = 0
@@ -207,14 +238,24 @@ class RovControl(Node):
             "update_frequency_hz": 60,
             "mapping": {
                 "axis": {
+                    # Right Joystick
                     "roll": 0,
                     "pitch": 1,
                     "yaw": 2,
-                    "throttle": 3,
                     "hat_x": 4,
-                    "hat_y": 5
+                    "hat_y": 5,
+                    # Left Joystick
+                    "throttle_y": 6,
+                    "throttle_x": 7,
+                    "throttle_z": 11,
+                    "A1_hat_x": 14,
+                    "A1_hat_y": 15,
+                    "A1_joy_x": 9,
+                    "A1_joy_y": 10,
+                    "middle_flippy_thing": 8
                 },
                 "button": {
+                    # Right Joystick
                     "button_1": 0,
                     "button_2": 1,
                     "button_3": 2,
@@ -239,7 +280,39 @@ class RovControl(Node):
                     "base_middle_left": 8,
                     "base_middle_right": 9,
                     "base_back_left": 10,
-                    "base_back_right": 11
+                    "base_back_right": 11,
+                    # Left Joystick
+                    ""
+                    "fire_top": 33,
+                    "fire_bottom": 12,
+                    "A2": 14,
+                    "B1": 15,
+                    "A3_up": 17,
+                    "A3_right": 18,
+                    "A3_down": 19,
+                    "A3_left": 20,
+                    "A3_center": 21,
+                    "A4_up": 22,
+                    "A4_right": 23,
+                    "A4_down": 24,
+                    "A4_left": 25,
+                    "A4_center": 26,
+                    "C1_up": 27,
+                    "C1_right": 28,
+                    "C1_down": 29,
+                    "C1_left": 30,
+                    "D1": 16,
+                    "scroll_up": 34,
+                    "scroll_down": 35,
+                    "En1_up": 34,
+                    "En1_down": 35,
+                    "left_flippy_up": 36,
+                    "left_flippy_down": 37,
+                    "Sw1_up": 36,
+                    "Sw1_down": 37,
+                    "F1": 38,
+                    "F2": 39,
+                    "F3": 40
                 }
             },
             "control": {
@@ -253,9 +326,9 @@ class RovControl(Node):
                 },
                 "drive": {
                     "axis": {
-                        "vx": "hat_y",
-                        "vy": "hat_x",
-                        "vz": "throttle",
+                        "vx": "throttle_x",
+                        "vy": "throttle_y",
+                        "vz": "throttle_z",
                         "omegax": "roll",
                         "omegay": "pitch",
                         "omegaz": "yaw",
@@ -271,8 +344,8 @@ class RovControl(Node):
                 },
                 "manipulator": {
                     "axis": {
-                        "wrist": "roll",
-                        "clamp": "hat_y"
+                        "wrist": "A1_joy_x",
+                        "clamp": "A1_joy_y"
                     },
                     "scale": {
                         "wrist": 1.0,
@@ -286,7 +359,7 @@ class RovControl(Node):
                         "timeout_seconds": 1.0
                     },
                     "mode_switching": {
-                        "button": "stick_bottom_left"
+                        "button": "A2"
                     }
                 }
             }
@@ -413,6 +486,18 @@ class RovControl(Node):
                     1.0))
                     for thruster_axis, joystick_axis in
                         self.get_parameters_by_prefix("control.drive.axis").items()
+                })
+            )
+            self._manipulator_setpoint_publisher.publish(
+                ManipulatorSetpoints(**{
+                    manipulator_axis: max(-1.0, min(
+                        self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
+                        * self
+                            ._joystick.axis(joystick_axis.value)
+                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
+                    1.0))
+                    for manipulator_axis, joystick_axis in
+                        self.get_parameters_by_prefix("control.manipulator.axis").items()
                 })
             )
         elif self.state == RovControlState.MANIPULATOR_CONTROL:
