@@ -2,7 +2,6 @@
 #include <iostream>
 #include <rclcpp/rclcpp.hpp>
 
-#define NUM_COUNTS 4177
 #define BUS_DEV 1
 #define ADDRESS 0x5e
 
@@ -40,6 +39,23 @@ void ServoDriver::registerServo(uint8_t channel, ServoType type) {
         setThrottle(channel, 0.0f);
         break;
     }
+}
+
+void ServoDriver::setDuty(uint8_t channel, float duty) {
+    driver_board.setDuty(channel, duty);
+}
+
+void ServoDriver::setUS(uint8_t channel, uint16_t us) {
+    driver_board.setUS(channel, us);
+}
+
+void ServoDriver::setThrottle(uint8_t channel, float throttle) {
+    if (!continuous_servos.count(channel)) {
+        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set throttle on non-continuous servo");
+        return;
+    }
+    ContinuousServo* s = &continuous_servos[channel];
+    driver_board.setUS(channel, f2imap(throttle, -1.0, 1.0, s->us_minimum, s->us_maximum));
 }
 
 void ServoDriver::setDuty(uint8_t channel, float duty) {
