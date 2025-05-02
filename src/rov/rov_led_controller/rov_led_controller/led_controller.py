@@ -91,13 +91,9 @@ class LEDControllerNode(Node):
         # Change animation and colors
         if msgs[0] == 'get_animations':
             # Send the list of preprogrammed animations to the UI
-            animations_msg = String()
-            animations_msg.data = "\n".join(animation for animation in self.animations)
-            self.get_logger().info(animations_msg)
+            self.get_logger().info(", ".join(animation for animation in self.animations.keys()))
         elif msgs[0] == 'get_colors':
-            colors_msg = String()
-            colors_msg.data = "\n".join(color for color in self.colors)
-            self.get_logger().info(colors_msg)
+            self.get_logger().info(", ".join(color for color in self.colors))
         elif len(msgs) >= 2:            
             # Check for which leds the user wants to modify
             setStripFunc = self._set_ring_LED
