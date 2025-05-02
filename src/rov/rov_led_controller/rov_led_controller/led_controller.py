@@ -9,7 +9,7 @@ from rov_led_controller.SK6812RGBW import SPItoSK
 
 
 # Ring leds go first, then strip leds
-NUM_RING_LEDS = 12
+NUM_RING_LEDS = 24
 NUM_STRIP_LEDS = 48
 RGBW_PIXELS = SPItoSK(NUM_RING_LEDS + NUM_STRIP_LEDS)
 
@@ -63,7 +63,6 @@ class LEDControllerNode(Node):
         # Can't believe I need to wrap StopAnim in a list to pass by reference
         self.ringStopAnim = [False]
         self.stripStopAnim = [False]
-        self.ringStopMutex = threading.Lock()
         self.stripStopMutex = threading.Lock()
         
         # Set leds to off when starting
@@ -111,8 +110,7 @@ class LEDControllerNode(Node):
             if msgs[1] in self.animations:                    
                 # Stop current animation
                 if msgs[0] == "ring":
-                    with self.ringStopMutex:
-                        self.ringStopAnim[0] = True
+                    self.ringStopAnim[0] = True
                     self.ringAnimThread.join()
                     self.ringStopAnim[0] = False
                 elif msgs[0] == "strip":
@@ -134,8 +132,7 @@ class LEDControllerNode(Node):
             elif msgs[1] in self.colors:
                 # Stop current animation
                 if msgs[0] == "ring":
-                    with self.ringStopMutex:
-                        self.ringStopAnim[0] = True
+                    self.ringStopAnim[0] = True
                     self.ringAnimThread.join()
                     self.ringStopAnim[0] = False
                 elif msgs[0] == "strip":
