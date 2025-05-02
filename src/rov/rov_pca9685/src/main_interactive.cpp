@@ -24,7 +24,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
             for(int i=0; i<16; i++) {
                 servoDriver.registerServo(i, ServoType::CONTINUOUS);
                 isContinuous[i]=true;
-                servoDriver.setUSBounds(i, 1100, 1900);
+                servoDriver.setUSBounds(i, 1000, 2000);
             }
         } else {
             // load non continuous servo defaults
