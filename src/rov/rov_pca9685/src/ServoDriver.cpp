@@ -2,9 +2,8 @@
 #include <iostream>
 #include <rclcpp/rclcpp.hpp>
 
-#define NUM_COUNTS 4177
 #define BUS_DEV 1
-#define ADDRESS 0x41
+#define ADDRESS 0x5e
 
 static int f2imap(float value, float from_min, float from_max, int to_min, int to_max){
     int val = ((value - from_min) * ((to_max - to_min) / (from_max - from_min)) + to_min);
@@ -29,15 +28,34 @@ void ServoDriver::registerServo(uint8_t channel, ServoType type) {
     case ServoType::POSITIONAL:
         servos[channel] = Servo();
         RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered positional servo on channel %d", channel);
+        setUSBounds(channel, 1000, 2000);
         setAngle(channel, 90.0f);
         break;
     
     case ServoType::CONTINUOUS:
         continuous_servos[channel] = ContinuousServo();
         RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered continuous servo on channel %d", channel);
+        setUSBounds(channel, 1000, 2000);
         setThrottle(channel, 0.0f);
         break;
     }
+}
+
+void ServoDriver::setDuty(uint8_t channel, float duty) {
+    driver_board.setDuty(channel, duty);
+}
+
+void ServoDriver::setUS(uint8_t channel, uint16_t us) {
+    driver_board.setUS(channel, us);
+}
+
+void ServoDriver::setThrottle(uint8_t channel, float throttle) {
+    if (!continuous_servos.count(channel)) {
+        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set throttle on non-continuous servo");
+        return;
+    }
+    ContinuousServo* s = &continuous_servos[channel];
+    driver_board.setUS(channel, f2imap(throttle, -1.0, 1.0, s->us_minimum, s->us_maximum));
 }
 
 void ServoDriver::setDuty(uint8_t channel, float duty) {
