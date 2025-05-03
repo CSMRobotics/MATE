@@ -82,7 +82,7 @@ void PCA9685::reset() {
 }
 
 void PCA9685::setFrequency(uint16_t frequency) {
-    static const uint16_t NUM_COUNTS = 3932; // scaling factor since clock sucks balls lol
+    static const uint16_t NUM_COUNTS = 4123; // scaling factor since clock sucks balls lol
     static const uint16_t MIN_FREQUENCY = 24; // Hz
     static const uint16_t MAX_FREQUENCY = 1526; // Hz
     // if given frequency is not valid, do nothing

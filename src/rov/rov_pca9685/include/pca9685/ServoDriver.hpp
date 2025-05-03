@@ -15,13 +15,13 @@ struct ServoBase {
 };
 
 struct Servo : ServoBase {
-    uint16_t us_minimum = 1000;
-    uint16_t us_maximum = 2000;
+    uint16_t us_minimum = 1100;
+    uint16_t us_maximum = 1900;
 };
 
 struct ContinuousServo : ServoBase {
-    uint16_t us_minimum = 1000;
-    uint16_t us_maximum = 2000;
+    uint16_t us_minimum = 1100;
+    uint16_t us_maximum = 1900;
 };
 
 class ServoDriver {
