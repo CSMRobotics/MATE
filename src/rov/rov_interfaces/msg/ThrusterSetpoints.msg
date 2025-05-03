@@ -4,3 +4,5 @@ float64 vz
 float64 omegax
 float64 omegay
 float64 omegaz
+bool keep_depth
+bool free_orientation

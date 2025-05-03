@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 project(rov_flight_controller)
 
 add_compile_options(-g)
@@ -33,17 +33,8 @@ find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-if(BUILD_DISPLAY)
-  find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
-  find_package(Boost 1.71.0 REQUIRED)
-endif()
-
 add_library(flight_controller_lib STATIC src/flight_controller.cpp)
 add_executable(flight_controller src/main.cpp)
-
-if(BUILD_DISPLAY)
-  add_executable(flight_display src/flight_display.cpp)
-endif()
 
 target_include_directories(flight_controller_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -56,29 +47,12 @@ ament_target_dependencies(
   "std_srvs"
   "sensor_msgs"
 )
-if(BUILD_DISPLAY)
-  target_include_directories(flight_display PUBLIC
-    ${Boost_INCLUDE_DIRS})
-endif()
 
 target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
-if(BUILD_DISPLAY)
-  target_link_libraries(flight_display flight_controller_lib sfml-system sfml-window sfml-graphics yaml-cpp ${Boost_LIBRARIES})
-endif()
 
 install(TARGETS flight_controller flight_controller_lib
   DESTINATION lib/${PROJECT_NAME})
-
-if(BUILD_DISPLAY)
-  install(TARGETS flight_display
-  DESTINATION lib/${PROJECT_NAME})
-endif()
-
-if(BUILD_DISPLAY)
-  install(TARGETS flight_display
-    DESTINATION lib/${PROJECT_NAME})
-endif()
 
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME})
