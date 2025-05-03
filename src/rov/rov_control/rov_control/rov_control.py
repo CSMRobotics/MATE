@@ -190,16 +190,6 @@ class Joystick:
             return Button(None, False)
 
     def on_joystick_message(self, message: Joy, button_offset:int, axes_offset:int):
-        # Check length of message to determine which joystick
-        # if len(message.axes) not in self._num_axes:
-        #     self._num_axes.append(len(message.axes))
-        #     self._axis_values.extend([0.0] * len(message.axes))
-        # if len(message.buttons) not in self._num_buttons:
-        #     self._num_buttons.append(len(message.buttons))
-        #     self._button_states.extend([0.0] * len(message.buttons))
-        #     self._button_transitions.extend([0.0] * len(message.buttons))
-        print("Num Butt (hehe)", len(message.buttons))
-        print("Num Axe", len(message.axes))
 
         # axes will be listed from controller with least number of axes to most number of axes
         
@@ -516,18 +506,6 @@ class RovControl(Node):
             )
         elif self.state == RovControlState.MANIPULATOR_CONTROL:
             print("HOLY FUDGE  AGHHHH YOU'RE IN MANIPULATOR CONTROL MODE AND SHOULDN'T BE, PRESS A2 OR WHATEVER IT IS")
-        #     self._manipulator_setpoint_publisher.publish(
-        #         ManipulatorSetpoints(**{
-        #             manipulator_axis: max(-1.0, min(
-        #                 self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
-        #                 * self
-        #                     ._joystick.axis(joystick_axis.value)
-        #                     .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
-        #             1.0))
-        #             for manipulator_axis, joystick_axis in
-        #                 self.get_parameters_by_prefix("control.manipulator.axis").items()
-        #         })
-        #     )
         elif self.state == RovControlState.OFF :
             #send all manipulators zero command
             self._manipulator_setpoint_publisher.publish(
