@@ -4,15 +4,15 @@
 namespace {
     void declare_manipulator_controller_parameters(rclcpp::Node*const node) {
         node->declare_parameter("wrist_invert", false);
-        node->declare_parameter("wrist_lower_bound", 90.0);
+        node->declare_parameter("wrist_lower_bound", 0.0);
         node->declare_parameter("wrist_upper_bound", 180.0);
-        node->declare_parameter("wrist_pwm_pin", 11);
+        node->declare_parameter("wrist_pwm_pin", 8);
         node->declare_parameter("wrist_scale", 2.5);
         node->declare_parameter("clamp_invert", false);
-        node->declare_parameter("clamp_lower_bound", 20.0);
-        node->declare_parameter("clamp_upper_bound", 135.0);
-        node->declare_parameter("clamp_pwm_pin", 14);
-        node->declare_parameter("clamp_scale", 5.0);
+        node->declare_parameter("clamp_lower_bound", 0.0);
+        node->declare_parameter("clamp_upper_bound", 180.0);
+        node->declare_parameter("clamp_pwm_pin", 11);
+        node->declare_parameter("clamp_scale", 1.0);
     }
 
     void clamp(float* toClamp, double lower, double upper) {
@@ -80,13 +80,13 @@ void ManipulatorController::setpoint_callback(const rov_interfaces::msg::Manipul
 
     // publish PWM
     // wrist pwm
-    auto pwm = rov_interfaces::msg::PWM();
-    pwm.angle_or_throttle = wrist;
-    pwm.channel = this->get_parameter("wrist_pwm_pin").as_int();
-    pwm_pub->publish(pwm);
+    // auto pwm = rov_interfaces::msg::PWM();
+    // pwm.angle_or_throttle = wrist;
+    // pwm.channel = this->get_parameter("wrist_pwm_pin").as_int();
+    // pwm_pub->publish(pwm);
 
     // clamp pwm
-    pwm = rov_interfaces::msg::PWM();
+    auto pwm = rov_interfaces::msg::PWM();
     pwm.angle_or_throttle = clamp;
     pwm.channel = this->get_parameter("clamp_pwm_pin").as_int();
     pwm_pub->publish(pwm);
