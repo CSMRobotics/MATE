@@ -51,7 +51,7 @@ void ServoDriver::setUS(uint8_t channel, uint16_t us) {
 
 void ServoDriver::setThrottle(uint8_t channel, float throttle) {
     if (!continuous_servos.count(channel)) {
-        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set throttle on non-continuous servo");
+        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set throttle on non-continuous servo %d", channel);
         return;
     }
     ContinuousServo* s = &continuous_servos[channel];
@@ -60,7 +60,7 @@ void ServoDriver::setThrottle(uint8_t channel, float throttle) {
 
 void ServoDriver::setAngle(uint8_t channel, float angle) {
     if (!servos.count(channel)) {
-        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set angle on continuous servo");
+        RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set angle on continuous servo on channel %d", channel);
         return;
     }
     Servo* s = &servos[channel];
@@ -77,7 +77,7 @@ void ServoDriver::setUSBounds(uint8_t channel, uint16_t min_us, uint16_t max_us)
         continuous_servos[channel].us_maximum = max_us;
         return;
     }
-    RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the bounds of an unregistered servo");
+    RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the bounds of an unregistered servo %d", channel);
 }
 
 void ServoDriver::setOutput(uint8_t channel, float angle_or_throttle) {
@@ -88,5 +88,5 @@ void ServoDriver::setOutput(uint8_t channel, float angle_or_throttle) {
         setThrottle(channel, angle_or_throttle);
         return;
     }
-    RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the output of an unregistered servo");
+    RCLCPP_WARN(rclcpp::get_logger("ServoDriver"), "Attempted to set the output of an unregistered servo on channel %d", channel);
 }
