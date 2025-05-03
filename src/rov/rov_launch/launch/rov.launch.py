@@ -11,10 +11,10 @@ def generate_launch_description():
         package="rov_gpio",
         executable="rov_gpio"
     )
-    # bar02 = Node(
-    #     package="bar02",
-    #     executable="bar02"
-    # )
+    bar30 = Node(
+        package="rov_bar30",
+        executable="bar30"
+    )
     bno055 = Node(
         package="rov_bno055",
         executable="bno055_node"
@@ -53,13 +53,19 @@ def generate_launch_description():
         parameters=[os.path.join(get_package_share_directory("rov_led_controller"), "config", "params.yaml")]
     )
 
+    tsys01 = Node(
+        package="rov_tsys01",
+        executable="tsys01"
+    )
+
     ld.add_action(bno055)
     ld.add_action(flight_controller)
     ld.add_action(pca9685)
     ld.add_action(cameras)
     ld.add_action(control)
-    # ld.add_action(bar02)
+    ld.add_action(bar30)
     ld.add_action(gpio)
     ld.add_action(manipulator_controller)
     ld.add_action(led_controller)
+    ld.add_action(tsys01)
     return ld

@@ -21,9 +21,11 @@
   <depend>rov_pca9685</depend>
   <depend>rov_control</depend>
   <depend>rov_cameras</depend>
-  <depend>bar02</depend>
+  <depend>rov_bar30</depend>
   <depend>rov_gpio</depend>  
   <depend>rov_manipulator_controller</depend>
+  <depend>rov_led_controller</depend>
+  <depend>rov_tsys01</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
