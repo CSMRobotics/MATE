@@ -123,10 +123,13 @@ class Joystick:
     def __init__(
         self,
         node: Node,
-        joystick_topic_name: str,
+        joystick_topic_name_l: str,
+        joystick_topic_name_r: str,
         axis_names: Union[List[str], Dict[str, int]],
         button_names: Union[List[str], Dict[str, int]]
     ):
+        # TODO: Un-emergency fix this to actually use two joystick instances, each with their own topic name, rather than
+        # all this functionality shoved into the same node bc I didn't feel like editting the button axis-offset mapping stuff.
         self._axis_aliases: Dict[str, int] = {}
         if isinstance(axis_names, list):
             self._axis_aliases = {name: index for index, name in enumerate(axis_names)}
@@ -139,20 +142,28 @@ class Joystick:
         elif isinstance(button_names, dict):
             self._button_aliases = {name: index for name, index in button_names.items() if index >= 0}
 
-        # values of joystick
-        self._axis_values: List[float] = []
-        self._button_states: List[bool] = []
-        self._button_transitions: List[int] = []
 
-        # number of axes and buttons for each joystick, used for recognizing different joystick messages
-        self._num_axes: List[int] = []
-        self._num_buttons: List[int] = []
+        # # number of axes and buttons for each joystick, used for recognizing different joystick messages
+        self._num_axes: List[int] = [6, 10]
+        self._num_buttons: List[int] = [12, 79]
 
+        # # values of joystick
+        self._axis_values: List[float] = [0] * sum(self._num_axes)
+        self._button_states: List[bool] = [0] * sum(self._num_buttons)
+        self._button_transitions: List[int] = [0] * sum(self._num_buttons)
 
         self._joystick_update_subscription = node.create_subscription(
             Joy,
-            joystick_topic_name,
-            self.on_joystick_message,
+            joystick_topic_name_r,
+            lambda msg: self.on_joystick_message(msg, 0, 0),
+            10
+        )
+        # TODO Seriously un-hardcode these offsets
+        # Offset left controller by number of buttons+axes on right control bc that's how the  mapping is rn
+        self._joystick_update_subscription = node.create_subscription(
+            Joy,
+            joystick_topic_name_l,
+            lambda msg: self.on_joystick_message(msg, self._num_buttons[0], self._num_axes[0]),
             10
         )
         
@@ -178,32 +189,23 @@ class Joystick:
         else:
             return Button(None, False)
 
-    def on_joystick_message(self, message: Joy):
+    def on_joystick_message(self, message: Joy, button_offset:int, axes_offset:int):
         # Check length of message to determine which joystick
-        if len(message.axes) not in self._num_axes:
-            self._num_axes.append(len(message.axes))
-            self._axis_values.extend([0.0] * len(message.axes))
-        if len(message.buttons) not in self._num_buttons:
-            self._num_buttons.append(len(message.buttons))
-            self._button_states.extend([0.0] * len(message.buttons))
-            self._button_transitions.extend([0.0] * len(message.buttons))
+        # if len(message.axes) not in self._num_axes:
+        #     self._num_axes.append(len(message.axes))
+        #     self._axis_values.extend([0.0] * len(message.axes))
+        # if len(message.buttons) not in self._num_buttons:
+        #     self._num_buttons.append(len(message.buttons))
+        #     self._button_states.extend([0.0] * len(message.buttons))
+        #     self._button_transitions.extend([0.0] * len(message.buttons))
+        print("Num Butt (hehe)", len(message.buttons))
+        print("Num Axe", len(message.axes))
 
         # axes will be listed from controller with least number of axes to most number of axes
-        starting_index = 0
-        for num in self._num_axes:
-            if num < len(message.axes):
-                starting_index += num
         
-        for index, axis in enumerate(message.axes, start = starting_index):
+        for index, axis in enumerate(message.axes, start = axes_offset):
             self._axis_values[index] = axis
-
-        # buttons will be listed from controller with least number of buttons to most number of buttons
-        starting_index = 0
-        for num in self._num_buttons:
-            if num < len(message.buttons):
-                starting_index += num
-
-        for index, button in enumerate(message.buttons, start = starting_index):
+        for index, button in enumerate(message.buttons, start = button_offset):
             button_state: bool = bool(button)
 
             if button_state != self._button_states[index]:
@@ -436,7 +438,8 @@ class RovControl(Node):
 
         self._joystick = Joystick(
             node = self,
-            joystick_topic_name = "joy",
+            joystick_topic_name_l = "joy_left",
+            joystick_topic_name_r = "joy_right", 
             axis_names = {parameter_name: parameter.value for parameter_name, parameter in self.get_parameters_by_prefix("mapping.axis").items()},
             button_names = {parameter_name: parameter.value for parameter_name, parameter in self.get_parameters_by_prefix("mapping.button").items()}
         )
@@ -512,18 +515,19 @@ class RovControl(Node):
                 })
             )
         elif self.state == RovControlState.MANIPULATOR_CONTROL:
-            self._manipulator_setpoint_publisher.publish(
-                ManipulatorSetpoints(**{
-                    manipulator_axis: max(-1.0, min(
-                        self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
-                        * self
-                            ._joystick.axis(joystick_axis.value)
-                            .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
-                    1.0))
-                    for manipulator_axis, joystick_axis in
-                        self.get_parameters_by_prefix("control.manipulator.axis").items()
-                })
-            )
+            print("HOLY FUDGE  AGHHHH YOU'RE IN MANIPULATOR CONTROL MODE AND SHOULDN'T BE, PRESS A2 OR WHATEVER IT IS")
+        #     self._manipulator_setpoint_publisher.publish(
+        #         ManipulatorSetpoints(**{
+        #             manipulator_axis: max(-1.0, min(
+        #                 self.get_parameter(f"control.manipulator.scale.{manipulator_axis}").value
+        #                 * self
+        #                     ._joystick.axis(joystick_axis.value)
+        #                     .deadzoned(self.get_parameter(f"control.deadzone.{joystick_axis.value}").value).value,
+        #             1.0))
+        #             for manipulator_axis, joystick_axis in
+        #                 self.get_parameters_by_prefix("control.manipulator.axis").items()
+        #         })
+        #     )
         elif self.state == RovControlState.OFF :
             #send all manipulators zero command
             self._manipulator_setpoint_publisher.publish(
