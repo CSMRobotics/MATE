@@ -349,7 +349,7 @@ class RovControl(Node):
                     "scale": {
                         "vx": 1.0,
                         "vy": -1.0,
-                        "vz": 1.0,
+                        "vz": -1.0,
                         "omegax": 1.0,
                         "omegay": -1.0,
                         "omegaz": -1.0
