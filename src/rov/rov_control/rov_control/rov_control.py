@@ -198,8 +198,8 @@ class Joystick:
         #     self._num_buttons.append(len(message.buttons))
         #     self._button_states.extend([0.0] * len(message.buttons))
         #     self._button_transitions.extend([0.0] * len(message.buttons))
-        print("Num Butt (hehe)", len(message.buttons))
-        print("Num Axe", len(message.axes))
+        # print("Num Butt (hehe)", len(message.buttons))
+        # print("Num Axe", len(message.axes))
 
         # axes will be listed from controller with least number of axes to most number of axes
         
