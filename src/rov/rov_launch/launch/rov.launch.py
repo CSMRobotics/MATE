@@ -50,7 +50,7 @@ def generate_launch_description():
     led_controller = Node(
         package="rov_led_controller",
         executable="led_controller",
-        parameters=[os.path.join(get_package_share_directory("rov_led_controller"), "config", "params.yaml")]
+        # parameters=[os.path.join(get_package_share_directory("rov_led_controller"), "config", "params.yaml")]
     )
 
     tsys01 = Node(
