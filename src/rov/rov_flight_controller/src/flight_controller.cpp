@@ -128,6 +128,19 @@ FlightController::FlightController() : Node(std::string("flight_controller")) {
         std::bind(&FlightController::depthTare, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+FlightController::~FlightController() {
+    control_loop = this->create_wall_timer(std::chrono::milliseconds(UPDATE_MS), [](){});
+    
+    // safe the thrusters by turning them to 0 pwm
+    rov_interfaces::msg::PWM msg;
+    msg.angle_or_throttle = 0;
+
+    for(int i=0; i < NUM_THRUSTERS; i++) {
+        msg.channel = i;
+        this->pwm_publisher->publish(msg);
+    }
+}
+
 void FlightController::registerThrusters() {
     auto registration_callback = [logger = this->get_logger()](rclcpp::Client<rov_interfaces::srv::CreateContinuousServo>::SharedFutureWithRequest future) {
         auto result = future.get();
