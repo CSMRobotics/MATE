@@ -28,14 +28,14 @@ void ServoDriver::registerServo(uint8_t channel, ServoType type) {
     case ServoType::POSITIONAL:
         servos[channel] = Servo();
         RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered positional servo on channel %d", channel);
-        setUSBounds(channel, 1000, 2000);
+        setUSBounds(channel, 1100, 1900);
         setAngle(channel, 90.0f);
         break;
     
     case ServoType::CONTINUOUS:
         continuous_servos[channel] = ContinuousServo();
         RCLCPP_INFO(rclcpp::get_logger("ServoDriver"), "Registered continuous servo on channel %d", channel);
-        setUSBounds(channel, 1000, 2000);
+        setUSBounds(channel, 1100, 1900);
         setThrottle(channel, 0.0f);
         break;
     }
