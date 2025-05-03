@@ -90,4 +90,5 @@ void ManipulatorController::setpoint_callback(const rov_interfaces::msg::Manipul
     pwm.angle_or_throttle = clamp;
     pwm.channel = this->get_parameter("clamp_pwm_pin").as_int();
     pwm_pub->publish(pwm);
+    std::cout << clamp;
 }
