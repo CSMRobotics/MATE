@@ -1,7 +1,7 @@
 rov_cameras:
   ros__parameters:
-    # cameras: ["test", "front", "transect"]
-    cameras: ["test"]
+    cameras: ["test", "front", "transect"]
+    #cameras: ["test"]
     test:
       port: "8809"
       pipeline: videotestsrc is-live=true ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0 pt=96
