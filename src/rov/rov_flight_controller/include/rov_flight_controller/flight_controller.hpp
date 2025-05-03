@@ -23,6 +23,7 @@
 class FlightController : public rclcpp::Node {
 public:
     FlightController();
+    ~FlightController();
 
 private:
     void registerThrusters();

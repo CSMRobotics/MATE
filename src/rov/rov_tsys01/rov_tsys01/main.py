@@ -10,7 +10,7 @@ class Tsys01_Node(Node):
     def __init__(self):
         super().__init__("tsys01")
         self._publisher = self.create_publisher(TSYS01Data, "tsys01", 10)
-        self.sensor = tsys01.TSYS01()
+        self.sensor = tsys01.TSYS01(bus=1)
         self.sensor.init()
         sleep(0.01)
         self.timer = self.create_timer(0.01, self.timer_callback)
