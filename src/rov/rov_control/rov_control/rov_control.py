@@ -212,17 +212,17 @@ class Joystick:
             self._button_states[index] = button_state
 
         # debug
-        debug_message = "Axes: \n"
-        for index, axis in enumerate(self._axis_values):
-            debug_message += "     "
-            debug_message += str(index)
-            debug_message += (". %f\n" % axis)
-        debug_message += "Buttons:\n"
-        for index, button in enumerate(self._button_states):
-            debug_message += "     "
-            debug_message += str(index)
-            debug_message += (". {}".format(button))
-        print(debug_message)
+        # debug_message = "Axes: \n"
+        # for index, axis in enumerate(self._axis_values):
+        #     debug_message += "     "
+        #     debug_message += str(index)
+        #     debug_message += (". %f\n" % axis)
+        # debug_message += "Buttons:\n"
+        # for index, button in enumerate(self._button_states):
+        #     debug_message += "     "
+        #     debug_message += str(index)
+        #     debug_message += (". {}".format(button))
+        # print(debug_message)
 
 class RovControlState(Enum):
     OFF = 0
@@ -321,6 +321,17 @@ class RovControl(Node):
                     "pitch": 0.1,
                     "yaw": 0.1,
                     "throttle": 0.1,
+                    "throttle_x": 0.1,
+                    "throttle_y": 0.1,
+                    "throttle_z": 0.1,
+                    "throttle_y": 0.1,
+                    "throttle_x": 0.1,
+                    "throttle_z": 0.1,
+                    "A1_hat_x": 0.1,
+                    "A1_hat_y": 0.1,
+                    "A1_joy_x": 0.1,
+                    "A1_joy_y": 0.1,
+                    "middle_flippy_thing": 0.1,
                     "hat_x": 0.0,
                     "hat_y": 0.0
                 },
@@ -335,7 +346,7 @@ class RovControl(Node):
                     },
                     "scale": {
                         "vx": 1.0,
-                        "vy": 1.0,
+                        "vy": -1.0,
                         "vz": 1.0,
                         "omegax": 1.0,
                         "omegay": -1.0,
@@ -348,8 +359,8 @@ class RovControl(Node):
                         "clamp": "A1_joy_y"
                     },
                     "scale": {
-                        "wrist": 1.0,
-                        "clamp": 1.0
+                        "wrist": -1.0,
+                        "clamp": -1.0
                     }
                 },
                 "other": {
