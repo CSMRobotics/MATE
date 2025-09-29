@@ -68,4 +68,6 @@ def generate_launch_description():
     ld.add_action(manipulator_controller)
     ld.add_action(led_controller)
     ld.add_action(tsys01)
+
+    print("NONONONo Robobobo alive")
     return ld
