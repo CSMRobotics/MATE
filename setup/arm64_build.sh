@@ -1,0 +1,1 @@
+docker compose build rov --build-arg BASE_IMAGE=arm64v8/ros:humble-perception
