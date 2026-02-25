@@ -1,9 +1,0 @@
-setuptools 
-wheel 
-distlib
-numpy
-opencv-python
-Jetson.GPIO
-dbus-python
-transitions
-adafruit-circuitpython-neopixel-spi
