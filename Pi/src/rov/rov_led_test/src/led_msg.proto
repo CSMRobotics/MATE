@@ -1,4 +1,4 @@
-syntax = "proto3"
+syntax = "proto3";
 
 message LEDMsg {
     int32 id = 1;
