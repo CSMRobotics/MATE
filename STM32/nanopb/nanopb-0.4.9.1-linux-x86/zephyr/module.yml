@@ -1,4 +1,0 @@
-name: nanopb
-build:
-  cmake-ext: True
-  kconfig-ext: True

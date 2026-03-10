@@ -1,0 +1,7 @@
+syntax = "proto3"
+
+message LEDMsg {
+    int32 id = 1;
+    bool ledOn = 2;
+    string text = 3;
+}
