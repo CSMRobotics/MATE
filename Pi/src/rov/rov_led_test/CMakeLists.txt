@@ -8,12 +8,19 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
 
-add_executable(rov_led_test src/rov_led_test.cpp)
+add_executable(rov_led_test 
+  src/rov_led_test.cpp
+  src/led_msg.pb.c
+  src/pb_common.c
+  src/pb_decode.c
+  src/pb_encode.c
+)
 
 target_include_directories(rov_led_test PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -21,7 +28,10 @@ target_include_directories(rov_led_test PUBLIC
 target_compile_features(rov_led_test PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 # Idk why this is needed but it is for some reason
-ament_target_dependencies(rov_led_test rclcpp)
+ament_target_dependencies(rov_led_test 
+  rclcpp 
+  std_msgs
+)
 
 install(TARGETS rov_led_test
   DESTINATION lib/${PROJECT_NAME})

@@ -13,7 +13,7 @@
 typedef struct _LEDMsg {
     int32_t id;
     bool ledOn;
-    pb_callback_t text;
+    char text[64];
 } LEDMsg;
 
 
@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define LEDMsg_init_default                      {0, 0, {{NULL}, NULL}}
-#define LEDMsg_init_zero                         {0, 0, {{NULL}, NULL}}
+#define LEDMsg_init_default                      {0, 0, ""}
+#define LEDMsg_init_zero                         {0, 0, ""}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define LEDMsg_id_tag                            1
@@ -34,8 +34,8 @@ extern "C" {
 #define LEDMsg_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    id,                1) \
 X(a, STATIC,   SINGULAR, BOOL,     ledOn,             2) \
-X(a, CALLBACK, SINGULAR, STRING,   text,              3)
-#define LEDMsg_CALLBACK pb_default_field_callback
+X(a, STATIC,   SINGULAR, STRING,   text,              3)
+#define LEDMsg_CALLBACK NULL
 #define LEDMsg_DEFAULT NULL
 
 extern const pb_msgdesc_t LEDMsg_msg;
@@ -44,7 +44,8 @@ extern const pb_msgdesc_t LEDMsg_msg;
 #define LEDMsg_fields &LEDMsg_msg
 
 /* Maximum encoded size of messages (where known) */
-/* LEDMsg_size depends on runtime parameters */
+#define LEDMsg_size                              78
+#define LED_MSG_PB_H_MAX_SIZE                    LEDMsg_size
 
 #ifdef __cplusplus
 } /* extern "C" */
