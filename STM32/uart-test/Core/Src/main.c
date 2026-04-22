@@ -22,6 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include <stdio.h>
+#include "pb_decode.h"
+#include "led_msg.pb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,7 +72,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  uint8_t rx_buffer[LEDMsg_size];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -93,27 +96,80 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  LEDMsg my_received_led = LEDMsg_init_default;
+  char debug_msg[128];
 
+  // Send a startup message to your PC
+  char *start_txt = "STM32 NanoPB Listener Started...\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t*)start_txt, strlen(start_txt), 100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	// 1. Prepare the message
-	char *pi_msg = "Hello Raspberry Pi!\r\n";
+	  /* * 1. Receive data from Pi.
+	   * We use LEDMsg_size because your Pi code sends the full std::array.
+	   * Timeout is 1000ms (1 second).
+	   */
+	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, rx_buffer, LEDMsg_size, 1000);
 
-	// 2. Transmit via USART1 (The Pi connection)
-	// Parameters: (Handle, Data, Size, Timeout in ms)
-	HAL_UART_Transmit(&huart1, (uint8_t*)pi_msg, strlen(pi_msg), 100);
+	  if (status == HAL_OK)
+	  {
+		  // 2. Prepare the NanoPB input stream
+//		  pb_istream_t stream = pb_istream_from_buffer(rx_buffer, LEDMsg_size);
 
-	// 3. Optional: Send a debug message to your PC via USART2
+		  // brute force message length
+		  // Find the actual data length (since it's followed by zeros in your array)
+		  // We look for the first 0x00 after the text starts.
+		  size_t actual_len = 0;
+		  while(actual_len < LEDMsg_size && rx_buffer[actual_len] != 0) {
+			  actual_len++;
+		  }
 
-	char *pc_msg = "Sent message to Pi...\r\n";
-	HAL_UART_Transmit(&huart2, (uint8_t*)pc_msg, strlen(pc_msg), 100);
+		  // IMPORTANT: Use actual_len here, not LEDMsg_size!
+		  pb_istream_t stream = pb_istream_from_buffer(rx_buffer, actual_len);
 
-	// 4. Wait 2 seconds
-	HAL_Delay(2000);
+		  // test debug thing
+		  for(int x=0; x<10; x++) {
+		      sprintf(debug_msg, "%02X ", rx_buffer[x]);
+		      HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, strlen(debug_msg), 10);
+		  }
+		  HAL_UART_Transmit(&huart2, (uint8_t*)"\r\n", 2, 10);
+
+		  // 3. Decode the bytes back into the C struct
+		  if (pb_decode(&stream, LEDMsg_fields, &my_received_led))
+		  {
+			  // 4. Act on the data (Toggle LD2 LED on Nucleo)
+			  if (my_received_led.ledOn) {
+				  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+			  } else {
+				  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+			  }
+
+			  // 5. Send confirmation to PC Serial Monitor
+			  snprintf(debug_msg, sizeof(debug_msg), "Recv - ID: %ld, LED: %s, Text: %s\r\n",
+					   (long)my_received_led.id,
+					   my_received_led.ledOn ? "ON" : "OFF",
+					   my_received_led.text);
+			  HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, strlen(debug_msg), 100);
+		  }
+		  else
+		  {
+			  // Error: Data received but NanoPB couldn't parse it
+			  char *err_msg = "Error: NanoPB Decoding Failed!\r\n";
+			  HAL_UART_Transmit(&huart2, (uint8_t*)err_msg, strlen(err_msg), 100);
+
+			  // FLUSH the buffer so the next message starts clean
+			  __HAL_UART_FLUSH_DRREGISTER(&huart1);
+		  }
+	  }
+	  else if (status == HAL_TIMEOUT)
+	  {
+		  // Optional: Print a dot or message to PC to show we are still alive
+		   char *wait_msg = ".\r\n";
+		   HAL_UART_Transmit(&huart2, (uint8_t*)wait_msg, strlen(wait_msg), 10);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

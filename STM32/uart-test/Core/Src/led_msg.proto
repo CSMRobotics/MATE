@@ -6,4 +6,4 @@ message LEDMsg {
     int32 id = 1;
     bool ledOn = 2;
     string text = 3 [(nanopb).max_size = 64];
-}
+}	

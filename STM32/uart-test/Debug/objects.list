@@ -1,4 +1,8 @@
+"./Core/Src/led_msg.pb.o"
 "./Core/Src/main.o"
+"./Core/Src/pb_common.o"
+"./Core/Src/pb_decode.o"
+"./Core/Src/pb_encode.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"
 "./Core/Src/syscalls.o"
