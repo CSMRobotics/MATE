@@ -29,7 +29,7 @@ public:
 private:
     int _serialPort = -1;
     LEDMsg _ledMsg;
-    int _msgId = 0;
+    int _msgId = 1;
     struct termios _tty;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _topicSubcriber;
     

@@ -68,7 +68,7 @@ RovLEDTest::~RovLEDTest() {
 void RovLEDTest::ledTopicCallback(const std_msgs::msg::String &msg) {
     RCLCPP_INFO(this->get_logger(), "Received data: %s \n", msg.data.c_str());
     bool ledOn = false;
-    std::string text = msg.data.substr(2);
+    const std::string text = msg.data;
     if (msg.data.substr(0, 2) == "on") {
         ledOn = true;
     }
@@ -80,8 +80,12 @@ std::array<pb_byte_t, LEDMsg_size> RovLEDTest::_encodeMsg(const bool &ledOn, con
     std::array<pb_byte_t, LEDMsg_size> buffer{};  // Contains encoded message afterwards
     _ledMsg.id = _msgId;
     _ledMsg.ledOn = ledOn;
+    if (text.length() > 64) {
+        RCLCPP_WARN(this->get_logger(), "String size longer than buffer size");
+    }
     strncpy(_ledMsg.text, text.c_str(), sizeof(_ledMsg.text));
 
+    
     // Create nanopb stream
     pb_ostream_t stream = pb_ostream_from_buffer(buffer.data(), buffer.size());
 
