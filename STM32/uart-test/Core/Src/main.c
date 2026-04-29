@@ -131,11 +131,11 @@ int main(void)
 		  pb_istream_t stream = pb_istream_from_buffer(rx_buffer, actual_len);
 
 		  // test debug thing
-		  for(int x=0; x<10; x++) {
-		      sprintf(debug_msg, "%02X ", rx_buffer[x]);
-		      HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, strlen(debug_msg), 10);
-		  }
-		  HAL_UART_Transmit(&huart2, (uint8_t*)"\r\n", 2, 10);
+//		  for(int x=0; x<10; x++) {
+//		      sprintf(debug_msg, "%02X ", rx_buffer[x]);
+//		      HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, strlen(debug_msg), 10);
+//		  }
+//		  HAL_UART_Transmit(&huart2, (uint8_t*)"\r\n", 2, 10);
 
 		  // 3. Decode the bytes back into the C struct
 		  if (pb_decode(&stream, LEDMsg_fields, &my_received_led))
@@ -158,6 +158,7 @@ int main(void)
 		  {
 			  // Error: Data received but NanoPB couldn't parse it
 			  char *err_msg = "Error: NanoPB Decoding Failed!\r\n";
+			  strcat(err_msg, stream.errmsg);
 			  HAL_UART_Transmit(&huart2, (uint8_t*)err_msg, strlen(err_msg), 100);
 
 			  // FLUSH the buffer so the next message starts clean
