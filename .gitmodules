@@ -1,0 +1,6 @@
+[submodule "src/rov/rov_bno085/sh2"]
+	path = src/rov/rov_bno085/sh2
+	url = https://github.com/ceva-dsp/sh2/
+[submodule "src/rov/rov_bno085/jetgpio"]
+	path = src/rov/rov_bno085/jetgpio
+	url = https://github.com/Rubberazer/JETGPIO
