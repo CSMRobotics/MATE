@@ -1,7 +1,7 @@
-Pi/build
-Pi/install
-Pi/.vscode
-Pi/log
+build
+install
+log
+
 STM32/ROV_Water_Board/Debug
 STM32/ROV_Water_Board/.settings
 .vscode
