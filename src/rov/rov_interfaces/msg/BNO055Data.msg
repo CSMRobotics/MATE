@@ -1,7 +1,0 @@
-rov_interfaces/VectorD euler
-rov_interfaces/VectorD accel
-rov_interfaces/VectorD gravity
-sensor_msgs/Imu imu
-sensor_msgs/MagneticField magnetometer
-sensor_msgs/Temperature temp
-uint8 calibration
