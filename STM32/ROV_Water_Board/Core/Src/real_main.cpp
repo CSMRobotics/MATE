@@ -1,6 +1,7 @@
 #include "cmsis_os.h"
 #include "real_main.h"
 #include "main.h"
+#include "mavlink/common/mavlink.h"
 
 
 void setup() {
