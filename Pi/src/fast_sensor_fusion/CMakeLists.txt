@@ -10,9 +10,11 @@ find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
 
 add_executable(fast_sensor_fusion 
   src/main.cpp
+  src/SensorFusion.cpp
 )
 
 add_executable(writer
@@ -32,6 +34,10 @@ target_include_directories(writer PUBLIC
 
 install(TARGETS writer
   DESTINATION lib/${PROJECT_NAME})
+
+ament_target_dependencies(fast_sensor_fusion
+  rclcpp
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

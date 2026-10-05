@@ -1,6 +1,11 @@
+#ifndef SENSOR_FUSION_H
+#define SENSOR_FUSION_H
+
 #include <rclcpp/rclcpp.hpp>
 
 #include "SharedMavlink.h"
+
+constexpr int64_t LOOP_PERIOD_NS = 1'000'000; // 1 ms
 
 /**
  * @brief BNO086 sensor data structure
@@ -20,12 +25,27 @@ struct BNO086Data {
     double magZ;
 };
 
+/**
+ * @brief Performs state estimation based on sensor information from MAVLink sensor data
+ * 
+ */
 class SensorFusion : public rclcpp::Node {
 public:
     /**
      * @brief Constructor
      */
     SensorFusion();
+
+    /**
+     * @brief The "main" loop.
+     * 
+     */
+    void update();
+
+    /**
+     * @brief Make a guess
+     */
+    void shutdown();
     
     /**
      * @brief Get the state of the robot
@@ -63,3 +83,5 @@ private:
     SharedMavlink* _mav_shm;
     uint64_t _shm_read_idx;
 };
+
+#endif // SENSOR_FUSION_H

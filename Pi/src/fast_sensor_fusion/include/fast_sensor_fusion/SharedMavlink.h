@@ -13,7 +13,6 @@ static constexpr size_t MAX_FRAME_SIZE = 280;
  */
 struct SharedMavlink {
     std::atomic<uint64_t> write_index;
-    std::atomic<uint64_t> read_index;
 
     struct Slot {
         uint32_t len;
