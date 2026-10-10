@@ -1,0 +1,4 @@
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_fmpi2c_ex.c:92:19:HAL_FMPI2CEx_ConfigAnalogFilter	16	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_fmpi2c_ex.c:136:19:HAL_FMPI2CEx_ConfigDigitalFilter	24	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_fmpi2c_ex.c:209:6:HAL_FMPI2CEx_EnableFastModePlus	24	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_fmpi2c_ex.c:232:6:HAL_FMPI2CEx_DisableFastModePlus	24	static
