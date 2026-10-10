@@ -8,21 +8,56 @@
 constexpr int64_t LOOP_PERIOD_NS = 1'000'000; // 1 ms
 
 /**
- * @brief BNO086 sensor data structure
+ * @brief 9 Axis IMU data
  * 
  */
-struct BNO086Data {
-    double gyroX;
+struct IMU9Axis {
+    uint64_t time_usec;
+
+    double gyroX;   // rad/s
     double gyroY;
     double gyroZ;
 
-    double accelX;
+    double accelX;  // m/s^2
     double accelY;
     double accelZ;
 
-    double magX;
+    double magX;    // gauss
     double magY;
     double magZ;
+};
+
+/**
+ * @brief 6 Axis IMU data
+ * 
+ */
+struct IMU6Axis {
+    uint64_t time_usec;
+
+    double gyroX;   // rad/s
+    double gyroY;
+    double gyroZ;
+
+    double accelX;  // m/s^2
+    double accelY;
+    double accelZ;
+};
+
+/**
+ * @brief Orientation state Quaternion
+ * 
+ */
+struct OrientationQuad {
+    double x;
+    double y;
+    double z;
+    double w;
+};
+
+struct Vector3 {
+    double x;
+    double y;
+    double z;
 };
 
 /**
@@ -62,6 +97,12 @@ private:
     int _update_imu_data();
 
     /**
+     * @brief Updates orientation state with a Mahony Filter
+     * 
+     */
+    void _update_orientation();
+
+    /**
      * @brief Opens the named pipe for MAVLink
      * 
      * @return Returns 0 on succes, -1 on error
@@ -76,7 +117,14 @@ private:
     int _close_shm();
 
     // Private data members
-    BNO086Data _bno_data;
+    // IMU Data
+    IMU9Axis _imu_9;
+    IMU9Axis _prev_imu_9;
+    IMU6Axis _imu_6;
+
+    // Rotation state
+    OrientationQuad _curr_quad;
+    OrientationQuad _prev_quad;
 
     // MAVLink Shared Memory
     int _shm_fd;

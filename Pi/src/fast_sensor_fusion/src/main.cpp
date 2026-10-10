@@ -4,8 +4,11 @@
 
 bool RUNNING = true;
 
+/**
+ * @brief Handles SIGINT for clean shutdown
+ */
 void signal_handler(int signum) {
-    if (signum == SIGINT) {
+    if (signum == SIGINT || signum == SIGTERM) {
         std::cout << "Received SIGINT, shutting down...\n";
         RUNNING = false;
     }   

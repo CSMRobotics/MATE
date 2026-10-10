@@ -48,7 +48,44 @@ void SensorFusion::shutdown() {
 }
 
 //****************************************************** */
-// Shared memory management
+// Sensor Fusion
+void SensorFusion::_update_orientation() {
+    // Average IMU data
+    IMU9Axis imu_data;
+    imu_data.accelX = (_imu_6.accelX + _imu_9.accelX) / 2;
+    imu_data.accelY = (_imu_6.accelX + _imu_9.accelY) / 2;
+    imu_data.accelZ = (_imu_6.accelX + _imu_9.accelZ) / 2;
+
+    imu_data.gyroX = (_imu_6.gyroX + _imu_9.gyroX) / 2;
+    imu_data.gyroY = (_imu_6.gyroY + _imu_9.gyroY) / 2;
+    imu_data.gyroZ = (_imu_6.gyroZ + _imu_9.gyroZ) / 2;
+
+    imu_data.magX = _imu_9.magX;
+    imu_data.magY = _imu_9.magY;
+    imu_data.magZ = _imu_9.magZ;
+
+    // Normalize acceleration and magnetometer
+    double accelMag = imu_data.accelX + imu_data.accelY + imu_data.accelZ;
+    double gyroMag = imu_data.gyroX + imu_data.gyroY + imu_data.gyroZ;
+    double magMag = imu_data.magX + imu_data.magY + imu_data.magZ;
+
+    imu_data.accelX = imu_data.accelX / accelMag;
+    imu_data.accelY = imu_data.accelY / accelMag;
+    imu_data.accelZ = imu_data.accelZ / accelMag;
+
+    imu_data.magX = imu_data.magX / magMag;
+    imu_data.magY = imu_data.magY / magMag;
+    imu_data.magZ = imu_data.magZ / magMag;
+
+    // Compute Gravity error
+
+    // Compute Magenetometer error
+
+    // Update Quaternion
+}
+
+//****************************************************** */
+// IMU data shared memory management
 
 int SensorFusion::_setup_shm() {
     // Open SHM file descriptor
@@ -108,6 +145,7 @@ int SensorFusion::_update_imu_data() {
 
     for (uint32_t i = 0; i < read_slot.len; i++) {
         if (mavlink_parse_char(MAVLINK_COMM_0, read_slot.data[i], &message, &status)) {
+            // Log message
             std::cout
                 << "Received MAVLink message: "
                 << "msgid=" << message.msgid
@@ -138,6 +176,23 @@ int SensorFusion::_update_imu_data() {
                     << "  zmag = " << static_cast<double>(raw_imu.zmag) << "\n"
                     << "  temperature = " << static_cast<double>(raw_imu.temperature)
                     << std::endl;
+
+                // Update IMU data
+                _prev_imu_9 = _imu_9;
+
+                _imu_9.time_usec = raw_imu.time_usec;
+
+                _imu_9.accelX = raw_imu.xacc;
+                _imu_9.accelY = raw_imu.yacc;
+                _imu_9.accelZ = raw_imu.zacc;
+
+                _imu_9.gyroX = raw_imu.xgyro;
+                _imu_9.gyroY = raw_imu.ygyro;
+                _imu_9.gyroZ = raw_imu.zgyro;
+
+                _imu_9.magX = raw_imu.xmag;
+                _imu_9.magY = raw_imu.ymag;
+                _imu_9.magZ = raw_imu.zmag;
             }
         }
     }
