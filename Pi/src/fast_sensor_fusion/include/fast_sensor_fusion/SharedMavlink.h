@@ -8,10 +8,11 @@ static constexpr size_t QUEUE_SIZE = 64;
 static constexpr size_t MAX_FRAME_SIZE = 280;
 
 /**
- * @brief A struct containing the shared memory buffer
- *      This struct is shared between two processes
+ * @brief A class containing the shared memory buffer
+ *      This class is shared between two processes in the same memory space
  */
-struct SharedMavlink {
+class SharedMavlink {
+public:
     std::atomic<uint64_t> write_index;
 
     struct Slot {

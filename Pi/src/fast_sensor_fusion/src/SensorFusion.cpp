@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <time.h>
 #include <cstdint>
+#include <cmath>
 
 SensorFusion::SensorFusion() : rclcpp::Node("fast_sensor_fusion") {
     // Setup shared memory
@@ -51,35 +52,46 @@ void SensorFusion::shutdown() {
 // Sensor Fusion
 void SensorFusion::_update_orientation() {
     // Average IMU data
-    IMU9Axis imu_data;
-    imu_data.accelX = (_imu_6.accelX + _imu_9.accelX) / 2;
-    imu_data.accelY = (_imu_6.accelX + _imu_9.accelY) / 2;
-    imu_data.accelZ = (_imu_6.accelX + _imu_9.accelZ) / 2;
+    IMU9Axis imu;
+    imu.accelX = (_imu_6.accelX + _imu_9.accelX) / 2;
+    imu.accelY = (_imu_6.accelY + _imu_9.accelY) / 2;
+    imu.accelZ = (_imu_6.accelZ + _imu_9.accelZ) / 2;
 
-    imu_data.gyroX = (_imu_6.gyroX + _imu_9.gyroX) / 2;
-    imu_data.gyroY = (_imu_6.gyroY + _imu_9.gyroY) / 2;
-    imu_data.gyroZ = (_imu_6.gyroZ + _imu_9.gyroZ) / 2;
+    imu.gyroX = (_imu_6.gyroX + _imu_9.gyroX) / 2;
+    imu.gyroY = (_imu_6.gyroY + _imu_9.gyroY) / 2;
+    imu.gyroZ = (_imu_6.gyroZ + _imu_9.gyroZ) / 2;
 
-    imu_data.magX = _imu_9.magX;
-    imu_data.magY = _imu_9.magY;
-    imu_data.magZ = _imu_9.magZ;
+    imu.magX = _imu_9.magX;
+    imu.magY = _imu_9.magY;
+    imu.magZ = _imu_9.magZ;
 
     // Normalize acceleration and magnetometer
-    double accelMag = imu_data.accelX + imu_data.accelY + imu_data.accelZ;
-    double gyroMag = imu_data.gyroX + imu_data.gyroY + imu_data.gyroZ;
-    double magMag = imu_data.magX + imu_data.magY + imu_data.magZ;
-
-    imu_data.accelX = imu_data.accelX / accelMag;
-    imu_data.accelY = imu_data.accelY / accelMag;
-    imu_data.accelZ = imu_data.accelZ / accelMag;
-
-    imu_data.magX = imu_data.magX / magMag;
-    imu_data.magY = imu_data.magY / magMag;
-    imu_data.magZ = imu_data.magZ / magMag;
+    Eigen::Vector3d norm_imu_accel(imu.accelX, imu.accelY, imu.accelZ);
+    norm_imu_accel.normalize();
+    
+    Eigen::Vector3d norm_imu_mag(imu.magX, imu.magY, imu.magZ);
+    norm_imu_mag.normalize();
 
     // Compute Gravity error
+    // Estimated gravity vector
+    Eigen::Vector3d pred_accel;
+    pred_accel.x() = 2 * (_curr_quad.x() * _curr_quad.z() - _curr_quad.w() * _curr_quad.y());
+    pred_accel.y() = 2 * (_curr_quad.w() * _curr_quad.x() + _curr_quad.y() * _curr_quad.z());
+    pred_accel.z() = 
+        (_curr_quad.w() * _curr_quad.w()) -
+        (_curr_quad.x() * _curr_quad.x()) -
+        (_curr_quad.y() * _curr_quad.y()) +
+        (_curr_quad.z() * _curr_quad.z());
+    pred_accel.normalize();
+
+    // Cross product predicted and actual for gravity error
+    Eigen::Vector3d grav_error = norm_imu_accel.cross(pred_accel);
 
     // Compute Magenetometer error
+    Eigen::Matrix3d orient_mtx = _curr_quad.toRotationMatrix();
+    Eigen::Vector3d pred_mag = orient_mtx.transpose() * Eigen::Vector3d(1, 0, 0); // Assumes North is positive 1 on X
+
+    Eigen::Vector3d mag_error = norm_imu_mag.cross(pred_mag);
 
     // Update Quaternion
 }

@@ -4,61 +4,12 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "SharedMavlink.h"
+#include "DataStructs.h"
+#include "Eigen/Dense"
+#include "Eigen/Geometry"
 
 constexpr int64_t LOOP_PERIOD_NS = 1'000'000; // 1 ms
 
-/**
- * @brief 9 Axis IMU data
- * 
- */
-struct IMU9Axis {
-    uint64_t time_usec;
-
-    double gyroX;   // rad/s
-    double gyroY;
-    double gyroZ;
-
-    double accelX;  // m/s^2
-    double accelY;
-    double accelZ;
-
-    double magX;    // gauss
-    double magY;
-    double magZ;
-};
-
-/**
- * @brief 6 Axis IMU data
- * 
- */
-struct IMU6Axis {
-    uint64_t time_usec;
-
-    double gyroX;   // rad/s
-    double gyroY;
-    double gyroZ;
-
-    double accelX;  // m/s^2
-    double accelY;
-    double accelZ;
-};
-
-/**
- * @brief Orientation state Quaternion
- * 
- */
-struct OrientationQuad {
-    double x;
-    double y;
-    double z;
-    double w;
-};
-
-struct Vector3 {
-    double x;
-    double y;
-    double z;
-};
 
 /**
  * @brief Performs state estimation based on sensor information from MAVLink sensor data
@@ -123,8 +74,8 @@ private:
     IMU6Axis _imu_6;
 
     // Rotation state
-    OrientationQuad _curr_quad;
-    OrientationQuad _prev_quad;
+    Eigen::Quaternion<double> _curr_quad;
+    Eigen::Quaternion<double> _prev_quad;
 
     // MAVLink Shared Memory
     int _shm_fd;
