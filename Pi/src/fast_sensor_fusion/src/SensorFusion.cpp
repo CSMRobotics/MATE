@@ -11,9 +11,10 @@
 
 SensorFusion::SensorFusion() : rclcpp::Node("fast_sensor_fusion") {
     // Setup shared memory
-    int result = _setup_shm();
-    if (result != 0) {
-        RCLCPP_FATAL(this->get_logger(), "Failed to setup Shared Memory.");
+    try {
+        _mav_sub = new MavlinkPubSub(false, SHM_NAME);
+    } catch (const std::system_error& e) {
+        RCLCPP_FATAL(this->get_logger(), "Failed to setup Shared Memory: %s", e.what());
         exit(-1);
     }
 }
@@ -99,118 +100,57 @@ void SensorFusion::_update_orientation() {
 //****************************************************** */
 // IMU data shared memory management
 
-int SensorFusion::_setup_shm() {
-    // Open SHM file descriptor
-    _shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
-    if (_shm_fd < 0) {
-        perror("shm_open");
-        return -1;
-    }
-    // Map to local virtual address space
-    void* addr = mmap(
-        nullptr,
-        sizeof(SharedMavlink),
-        PROT_READ | PROT_WRITE,
-        MAP_SHARED,
-        _shm_fd,
-        0
-    );
-
-    if (addr == MAP_FAILED) {
-        perror("mmap");
-        return -1;
-    }
-
-    // Store the pointer to Shared Memory
-    _mav_shm = static_cast<SharedMavlink*>(addr);
-
-    // Update read index to latest written message index
-    _shm_read_idx = _mav_shm->write_index.load(std::memory_order_acquire);
-
-    return 0;
-}
-
-int SensorFusion::_close_shm() {
-    munmap((void*) _mav_shm, sizeof(SharedMavlink));
-    int result = close(_shm_fd);
-    if (result < 0) {
-        RCLCPP_ERROR(this->get_logger(), "close() shared memory FD failed: %s", strerror(errno));
-        return -1;
-    }
-    return 0;
+void SensorFusion::_close_shm() {
+    delete _mav_sub;
 }
 
 int SensorFusion::_update_imu_data() {
     mavlink_message_t message{};
     mavlink_status_t status{};
 
-    // Get current write and read indexes
-    uint64_t shm_write_idx = _mav_shm->write_index.load(std::memory_order_acquire);
-
-    // See if new message are available
-    if (_shm_read_idx == shm_write_idx) {
+    if (!_mav_sub->read(message, status)) {
         return 0;
     }
 
-    // Read new message
-    SharedMavlink::Slot& read_slot = _mav_shm->slots[_shm_read_idx % QUEUE_SIZE];
+    if (message.msgid == MAVLINK_MSG_ID_RAW_IMU) {
+        mavlink_raw_imu_t raw_imu{};
 
-    for (uint32_t i = 0; i < read_slot.len; i++) {
-        if (mavlink_parse_char(MAVLINK_COMM_0, read_slot.data[i], &message, &status)) {
-            // Log message
-            std::cout
-                << "Received MAVLink message: "
-                << "msgid=" << message.msgid
-                << " sysid="
-                << static_cast<int>(message.sysid)
-                << " compid="
-                << static_cast<int>(message.compid)
-                << '\n';
+        mavlink_msg_raw_imu_decode(
+            &message,
+            &raw_imu);
 
-            if (message.msgid == MAVLINK_MSG_ID_RAW_IMU) {
-                mavlink_raw_imu_t raw_imu{};
+        std::cout
+            << "  IMU ID = " << static_cast<double>(raw_imu.id) << "\n"
+            << "  time_usec = " << static_cast<double>(raw_imu.time_usec) << "\n"
+            << "  xacc = " << static_cast<double>(raw_imu.xacc) << "\n"
+            << "  yacc = " << static_cast<double>(raw_imu.yacc) << "\n"
+            << "  zacc = " << static_cast<double>(raw_imu.zacc) << "\n"
+            << "  xgyro = " << static_cast<double>(raw_imu.xgyro) << "\n"
+            << "  ygyro = " << static_cast<double>(raw_imu.ygyro) << "\n"
+            << "  zgyro = " << static_cast<double>(raw_imu.zgyro) << "\n"
+            << "  xmag = " << static_cast<double>(raw_imu.xmag) << "\n"
+            << "  ymag = " << static_cast<double>(raw_imu.ymag) << "\n"
+            << "  zmag = " << static_cast<double>(raw_imu.zmag) << "\n"
+            << "  temperature = " << static_cast<double>(raw_imu.temperature)
+            << std::endl;
 
-                mavlink_msg_raw_imu_decode(
-                    &message,
-                    &raw_imu);
+        // Update IMU data
+        _prev_imu_9 = _imu_9;
 
-                std::cout
-                    << "  IMU ID = " << static_cast<double>(raw_imu.id) << "\n"
-                    << "  time_usec = " << static_cast<double>(raw_imu.time_usec) << "\n"
-                    << "  xacc = " << static_cast<double>(raw_imu.xacc) << "\n"
-                    << "  yacc = " << static_cast<double>(raw_imu.yacc) << "\n"
-                    << "  zacc = " << static_cast<double>(raw_imu.zacc) << "\n"
-                    << "  xgyro = " << static_cast<double>(raw_imu.xgyro) << "\n"
-                    << "  ygyro = " << static_cast<double>(raw_imu.ygyro) << "\n"
-                    << "  zgyro = " << static_cast<double>(raw_imu.zgyro) << "\n"
-                    << "  xmag = " << static_cast<double>(raw_imu.xmag) << "\n"
-                    << "  ymag = " << static_cast<double>(raw_imu.ymag) << "\n"
-                    << "  zmag = " << static_cast<double>(raw_imu.zmag) << "\n"
-                    << "  temperature = " << static_cast<double>(raw_imu.temperature)
-                    << std::endl;
+        _imu_9.time_usec = raw_imu.time_usec;
 
-                // Update IMU data
-                _prev_imu_9 = _imu_9;
+        _imu_9.accelX = raw_imu.xacc;
+        _imu_9.accelY = raw_imu.yacc;
+        _imu_9.accelZ = raw_imu.zacc;
 
-                _imu_9.time_usec = raw_imu.time_usec;
+        _imu_9.gyroX = raw_imu.xgyro;
+        _imu_9.gyroY = raw_imu.ygyro;
+        _imu_9.gyroZ = raw_imu.zgyro;
 
-                _imu_9.accelX = raw_imu.xacc;
-                _imu_9.accelY = raw_imu.yacc;
-                _imu_9.accelZ = raw_imu.zacc;
-
-                _imu_9.gyroX = raw_imu.xgyro;
-                _imu_9.gyroY = raw_imu.ygyro;
-                _imu_9.gyroZ = raw_imu.zgyro;
-
-                _imu_9.magX = raw_imu.xmag;
-                _imu_9.magY = raw_imu.ymag;
-                _imu_9.magZ = raw_imu.zmag;
-            }
-        }
+        _imu_9.magX = raw_imu.xmag;
+        _imu_9.magY = raw_imu.ymag;
+        _imu_9.magZ = raw_imu.zmag;
     }
-
-    // Iterate read pointer
-    _shm_read_idx++;
 
     return 0;
 }

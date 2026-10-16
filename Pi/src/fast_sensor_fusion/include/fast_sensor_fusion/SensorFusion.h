@@ -3,13 +3,13 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include "SharedMavlink.h"
+#include "MavlinkPubSub.hpp"
 #include "DataStructs.h"
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 
 constexpr int64_t LOOP_PERIOD_NS = 1'000'000; // 1 ms
-
+static constexpr const char* SHM_NAME = "/mavlink_shm_sensor_fusion";
 
 /**
  * @brief Performs state estimation based on sensor information from MAVLink sensor data
@@ -54,18 +54,11 @@ private:
     void _update_orientation();
 
     /**
-     * @brief Opens the named pipe for MAVLink
-     * 
-     * @return Returns 0 on succes, -1 on error
-     */
-    int _setup_shm();
-
-    /**
      * @brief Close shm
      * 
      * @return Returns 0 on succes, -1 on error
      */
-    int _close_shm();
+    void _close_shm();
 
     // Private data members
     // IMU Data
@@ -79,7 +72,7 @@ private:
 
     // MAVLink Shared Memory
     int _shm_fd;
-    SharedMavlink* _mav_shm;
+    MavlinkPubSub* _mav_sub;
     uint64_t _shm_read_idx;
 };
 

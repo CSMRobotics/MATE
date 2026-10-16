@@ -2,7 +2,7 @@
  * @file writer.cpp
  * @brief Test program for publishing a MAVLink raw_IMU message over shared memory.
  */
-#include "fast_sensor_fusion/SharedMavlink.h"
+#include "fast_sensor_fusion/MavlinkPubSub.hpp"
 
 #include <atomic>
 #include <cerrno>
@@ -24,71 +24,11 @@ extern "C" {
 
 const auto start_time = std::chrono::steady_clock::now();
 
-int fd = 0;
-SharedMavlink* shm;
-
-int setup_shm() {
-    fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
-    if (fd < 0) {
-        perror("shm_open");
-        return 1;
-    }
-
-    if (ftruncate(fd, sizeof(SharedMavlink)) < 0) {
-        perror("ftruncate");
-        return 1;
-    }
-
-    void* addr = mmap(
-        nullptr,
-        sizeof(SharedMavlink),
-        PROT_READ | PROT_WRITE,
-        MAP_SHARED,
-        fd,
-        0);
-
-    if (addr == MAP_FAILED) {
-        perror("mmap");
-        return 1;
-    }
-
-    shm = static_cast<SharedMavlink*>(addr);
-
-    // Initialize only when creating the shared-memory object.
-    shm->write_index.store(0, std::memory_order_relaxed);
-
-    return 0;
-}
-
-void write_mavlink_to_shm(mavlink_message_t &msg) {
-    // Put into MAVLink shared memory buffer
-    uint8_t frame[MAX_FRAME_SIZE];
-
-    const uint16_t frame_len =
-        mavlink_msg_to_send_buffer(frame, &msg);
-
-    // Reserve a slot.
-    const uint64_t write = shm->write_index.load(std::memory_order_relaxed);
-
-    auto& slot = shm->slots[write % QUEUE_SIZE];
-
-    std::memcpy(slot.data, frame, frame_len);
-    slot.len = frame_len;
-
-    // Publish the slot only after its contents are written.
-    shm->write_index.store(
-        write + 1,
-        std::memory_order_release);
-
-    std::cout << "Sent IMU message, "
-                << frame_len << " bytes\n";
-}
+static constexpr const char* SHM_NAME = "/mavlink_shm_sensor_fusion";
 
 int main() {
     // Setup shared memory data structure
-    if (setup_shm() != 0) {
-        return -1;
-    }
+    MavlinkPubSub shm(true, SHM_NAME);
 
     while (true) {
         // Create MAVLink message
@@ -121,12 +61,11 @@ int main() {
             &raw_imu
         );
 
-        write_mavlink_to_shm(msg);
+        shm.write(msg);
 
+        std::cout << "Published Raw IMU message" << std::endl;
+        
         std::this_thread::sleep_for(
         std::chrono::seconds(1));
     }
-
-    munmap(shm, sizeof(SharedMavlink));
-    close(fd);
 }
