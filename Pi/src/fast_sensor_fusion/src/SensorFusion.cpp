@@ -25,7 +25,9 @@ void SensorFusion::update() {
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
     // The main loop
-    this->_update_imu_data();
+    if (this->_update_imu_data()) {
+        _update_orientation();
+    }
 
     // Delay until next call
     // Advance by exactly one period.
@@ -91,10 +93,38 @@ void SensorFusion::_update_orientation() {
     // Compute Magenetometer error
     Eigen::Matrix3d orient_mtx = _curr_quad.toRotationMatrix();
     Eigen::Vector3d pred_mag = orient_mtx.transpose() * Eigen::Vector3d(1, 0, 0); // Assumes North is positive 1 on X
-
     Eigen::Vector3d mag_error = norm_imu_mag.cross(pred_mag);
 
-    // Update Quaternion
+    // Compute total error with weights bc mag is less reliable
+    const double mag_weight = 0.2;
+    Eigen::Vector3d total_error =
+        grav_error +
+        mag_weight * mag_error;
+
+    // Proportional, Integral (PI) correction
+    _integral_error += total_error * _dt;
+    Eigen::Vector3d gyro(
+        imu.gyroX,
+        imu.gyroY,
+        imu.gyroZ);
+
+    gyro += Kp * total_error
+      + Ki * _integral_error;
+
+    // Compute quaternion derivative
+    Eigen::Quaterniond omega_q(
+        0.0,
+        gyro.x(),
+        gyro.y(),
+        gyro.z());
+    Eigen::Quaterniond q_dot =_curr_quad * omega_q;
+    q_dot.coeffs() *= 0.5;
+
+    // Update orientation
+    _curr_quad.coeffs() += q_dot.coeffs() * _dt;
+    _curr_quad.normalize();
+
+    std::cout << _curr_quad << std::endl;
 }
 
 //****************************************************** */
@@ -108,7 +138,7 @@ int SensorFusion::_update_imu_data() {
     mavlink_message_t message{};
     mavlink_status_t status{};
 
-    if (!_mav_sub->read(message, status)) {
+    if (_mav_sub->read(message, status) != 1) {
         return 0;
     }
 
@@ -134,7 +164,7 @@ int SensorFusion::_update_imu_data() {
             << "  temperature = " << static_cast<double>(raw_imu.temperature)
             << std::endl;
 
-        // Update IMU data
+        // Update IMU data (FAKE DATA FOR NOW)
         _prev_imu_9 = _imu_9;
 
         _imu_9.time_usec = raw_imu.time_usec;
@@ -143,14 +173,25 @@ int SensorFusion::_update_imu_data() {
         _imu_9.accelY = raw_imu.yacc;
         _imu_9.accelZ = raw_imu.zacc;
 
+        _imu_6.accelX = raw_imu.xacc;
+        _imu_6.accelY = raw_imu.yacc;
+        _imu_6.accelZ = raw_imu.zacc;
+
         _imu_9.gyroX = raw_imu.xgyro;
         _imu_9.gyroY = raw_imu.ygyro;
         _imu_9.gyroZ = raw_imu.zgyro;
 
+        _imu_6.gyroX = raw_imu.xgyro;
+        _imu_6.gyroY = raw_imu.ygyro;
+        _imu_6.gyroZ = raw_imu.zgyro;
+
         _imu_9.magX = raw_imu.xmag;
         _imu_9.magY = raw_imu.ymag;
         _imu_9.magZ = raw_imu.zmag;
+
+        // Update dt
+        _dt = (_imu_9.time_usec - _prev_imu_9.time_usec) / 1e6;
     }
 
-    return 0;
+    return 1;
 }

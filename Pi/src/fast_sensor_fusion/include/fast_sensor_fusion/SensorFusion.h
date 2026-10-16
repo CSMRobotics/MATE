@@ -67,13 +67,17 @@ private:
     IMU6Axis _imu_6;
 
     // Rotation state
-    Eigen::Quaternion<double> _curr_quad;
-    Eigen::Quaternion<double> _prev_quad;
+    Eigen::Quaterniond _curr_quad = Eigen::Quaterniond::Identity();
+    Eigen::Quaterniond _prev_quad;
+    Eigen::Vector3d _integral_error;
+    double _dt; // seconds
+
+    // PI Constants NEEDS TESTING
+    const double Kp = 0.5;
+    const double Ki = 0.02;
 
     // MAVLink Shared Memory
-    int _shm_fd;
     MavlinkPubSub* _mav_sub;
-    uint64_t _shm_read_idx;
 };
 
 #endif // SENSOR_FUSION_H

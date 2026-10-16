@@ -38,21 +38,4 @@ struct IMU6Axis {
     double accelZ = 0;
 };
 
-/**
- * @brief Orientation state Quaternion
- * 
- */
-struct Quaternion {
-    double x = 0;
-    double y = 0;
-    double z = 0;
-    double w = 0;
-};
-
-struct Vector3 {
-    double x = 0;
-    double y = 0;
-    double z = 0;
-};
-
 #endif // DATA_STRUCTS_H
