@@ -5,6 +5,8 @@
 #include <stdbool.h>
 
 volatile int bno086_status = SH2_ERR;
+volatile bno086_InitStage bno086_init_stage = BNO086_NOT_STARTED;
+volatile unsigned bno086_init_done;
 volatile uint32_t bno086_report_count;
 sh2_ProductIds_t bno086_product_ids;
 sh2_SensorValue_t bno086_latest;
@@ -38,23 +40,35 @@ static int configure_reports(void)
 
 int bno086_init(void)
 {
+    bno086_init_done = 0;
+    bno086_status = SH2_ERR;
+    bno086_init_stage = BNO086_OPENING;
     active = false;
     reset_pending = false;
     bno086_report_count = 0;
     bno086_get_hal()->close(bno086_get_hal());
     int rc = sh2_open(bno086_get_hal(), event_callback, 0);
-    if (rc == SH2_OK) rc = sh2_setSensorCallback(sensor_callback, 0);
-    if (rc == SH2_OK) rc = sh2_getProdIds(&bno086_product_ids);
     if (rc == SH2_OK) {
+        bno086_init_stage = BNO086_SETTING_CALLBACK;
+        rc = sh2_setSensorCallback(sensor_callback, 0);
+    }
+    if (rc == SH2_OK) {
+        bno086_init_stage = BNO086_READING_PRODUCT_IDS;
+        rc = sh2_getProdIds(&bno086_product_ids);
+    }
+    if (rc == SH2_OK) {
+        bno086_init_stage = BNO086_CONFIGURING_REPORTS;
         reset_pending = false;
         rc = configure_reports();
     }
     bno086_status = rc;
     active = rc == SH2_OK;
+    if (active) bno086_init_stage = BNO086_RUNNING;
     if (!active) {
         sh2_close();
         bno086_get_hal()->close(bno086_get_hal());
     }
+    bno086_init_done = 1;
     return rc;
 }
 

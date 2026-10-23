@@ -15,6 +15,21 @@ static uint32_t pending_time;
 static volatile uint32_t interrupt_time;
 static volatile unsigned interrupt_seen;
 static unsigned opened;
+volatile bno086_HalDiagnostics bno086_hal_diag;
+
+static int transport_error(int error)
+{
+    bno086_hal_diag.last_error = error;
+    return error;
+}
+
+static GPIO_PinState intn(void)
+{
+    GPIO_PinState state = HAL_GPIO_ReadPin(BNO086_Interrupt_GPIO_Port,
+                                          BNO086_Interrupt_Pin);
+    bno086_hal_diag.intn_level = state;
+    return state;
+}
 
 static uint32_t time_us(sh2_Hal_t *self)
 {
@@ -30,6 +45,7 @@ void EXTI15_10_IRQHandler(void)
 void HAL_GPIO_EXTI_Callback(uint16_t pin)
 {
     if (pin == BNO086_Interrupt_Pin) {
+        bno086_hal_diag.interrupt_count++;
         interrupt_time = TIM5->CNT;
         interrupt_seen = 1;
     }
@@ -56,18 +72,24 @@ static int exchange(const uint8_t *data, unsigned size)
     interrupt_seen = 0;
     cs(GPIO_PIN_RESET);
     HAL_StatusTypeDef rc = HAL_SPI_TransmitReceive(&hspi1, tx, rx, 4, 20);
+    bno086_hal_diag.transfer_count++;
+    bno086_hal_diag.spi_status = rc;
+    if (rc == HAL_OK) {
+        for (unsigned i = 0; i < 4; i++) bno086_hal_diag.rx_header[i] = rx[i];
+    }
     wake(GPIO_PIN_SET);
     unsigned received = 0;
     if (rc == HAL_OK) received = (rx[0] | ((unsigned)rx[1] << 8)) & 0x7fff;
     if (received > sizeof(rx) || (received && received < 4)) {
         cs(GPIO_PIN_SET);
-        return SH2_ERR_IO;
+        return transport_error(SH2_ERR_IO);
     }
     unsigned total = size > received ? size : received;
     if (rc == HAL_OK && total > 4)
         rc = HAL_SPI_TransmitReceive(&hspi1, tx + 4, rx + 4, total - 4, 20);
     cs(GPIO_PIN_SET);
-    if (rc != HAL_OK) return SH2_ERR_IO;
+    bno086_hal_diag.spi_status = rc;
+    if (rc != HAL_OK) return transport_error(SH2_ERR_IO);
     pending_len = received > 4 ? received : 0;
     return SH2_OK;
 }
@@ -80,11 +102,10 @@ static int write_transfer(sh2_Hal_t *self, uint8_t *data, unsigned len)
     if (pending_len) return 0;
     wake(GPIO_PIN_RESET);
     uint32_t start = time_us(0);
-    while (HAL_GPIO_ReadPin(BNO086_Interrupt_GPIO_Port, BNO086_Interrupt_Pin)
-           != GPIO_PIN_RESET) {
+    while (intn() != GPIO_PIN_RESET) {
         if ((uint32_t)(time_us(0) - start) >= 20000) {
             wake(GPIO_PIN_SET);
-            return SH2_ERR_TIMEOUT;
+            return transport_error(SH2_ERR_TIMEOUT);
         }
     }
     int rc = exchange(data, len);
@@ -96,8 +117,7 @@ static int read_transfer(sh2_Hal_t *self, uint8_t *data, unsigned len, uint32_t 
     (void)self;
     if (!opened || !data || !stamp) return SH2_ERR_BAD_PARAM;
     if (!pending_len) {
-        if (HAL_GPIO_ReadPin(BNO086_Interrupt_GPIO_Port, BNO086_Interrupt_Pin)
-            != GPIO_PIN_RESET) return 0;
+        if (intn() != GPIO_PIN_RESET) return 0;
         int rc = exchange(0, 0);
         if (rc != SH2_OK) return rc;
     }
@@ -114,6 +134,7 @@ static int read_transfer(sh2_Hal_t *self, uint8_t *data, unsigned len, uint32_t 
 static int open_transport(sh2_Hal_t *self)
 {
     if (opened) return SH2_ERR;
+    bno086_hal_diag = (bno086_HalDiagnostics){0};
     /* TIM2/3/4 belong to DShot. Reserve unused 32-bit TIM5 at 1 MHz. */
     __HAL_RCC_TIM5_CLK_ENABLE();
     uint32_t timer_clock = HAL_RCC_GetPCLK1Freq();
@@ -133,8 +154,9 @@ static int open_transport(sh2_Hal_t *self)
     opened = 1;
     /* Establish idle-high SCLK before selecting the sensor. */
     uint8_t dummy_tx = 0, dummy_rx;
-    if (HAL_SPI_TransmitReceive(&hspi1, &dummy_tx, &dummy_rx, 1, 20) != HAL_OK)
-        return SH2_ERR_IO;
+    HAL_StatusTypeDef spi_rc = HAL_SPI_TransmitReceive(&hspi1, &dummy_tx, &dummy_rx, 1, 20);
+    bno086_hal_diag.spi_status = spi_rc;
+    if (spi_rc != HAL_OK) return transport_error(SH2_ERR_IO);
     HAL_Delay(300);
     /* RESET is pulled high: use SHTP executable channel reset command.
      * Also covers MCU-only restart while the sensor remains powered.

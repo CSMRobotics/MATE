@@ -91,6 +91,7 @@ int main(void) {
     setup(20);
     assert(hal->read(hal, buffer, sizeof(buffer), &stamp) == 20);
     assert(stamp == 1234 && clocks == 20 && buffer[19] == 19);
+    assert(bno086_hal_diag.rx_header[0] == 20 && bno086_hal_diag.spi_status == HAL_OK);
     assert(chip_select == GPIO_PIN_SET);
     setup(32);
     assert(hal->write(hal,packet,sizeof(packet)) == 8);
@@ -105,6 +106,7 @@ int main(void) {
     setup(1025);
     assert(hal->read(hal,buffer,sizeof(buffer),&stamp) == SH2_ERR_IO);
     assert(clocks == 4 && chip_select == GPIO_PIN_SET);
+    assert(bno086_hal_diag.last_error == SH2_ERR_IO);
     setup(3);
     assert(hal->read(hal,buffer,sizeof(buffer),&stamp) == SH2_ERR_IO);
     setup(20);
@@ -116,6 +118,8 @@ int main(void) {
     setup(0); ready = 0;
     assert(hal->write(hal,packet,sizeof(packet)) == SH2_ERR_TIMEOUT);
     assert(wake_state == GPIO_PIN_SET);
+    assert(bno086_hal_diag.last_error == SH2_ERR_TIMEOUT);
+    assert(bno086_hal_diag.intn_level == GPIO_PIN_SET);
     puts("BNO086 SPI transport tests passed");
 }
 '''
