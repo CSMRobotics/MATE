@@ -9,11 +9,7 @@ void setup() {
 //	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 }
 
-int real_main() {
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-//	osDelay(200);
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-//	osDelay(200);
+void mavlink_tx_heartbeat(void) {
 	static mavlink_message_t msg;
 	static uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
 
@@ -29,14 +25,14 @@ int real_main() {
 	);
 	uint16_t len = mavlink_msg_to_send_buffer(buffer, &msg);
 
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // turn led on before transmitting
 	HAL_UART_Transmit(&huart1, buffer, len, 1000);
+}
 
+int real_main() {
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // turn led on before transmitting
+	mavlink_tx_heartbeat();
 	osDelay(50); // give it a lil bit
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); // turn led back off (after transmitting)
-
-//	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
 	osDelay(950); // wait some more
 
 	return 0;
