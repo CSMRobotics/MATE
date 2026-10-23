@@ -1,5 +1,5 @@
-../Core/Src/bno086.c:15:13:event_callback	16	static
-../Core/Src/bno086.c:21:13:sensor_callback	96	static
-../Core/Src/bno086.c:32:12:configure_reports	32	static
-../Core/Src/bno086.c:39:5:bno086_init	24	static
-../Core/Src/bno086.c:61:6:bno086_service	8	static
+../Core/Src/bno086.c:17:13:event_callback	16	static
+../Core/Src/bno086.c:23:13:sensor_callback	96	static
+../Core/Src/bno086.c:34:12:configure_reports	32	static
+../Core/Src/bno086.c:41:5:bno086_init	24	static
+../Core/Src/bno086.c:75:6:bno086_service	8	static
