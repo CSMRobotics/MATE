@@ -1,0 +1,11 @@
+../Core/Src/bno086_hal.c:19:17:time_us	1
+../Core/Src/bno086_hal.c:25:6:EXTI15_10_IRQHandler	1
+../Core/Src/bno086_hal.c:30:6:HAL_GPIO_EXTI_Callback	2
+../Core/Src/bno086_hal.c:38:13:cs	1
+../Core/Src/bno086_hal.c:43:13:wake	1
+../Core/Src/bno086_hal.c:51:12:exchange	11
+../Core/Src/bno086_hal.c:75:12:write_transfer	9
+../Core/Src/bno086_hal.c:94:12:read_transfer	9
+../Core/Src/bno086_hal.c:114:12:open_transport	6
+../Core/Src/bno086_hal.c:147:13:close_transport	1
+../Core/Src/bno086_hal.c:158:12:bno086_get_hal	1

@@ -31,6 +31,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "dshot.h"
+#include "bno086.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -168,6 +169,9 @@ int main(void)
 
 	HAL_TIM_Base_Start_IT(&htim13);
 
+	/* Inspect bno086_status/product_ids/latest/report_count in the debugger. */
+	bno086_init();
+
 	dshot_init(DSHOT600);
 
 
@@ -178,6 +182,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+		bno086_service();
 
 		currentSenseRaw = adcBuffer[0];
 		currentSense = currentSenseRaw * currentSenseScale;

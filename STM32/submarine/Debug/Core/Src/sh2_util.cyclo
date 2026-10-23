@@ -1,0 +1,12 @@
+../Core/Src/sh2_util.c:24:9:readu8	1
+../Core/Src/sh2_util.c:30:6:writeu8	1
+../Core/Src/sh2_util.c:35:10:readu16	1
+../Core/Src/sh2_util.c:41:6:writeu16	1
+../Core/Src/sh2_util.c:48:10:readu32	1
+../Core/Src/sh2_util.c:54:6:writeu32	1
+../Core/Src/sh2_util.c:65:8:read8	1
+../Core/Src/sh2_util.c:71:6:write8	1
+../Core/Src/sh2_util.c:76:9:read16	1
+../Core/Src/sh2_util.c:82:6:write16	1
+../Core/Src/sh2_util.c:89:9:read32	1
+../Core/Src/sh2_util.c:95:6:write32	1

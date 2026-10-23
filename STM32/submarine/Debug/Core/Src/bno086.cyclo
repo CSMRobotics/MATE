@@ -1,0 +1,5 @@
+../Core/Src/bno086.c:15:13:event_callback	2
+../Core/Src/bno086.c:21:13:sensor_callback	3
+../Core/Src/bno086.c:32:12:configure_reports	1
+../Core/Src/bno086.c:39:5:bno086_init	5
+../Core/Src/bno086.c:61:6:bno086_service	5

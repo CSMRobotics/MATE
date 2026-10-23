@@ -1,0 +1,11 @@
+../Core/Src/shtp.c:88:13:shtp_init	16	static
+../Core/Src/shtp.c:99:16:getInstance	16	static
+../Core/Src/shtp.c:113:24:min_u16	16	static
+../Core/Src/shtp.c:124:12:txProcess	48	static
+../Core/Src/shtp.c:179:13:rxAssemble	40	static
+../Core/Src/shtp.c:300:7:shtp_open	24	static
+../Core/Src/shtp.c:337:6:shtp_close	24	static
+../Core/Src/shtp.c:349:6:shtp_setEventCallback	32	static
+../Core/Src/shtp.c:359:5:shtp_listenChan	32	static
+../Core/Src/shtp.c:377:5:shtp_send	32	static
+../Core/Src/shtp.c:396:6:shtp_service	40	static

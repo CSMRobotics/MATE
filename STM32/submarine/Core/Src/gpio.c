@@ -55,10 +55,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI1_CS1_GPIO_Port, SPI1_CS1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI1_CS1_GPIO_Port, SPI1_CS1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, SPI1_CS2_Pin|SPI3_CS2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI1_CS2_GPIO_Port, SPI1_CS2_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SPI3_CS2_GPIO_Port, SPI3_CS2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_RESET);
@@ -90,10 +91,17 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BNO086_Interrupt_Pin BNO086_WAKE_Pin */
-  GPIO_InitStruct.Pin = BNO086_Interrupt_Pin|BNO086_WAKE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /* INTN is active low. WAKE is an active-low output (PS0 at boot). */
+  GPIO_InitStruct.Pin = BNO086_Interrupt_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(BNO086_WAKE_GPIO_Port, BNO086_WAKE_Pin, GPIO_PIN_SET);
+  GPIO_InitStruct.Pin = BNO086_WAKE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SPI3_CS_Pin */
