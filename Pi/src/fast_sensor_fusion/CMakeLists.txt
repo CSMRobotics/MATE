@@ -39,6 +39,11 @@ ament_target_dependencies(fast_sensor_fusion
   rclcpp
 )
 
+# Shutup Eigen warnings
+target_compile_options(fast_sensor_fusion PRIVATE
+    -Wno-class-memaccess
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
