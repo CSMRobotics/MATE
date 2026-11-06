@@ -23,6 +23,7 @@ add_executable(writer
 
 target_include_directories(fast_sensor_fusion PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 install(TARGETS fast_sensor_fusion

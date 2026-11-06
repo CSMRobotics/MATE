@@ -29,7 +29,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rov_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(message_filters REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
@@ -38,6 +37,7 @@ add_executable(flight_controller src/main.cpp)
 
 target_include_directories(flight_controller_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(
   flight_controller_lib
@@ -48,7 +48,6 @@ ament_target_dependencies(
   "sensor_msgs"
 )
 
-target_link_libraries(flight_controller_lib Eigen3::Eigen)
 target_link_libraries(flight_controller flight_controller_lib)
 
 install(TARGETS flight_controller flight_controller_lib

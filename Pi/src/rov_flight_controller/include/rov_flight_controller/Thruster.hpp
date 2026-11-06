@@ -21,6 +21,12 @@ struct Thruster {
     int64_t pwm_pin;
 };
 
+/**
+ * @brief Converts normalized throttle to nonlinear thrust value
+ * 
+ * @param throttle  float, [-1, 1]
+ * @return float    thrust 
+ */
 inline static float thrust_from_throttle(const float throttle) {
     assert(abs(throttle) <= 1);
     // check if throttle is greater than deadzone (symmetric)
@@ -38,6 +44,14 @@ inline static float thrust_from_throttle(const float throttle) {
     return 0;
 }
 
+/**
+ * @brief Converts thrust force in newtons to normalized throttle value
+ * 
+ * @param thrust  float, [MIN_THRUST_VALUE, MAX_THRUST_VALUE]
+ * @param clamping bool, Clamp to [-1, 1] or not
+ * 
+ * @return float    thrust 
+ */
 inline static float throttle_from_thrust(const float thrust, bool clamping = true) {
     switch(clamping) {
         case true:
