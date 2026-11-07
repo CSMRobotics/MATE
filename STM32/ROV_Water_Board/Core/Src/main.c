@@ -142,9 +142,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  startup();
   while (1)
   {
     /* USER CODE END WHILE */
+	  real_main();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

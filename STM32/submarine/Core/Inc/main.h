@@ -53,6 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+uint16_t motorValueFromFloat(float motorPower);
 
 /* USER CODE END EFP */
 
