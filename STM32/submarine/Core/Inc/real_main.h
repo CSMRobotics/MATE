@@ -3,11 +3,12 @@
 
 
 #ifdef __cplusplus
+#include "throttleController.h"
 extern "C"
 {
+	#include "dshot.h"
 #endif
 
-void setup();
 
 int real_main();
 

@@ -6,7 +6,7 @@
 class ThrottleController
 {
 public:
-	ThrottleController();
+	ThrottleController() = default;
 	bool transmit(float* actual);
 
 private:

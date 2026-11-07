@@ -1,7 +1,5 @@
 #include "throttleController.h"
 
-ThrottleController::ThrottlerController() {}
-
 bool ThrottleController::transmit(float* normals) {
 	uint16_t my_motor_value[8];
 
