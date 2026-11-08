@@ -1,6 +1,13 @@
 #include "FlightController.h"
 
-FlightController::FlightController(float update_period, float altitude, float kp, float ki, float kd) {
+FlightController::FlightController(
+    float update_period, 
+    float altitude,
+    float kp, 
+    float ki, 
+    float kd, 
+    ThrottleController* throttle_controller
+) {
     // Initialize variables
     _update_period = update_period;
     _update_freq = 1/update_period;
@@ -9,6 +16,9 @@ FlightController::FlightController(float update_period, float altitude, float kp
     _kp = kp;
     _ki = ki;
     _kd = kd;
+
+    _thrusters = load_thrusters();
+    _throttle_controller = throttle_controller;
 }
 
 void FlightController::update_orient_state(const Eigen::Quaternionf& orientation) {
@@ -23,7 +33,7 @@ void FlightController::update_sub_controls(const SubControls& controls) {
     _control_setpoint = controls;
 
     // Update desired rotation setpoint
-    float delta_yaw = _control_setpoint.omegaZ * _update_period;
+    float delta_yaw = (_control_setpoint.omegaZ * MAX_OMEGA) * _update_period;
     Eigen::Quaternionf delta_q = Eigen::Quaternionf::Identity();
     delta_q = Eigen::Quaternionf(Eigen::AngleAxisf(delta_yaw, Eigen::Vector3f::UnitZ()));
     _orient_setpoint = _orient_setpoint * delta_q;
@@ -68,6 +78,51 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
 
 void FlightController::update_simple() {
     // Update translation and attitude setpoints
+    _translate_setpoints = {_control_setpoint.velocityX, _control_setpoint.velocityY, _control_setpoint.velocityZ};
+    _attitude_setpoints = {_control_setpoint.omegaX, _control_setpoint.omegaY, _control_setpoint.omegaZ};
+
+    // Send to thrusterController
+    _update_thruster_actuations();
+}
+
+void FlightController::_update_thruster_actuations() {
+    if (_safe_mode) {
+        float controller_actuations[NUM_THRUSTERS] = {0};
+        _throttle_controller->transmit(controller_actuations);
+        return;
+    }
+
+    // Get actuations for each thruster
+    Eigen::Matrix<float, NUM_THRUSTERS, 1> unnormalized_actuations = Eigen::Matrix<float, NUM_THRUSTERS, 1>::Zero();
+    for(int i = 0; i < NUM_THRUSTERS; i++) {
+        Thruster t = _thrusters[i];
+        // Actuation = Linear Actuation(0) + Rotational Actuation (0)
+        unnormalized_actuations(i,0) = t.thrust.dot(_translate_setpoints)
+            + t.position.cross(t.thrust).dot(_attitude_setpoints);
+    }
     
-    // Apply translation and attitude vectors
+    // scale actuations by abs of largest actuation request
+    Eigen::Matrix<float, NUM_THRUSTERS, 1> actuations = unnormalized_actuations;
+    _clamp_actuations(&actuations);
+
+    // apply the actuations to the thrusters
+    float controller_actuations[NUM_THRUSTERS];
+    for(int i = 0; i < NUM_THRUSTERS; i++) {
+        int64_t thruster_idx = _thrusters.at(i).controller_idx;
+        controller_actuations[thruster_idx] = actuations(i, 0);
+    }
+    _throttle_controller->transmit(controller_actuations);
+}
+
+void FlightController::_clamp_actuations(Eigen::Matrix<float,NUM_THRUSTERS,1>* throttles) {
+    Eigen::Index loc;
+    throttles->minCoeff(&loc);
+    double ratioA = std::abs(-1.0 / std::min((*throttles)(loc), -1.0f));
+    throttles->maxCoeff(&loc);
+    double ratioB = std::abs(1.0 / std::max((*throttles)(loc), 1.0f));
+    if(ratioA < ratioB) {
+        *throttles = *throttles * ratioA;
+    } else {
+        *throttles = *throttles * ratioB;
+    }
 }

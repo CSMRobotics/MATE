@@ -2,8 +2,10 @@
 #define THRUSTER_HPP
 
 #include <algorithm>
+#include <array>
 
 #include "Eigen/Dense"
+#include "SubConfig.h"
 
 #define DEADZONE 0.1f
 #define MIN_THRUST_VALUE -28.44     // N
@@ -20,6 +22,21 @@ struct Thruster {
     Eigen::Vector3f thrust; // normalized thrust vector on robot using NED coords
     int64_t controller_idx;
 };
+
+inline static std::array<Thruster, NUM_THRUSTERS> load_thrusters()
+{
+    return {{
+        {Eigen::Vector3f FRONT_LEFT_POS, Eigen::Vector3f FRONT_LEFT_THRUST, FRONT_LEFT_IDX},
+        {Eigen::Vector3f FRONT_RIGHT_POS, Eigen::Vector3f FRONT_RIGHT_THRUST, FRONT_RIGHT_IDX},
+        {Eigen::Vector3f BACK_LEFT_POS, Eigen::Vector3f BACK_LEFT_THRUST, BACK_LEFT_IDX},
+        {Eigen::Vector3f BACK_RIGHT_POS, Eigen::Vector3f BACK_RIGHT_THRUST, BACK_RIGHT_IDX},
+
+        {Eigen::Vector3f MID_FRONT_LEFT_POS, Eigen::Vector3f MID_FRONT_LEFT_THRUST, MID_FRONT_LEFT_IDX},
+        {Eigen::Vector3f MID_FRONT_RIGHT_POS, Eigen::Vector3f MID_FRONT_RIGHT_THRUST, MID_FRONT_RIGHT_IDX},
+        {Eigen::Vector3f MID_BACK_LEFT_POS, Eigen::Vector3f MID_BACK_LEFT_THRUST, MID_BACK_LEFT_IDX},
+        {Eigen::Vector3f MID_BACK_RIGHT_POS, Eigen::Vector3f MID_BACK_RIGHT_THRUST, MID_BACK_RIGHT_IDX}
+    }};
+}
 
 inline static float thrust_from_throttle(const float throttle) {
     assert(abs(throttle) <= 1);

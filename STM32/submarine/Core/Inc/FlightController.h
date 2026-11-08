@@ -2,8 +2,11 @@
 #define FLIGHT_CONTROLLER_H
 
 #include "SubControls.h"
+#include "Thruster.hpp"
+#include "throttleController.h"
 
 #include <Eigen/Geometry>
+#include <array>
 
 class FlightController {
 public:
@@ -13,8 +16,16 @@ public:
      * @param updatePeriod: How often the update loop will be called in seconds
      * @param altitude: altitude in meters
      * @param kp, ki, kd: PID constants
+     * @param throttle_controller: Initialized instance of throttle_controller
      */
-	FlightController(float update_period, float altitude, float kp, float ki, float kd);
+	FlightController(
+        float update_period, 
+        float altitude, 
+        float kp, 
+        float ki, 
+        float kd,
+        ThrottleController* throttle_controller
+    );
 
     //***************************************************************************************
     // Flight loop, call these functions in order
@@ -106,8 +117,24 @@ private:
     Eigen::Vector3f _orient_der_error = Eigen::Vector3f(0, 0, 0);
 
     // Robot movement setpoints
-    Eigen::Vector3f _translate_setpoints = Eigen::Vector3f(0, 0, 0);    // [-1, 1] <x, y, z>
-    Eigen::Vector3f _attitude_setpoints = Eigen::Vector3f(0, 0, 0);     // [-1, 1] <roll, pitch, yaw>
+    Eigen::Vector3f _translate_setpoints = Eigen::Vector3f(0, 0, 0);    // [-1, 1] <x, y, z> FRD
+    Eigen::Vector3f _attitude_setpoints = Eigen::Vector3f(0, 0, 0);     // [-1, 1] <roll, pitch, yaw> FRD
+
+    // Thrusters
+    std::array<Thruster, NUM_THRUSTERS> _thrusters;
+    ThrottleController* _throttle_controller;
+
+    /**
+     * @brief Update thrusters based on _translate_setpoints and _attitude_setpoints
+     */
+    void _update_thruster_actuations();
+
+    /**
+     * @brief Clamps actuations proportionally to the largest abs(throttle) exceeding [-1, 1]
+     * 
+     * @param throttles 
+     */
+    void _clamp_actuations(Eigen::Matrix<float,NUM_THRUSTERS,1>* throttles);
 
     SubControls _control_setpoint = SubControls{0, 0, 0, 0, 0, 0};
 };
