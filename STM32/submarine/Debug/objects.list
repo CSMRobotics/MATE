@@ -1,3 +1,4 @@
+"./Core/Src/FlightController.o"
 "./Core/Src/adc.o"
 "./Core/Src/can.o"
 "./Core/Src/dma.o"

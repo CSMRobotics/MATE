@@ -1,1 +1,23 @@
-../Core/Src/real_main.cpp:4:5:int real_main()	1
+C:\ST\STM32CubeIDE_2.1.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\tools\arm-none-eabi\include\c++\14.3.1\arm-none-eabi\thumb\v7e-m+fp\hard\bits\gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	1
+../Core/Inc/Eigen/src/Core/util/IndexedViewHelper.h:137:16:Eigen::internal::all_t::all_t()	1
+../Core/Src/real_main.cpp:6:5:int real_main()	1
+../Core/Inc/Eigen/src/Core/util/SymbolicIndex.h:219:3:Eigen::symbolic::SymbolExpr<tag>::SymbolExpr() [with tag = Eigen::internal::symbolic_last_tag]	1
+../Core/Inc/Eigen/src/Core/util/IntegralConstant.h:56:3:Eigen::internal::FixedInt<N>::FixedInt() [with int N = 1]	1
+../Core/Inc/Eigen/src/Core/util/IntegralConstant.h:82:12:Eigen::internal::FixedInt<N> Eigen::internal::FixedInt<N>::operator()() const [with int N = 1]	1
+../Core/Inc/Eigen/src/Core/util/SymbolicIndex.h:117:55:Eigen::symbolic::AddExpr<Derived, Eigen::symbolic::ValueExpr<Eigen::internal::FixedInt<M> > > Eigen::symbolic::BaseExpr<Derived>::operator+(Eigen::internal::FixedInt<M>) const [with int N = 1; Derived = Eigen::symbolic::SymbolExpr<Eigen::internal::symbolic_last_tag>]	1
+../Core/Inc/Eigen/src/Geometry/Quaternion.h:111:54:static Eigen::Quaternion<typename Eigen::internal::traits<T>::Scalar> Eigen::QuaternionBase<Derived>::Identity() [with Derived = Eigen::Quaternion<float>]	1
+../Core/Inc/Eigen/src/Core/util/SymbolicIndex.h:80:18:const Derived& Eigen::symbolic::BaseExpr<Derived>::derived() const [with Derived = Eigen::symbolic::SymbolExpr<Eigen::internal::symbolic_last_tag>]	1
+../Core/Inc/Eigen/src/Core/util/SymbolicIndex.h:66:3:Eigen::symbolic::ValueExpr<Eigen::internal::FixedInt<N> >::ValueExpr() [with int N = 1]	1
+../Core/Inc/Eigen/src/Core/util/SymbolicIndex.h:254:3:Eigen::symbolic::AddExpr<Arg1, Arg2>::AddExpr(const Arg0&, const Arg1&) [with Arg0 = Eigen::symbolic::SymbolExpr<Eigen::internal::symbolic_last_tag>; Arg1 = Eigen::symbolic::ValueExpr<Eigen::internal::FixedInt<1> >]	1
+../Core/Inc/Eigen/src/Geometry/Quaternion.h:297:28:Eigen::Quaternion<Scalar, Options>::Quaternion(const Scalar&, const Scalar&, const Scalar&, const Scalar&) [with _Scalar = float; int _Options = 0]	1
+../Core/Inc/Eigen/src/Core/Matrix.h:409:25:Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::Matrix(const Scalar&, const Scalar&, const Scalar&, const Scalar&) [with _Scalar = float; int _Rows = 4; int _Cols = 1; int _Options = 0; int _MaxRows = 4; int _MaxCols = 1]	1
+../Core/Inc/Eigen/src/Core/MatrixBase.h:479:5:Eigen::MatrixBase<Derived>::MatrixBase() [with Derived = Eigen::Matrix<float, 4, 1>]	1
+../Core/Inc/Eigen/src/Core/PlainObjectBase.h:968:37:static void Eigen::PlainObjectBase<Derived>::_check_template_params() [with Derived = Eigen::Matrix<float, 4, 1>]	1
+../Core/Inc/Eigen/src/Core/PlainObjectBase.h:476:25:Eigen::PlainObjectBase<Derived>::PlainObjectBase() [with Derived = Eigen::Matrix<float, 4, 1>]	1
+../Core/Inc/Eigen/src/Core/DenseStorage.h:267:26:T* Eigen::DenseStorage<T, Size, _Rows, _Cols, _Options>::data() [with T = float; int Size = 4; int _Rows = 4; int _Cols = 1; int _Options = 0]	1
+../Core/Inc/Eigen/src/Core/DenseBase.h:681:23:Eigen::DenseBase<Derived>::DenseBase() [with Derived = Eigen::Matrix<float, 4, 1>]	1
+../Core/Inc/Eigen/src/Core/DenseStorage.h:211:23:Eigen::DenseStorage<T, Size, _Rows, _Cols, _Options>::DenseStorage() [with T = float; int Size = 4; int _Rows = 4; int _Cols = 1; int _Options = 0]	1
+../Core/Inc/Eigen/src/Core/DenseStorage.h:107:3:Eigen::internal::plain_array<T, Size, MatrixOrArrayOptions, 16>::plain_array() [with T = float; int Size = 4; int MatrixOrArrayOptions = 0]	1
+../Core/Inc/Eigen/src/Core/DenseStorage.h:29:6:void Eigen::internal::check_static_allocation_size() [with T = float; int Size = 4]	1
+../Core/Src/real_main.cpp:21:1:void __static_initialization_and_destruction_0()	1
+../Core/Src/real_main.cpp:21:1:cpp)	1
