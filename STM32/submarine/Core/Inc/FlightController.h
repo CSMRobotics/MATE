@@ -15,15 +15,19 @@ public:
      * 
      * @param updatePeriod: How often the update loop will be called in seconds
      * @param altitude: altitude in meters
-     * @param kp, ki, kd: PID constants
+     * @param orient_kp, orient_ki, orient_kd: orientation stabilization PID constants
+     * @param altitude_kp, altitude_ki, altitude_kd: altitude stabilization PID constants
+     * @param max_omega: Max rotation velocity in rad/s
+     * @param max_vertical_vel: Max vertical translational velocity m/s
      * @param throttle_controller: Initialized instance of throttle_controller
      */
 	FlightController(
         float update_period, 
         float altitude, 
-        float kp, 
-        float ki, 
-        float kd,
+        float orient_kp, float orient_ki, float orient_kd,
+        float altitude_kp, float altitude_ki, float altitude_kd,
+        float max_omega,
+        float max_vertical_vel,
         ThrottleController* throttle_controller
     );
 
@@ -81,9 +85,14 @@ public:
     void set_altitude_setpoint(float altitude);
 
     /**
-     * @brief Change PID constants used for stabilization
+     * @brief Change PID constants used for orientation stabilization
      */
-    void set_pid_constants(float kp, float ki, float kd);
+    void set_orient_pid_constants(float kp, float ki, float kd);
+
+    /**
+     * @brief Change PID constants used for depth stabilization
+     */
+    void set_altitude_pid_constants(float kp, float ki, float kd);
 
     /**
      * @brief Tell thrusters to stop immediately, will not allow any thrust until disabled.
@@ -100,25 +109,36 @@ private:
     // Math constants
     float _update_period;    // dt
     float _update_freq;     // 1/dt
-    float _kp, _ki, _kd;
-    const Eigen::Vector3f _orient_int_error_lim = Eigen::Vector3f(3.0f, 3.0f, 3.0f);
+    float _max_omega;       // rad/s
+    float _max_vertical_vel; // m/s
+    float _orient_kp, _orient_ki, _orient_kd;
+    float _alti_kp, _alti_ki, _alti_kd;
+    const Eigen::Vector3f _orient_integral_error_limit = Eigen::Vector3f(3.0f, 3.0f, 3.0f);
+    const float _altitude_integral_error_limit = 5.0f;
 
     // States
     bool _safe_mode = true;  
     Eigen::Quaternionf _orient_state = Eigen::Quaternionf::Identity();     // Measured orientation state
     Eigen::Quaternionf _orient_setpoint = Eigen::Quaternionf::Identity();   // Desired orientation
+    Eigen::Quaternionf _prev_orient_setpoint = Eigen::Quaternionf::Identity();
     float _altitude_state = 0;         // Measured altitude in meters
+    float _prev_altitude_state = 0;
     float _altitude_setpoint = 0;      // Desired altitude in meters
 
     // Rotation errors
-    Eigen::Vector3f _orient_error = Eigen::Vector3f(0, 0, 0);      // Radians
-    Eigen::Vector3f _prev_orient_error = Eigen::Vector3f(0, 0, 0);
-    Eigen::Vector3f _orient_int_error = Eigen::Vector3f(0, 0, 0);
-    Eigen::Vector3f _orient_der_error = Eigen::Vector3f(0, 0, 0);
+    Eigen::Vector3f _orient_error = Eigen::Vector3f::Zero();      // rads
+    Eigen::Vector3f _prev_orient_error = Eigen::Vector3f::Zero();
+    Eigen::Vector3f _orient_int_error = Eigen::Vector3f::Zero();   // rads * s
+    Eigen::Vector3f _orient_der_error = Eigen::Vector3f::Zero();   // rads/s
+
+    // Altitude errors
+    float _alti_error = 0;      // m
+    float _alti_int_error = 0;  // m*s
+    float _alti_der_error = 0;  // m/s
 
     // Robot movement setpoints
-    Eigen::Vector3f _translate_setpoints = Eigen::Vector3f(0, 0, 0);    // [-1, 1] <x, y, z> FRD
-    Eigen::Vector3f _attitude_setpoints = Eigen::Vector3f(0, 0, 0);     // [-1, 1] <roll, pitch, yaw> FRD
+    Eigen::Vector3f _translate_setpoints = Eigen::Vector3f::Zero();    // <x, y, z> FRD
+    Eigen::Vector3f _attitude_setpoints = Eigen::Vector3f::Zero();     // <roll, pitch, yaw> FRD
 
     // Thrusters
     std::array<Thruster, NUM_THRUSTERS> _thrusters;

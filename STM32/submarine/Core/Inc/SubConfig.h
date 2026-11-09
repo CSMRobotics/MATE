@@ -5,6 +5,15 @@
  * PID Config
  ********************************************************/
 #define MAX_OMEGA 0.78539816f     // rad/s
+#define MAX_VERTICAL_VELOCITY 2.0f   // m/s
+
+#define ORIENT_KP 1.0f
+#define ORIENT_KI 0.5f
+#define ORIENT_KD 0.25f
+
+#define ALTITUDE_KP 1.0f
+#define ALTITUDE_KI 0.5f
+#define ALTITUDE_KD 0.25f
 
 /*********************************************************
  * Thrusters
