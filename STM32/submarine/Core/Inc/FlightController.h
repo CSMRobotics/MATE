@@ -14,18 +14,20 @@ public:
      * @brief Construct a new Flight Controller object
      * 
      * @param updatePeriod: How often the update loop will be called in seconds
-     * @param altitude: altitude in meters
+     * @param init_depth: current depth at time of initialization in meters world frame NED
+     * @param init_orientation: current orientation at time of initialization in world frame NED
      * @param orient_kp, orient_ki, orient_kd: orientation stabilization PID constants
-     * @param altitude_kp, altitude_ki, altitude_kd: altitude stabilization PID constants
+     * @param depth_kp, depth_ki, depth_kd: depth stabilization PID constants
      * @param max_omega: Max rotation velocity in rad/s
      * @param max_vertical_vel: Max vertical translational velocity m/s
      * @param throttle_controller: Initialized instance of throttle_controller
      */
 	FlightController(
         float update_period, 
-        float altitude, 
+        float init_depth,
+        Eigen::Quaternionf& init_orientation,
         float orient_kp, float orient_ki, float orient_kd,
-        float altitude_kp, float altitude_ki, float altitude_kd,
+        float depth_kp, float depth_ki, float depth_kd,
         float max_omega,
         float max_vertical_vel,
         ThrottleController* throttle_controller
@@ -33,6 +35,7 @@ public:
 
     //***************************************************************************************
     // Flight loop, call these functions in order
+    // MUST BE CALLED IN A TIMED LOOP at all times
 
 	/**
 	 * @brief Updates the sub's current orientation state in world frame (NED, North East Down)
@@ -43,12 +46,12 @@ public:
 	void update_orient_state(const Eigen::Quaternionf& orientation);
 
     /**
-     * @brief Updates sub's current altitude in world frame (meters)
+     * @brief Updates sub's current depth in world frame (meters)
      */
-    void update_altitude_state(float altitude);
+    void update_depth_state(float depth);
 
     /**
-     * @brief Update submarine controls received from User or Autonomous mode
+     * @brief Update submarine controls received from Flight Computer
      * 
      * @param controls: Control setpoints
      */
@@ -56,7 +59,7 @@ public:
 
     /**
      * @brief The main flight control loop using PID control
-     *  Update sub's thrusters based on IMU data
+     *  Update sub's thrusters based on IMU data and setpoints
      * 
      * @param angular_velocity: angular velocity sub in FRD body frame (rad/s)
      */
@@ -66,7 +69,7 @@ public:
     //***************************************************************************************
     /**
      * @brief The main flight control loop in very stupid mode.
-     *  Updates sub's thrusters purely based on User controls
+     *  Updates sub's thrusters purely based on SubControls controls
      *  Use either update_simple() or update_PID(), not both
      */
     void update_simple();
@@ -80,9 +83,9 @@ public:
 	void set_orient_setpoint(const Eigen::Quaternionf& orientation);
 
     /**
-     * @brief Updates target altitude in world frame (meters)
+     * @brief Updates target depth in world frame (NED, meters)
      */
-    void set_altitude_setpoint(float altitude);
+    void set_depth_setpoint(float depth);
 
     /**
      * @brief Change PID constants used for orientation stabilization
@@ -92,7 +95,7 @@ public:
     /**
      * @brief Change PID constants used for depth stabilization
      */
-    void set_altitude_pid_constants(float kp, float ki, float kd);
+    void set_depth_pid_constants(float kp, float ki, float kd);
 
     /**
      * @brief Tell thrusters to stop immediately, will not allow any thrust until disabled.
@@ -101,29 +104,34 @@ public:
     void disable_safe_mode();
 
     /**
-     * @brief Sets submarine's target altitude to its current altitude
+     * @brief Sets submarine's target depth to its current depth given by update_depth_state()
      */
-    void tare_altitude();
+    void tare_depth();
 
 private:
+    /*************************************************************************************** */
     // Math constants
     float _update_period;    // dt
     float _update_freq;     // 1/dt
     float _max_omega;       // rad/s
     float _max_vertical_vel; // m/s
     float _orient_kp, _orient_ki, _orient_kd;
-    float _alti_kp, _alti_ki, _alti_kd;
+    float _depth_kp, _depth_ki, _depth_kd;
     const Eigen::Vector3f _orient_integral_error_limit = Eigen::Vector3f(3.0f, 3.0f, 3.0f);
-    const float _altitude_integral_error_limit = 5.0f;
+    const float _depth_integral_error_limit = 5.0f;
 
-    // States
-    bool _safe_mode = true;  
+    /*************************************************************************************** */
+    // Flight Controller State
+    bool _safe_mode = true;
+    bool _init_update_loop = true;  // Is this the initial run of the flight control update loop?
+
     Eigen::Quaternionf _orient_state = Eigen::Quaternionf::Identity();     // Measured orientation state
     Eigen::Quaternionf _orient_setpoint = Eigen::Quaternionf::Identity();   // Desired orientation
     Eigen::Quaternionf _prev_orient_setpoint = Eigen::Quaternionf::Identity();
-    float _altitude_state = 0;         // Measured altitude in meters
-    float _prev_altitude_state = 0;
-    float _altitude_setpoint = 0;      // Desired altitude in meters
+
+    float _depth_state = 0;         // Measured depth in meters
+    float _prev_depth_state = 0;
+    float _depth_setpoint = 0;      // Desired depth in meters
 
     // Rotation errors
     Eigen::Vector3f _orient_error = Eigen::Vector3f::Zero();      // rads
@@ -131,15 +139,22 @@ private:
     Eigen::Vector3f _orient_int_error = Eigen::Vector3f::Zero();   // rads * s
     Eigen::Vector3f _orient_der_error = Eigen::Vector3f::Zero();   // rads/s
 
-    // Altitude errors
-    float _alti_error = 0;      // m
-    float _alti_int_error = 0;  // m*s
-    float _alti_der_error = 0;  // m/s
+    // Depth errors
+    float _depth_error = 0;      // m
+    float _depth_int_error = 0;  // m*s
+    float _depth_der_error = 0;  // m/s
 
     // Robot movement setpoints
     Eigen::Vector3f _translate_setpoints = Eigen::Vector3f::Zero();    // <x, y, z> FRD
     Eigen::Vector3f _attitude_setpoints = Eigen::Vector3f::Zero();     // <roll, pitch, yaw> FRD
 
+    /**
+     * @brief Updates internal state of the FlightController
+     *      Called every run of the flight control loop
+     */
+    void _update_state();
+
+    /*************************************************************************************** */
     // Thrusters
     std::array<Thruster, NUM_THRUSTERS> _thrusters;
     ThrottleController* _throttle_controller;
@@ -156,6 +171,8 @@ private:
      */
     void _clamp_actuations(Eigen::Matrix<float,NUM_THRUSTERS,1>* throttles);
 
+    /*************************************************************************************** */
+    // Control
     SubControls _control_setpoint = SubControls{0, 0, 0, 0, 0, 0};
 };
 

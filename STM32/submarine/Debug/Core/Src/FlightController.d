@@ -1,6 +1,6 @@
 Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
  ../Core/Inc/FlightController.h ../Core/Inc/SubControls.h \
- ../Core/Inc/Eigen/Geometry ../Core/Inc/Eigen/Core \
+ ../Core/Inc/Thruster.hpp ../Core/Inc/Eigen/Dense ../Core/Inc/Eigen/Core \
  ../Core/Inc/Eigen/src/Core/util/DisableStupidWarnings.h \
  ../Core/Inc/Eigen/src/Core/util/Macros.h \
  ../Core/Inc/Eigen/src/Core/util/ConfigureVectorization.h \
@@ -117,10 +117,15 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
  ../Core/Inc/Eigen/src/Core/StlIterators.h \
  ../Core/Inc/Eigen/src/Core/GlobalFunctions.h \
  ../Core/Inc/Eigen/src/Core/util/ReenableStupidWarnings.h \
- ../Core/Inc/Eigen/SVD ../Core/Inc/Eigen/QR ../Core/Inc/Eigen/Cholesky \
+ ../Core/Inc/Eigen/LU ../Core/Inc/Eigen/src/misc/Kernel.h \
+ ../Core/Inc/Eigen/src/misc/Image.h ../Core/Inc/Eigen/src/LU/FullPivLU.h \
+ ../Core/Inc/Eigen/src/LU/PartialPivLU.h \
+ ../Core/Inc/Eigen/src/LU/Determinant.h \
+ ../Core/Inc/Eigen/src/LU/InverseImpl.h ../Core/Inc/Eigen/Cholesky \
  ../Core/Inc/Eigen/Jacobi ../Core/Inc/Eigen/src/Jacobi/Jacobi.h \
  ../Core/Inc/Eigen/src/Cholesky/LLT.h \
- ../Core/Inc/Eigen/src/Cholesky/LDLT.h ../Core/Inc/Eigen/Householder \
+ ../Core/Inc/Eigen/src/Cholesky/LDLT.h ../Core/Inc/Eigen/QR \
+ ../Core/Inc/Eigen/Householder \
  ../Core/Inc/Eigen/src/Householder/Householder.h \
  ../Core/Inc/Eigen/src/Householder/HouseholderSequence.h \
  ../Core/Inc/Eigen/src/Householder/BlockHouseholder.h \
@@ -128,16 +133,11 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
  ../Core/Inc/Eigen/src/QR/FullPivHouseholderQR.h \
  ../Core/Inc/Eigen/src/QR/ColPivHouseholderQR.h \
  ../Core/Inc/Eigen/src/QR/CompleteOrthogonalDecomposition.h \
- ../Core/Inc/Eigen/src/misc/RealSvd2x2.h \
+ ../Core/Inc/Eigen/SVD ../Core/Inc/Eigen/src/misc/RealSvd2x2.h \
  ../Core/Inc/Eigen/src/SVD/UpperBidiagonalization.h \
  ../Core/Inc/Eigen/src/SVD/SVDBase.h \
  ../Core/Inc/Eigen/src/SVD/JacobiSVD.h ../Core/Inc/Eigen/src/SVD/BDCSVD.h \
- ../Core/Inc/Eigen/LU ../Core/Inc/Eigen/src/misc/Kernel.h \
- ../Core/Inc/Eigen/src/misc/Image.h ../Core/Inc/Eigen/src/LU/FullPivLU.h \
- ../Core/Inc/Eigen/src/LU/PartialPivLU.h \
- ../Core/Inc/Eigen/src/LU/Determinant.h \
- ../Core/Inc/Eigen/src/LU/InverseImpl.h \
- ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h \
+ ../Core/Inc/Eigen/Geometry ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h \
  ../Core/Inc/Eigen/src/Geometry/EulerAngles.h \
  ../Core/Inc/Eigen/src/Geometry/Homogeneous.h \
  ../Core/Inc/Eigen/src/Geometry/RotationBase.h \
@@ -150,10 +150,67 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
  ../Core/Inc/Eigen/src/Geometry/Hyperplane.h \
  ../Core/Inc/Eigen/src/Geometry/ParametrizedLine.h \
  ../Core/Inc/Eigen/src/Geometry/AlignedBox.h \
- ../Core/Inc/Eigen/src/Geometry/Umeyama.h
+ ../Core/Inc/Eigen/src/Geometry/Umeyama.h ../Core/Inc/Eigen/Eigenvalues \
+ ../Core/Inc/Eigen/src/Eigenvalues/Tridiagonalization.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/RealSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/EigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./RealSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./Tridiagonalization.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/ComplexSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./ComplexSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/RealQZ.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./RealQZ.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ ../Core/Inc/SubConfig.h ../Core/Inc/throttleController.h \
+ ../Core/Inc/dshot.h ../Core/Inc/tim.h ../Core/Inc/main.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
+ ../Core/Inc/stm32f4xx_hal_conf.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h \
+ ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
+ ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h \
+ ../Drivers/CMSIS/Include/core_cm4.h \
+ ../Drivers/CMSIS/Include/cmsis_version.h \
+ ../Drivers/CMSIS/Include/cmsis_compiler.h \
+ ../Drivers/CMSIS/Include/cmsis_gcc.h \
+ ../Drivers/CMSIS/Include/mpu_armv7.h \
+ ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_exti.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_adc.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h \
+ ../Core/Inc/Eigen/Geometry
 ../Core/Inc/FlightController.h:
 ../Core/Inc/SubControls.h:
-../Core/Inc/Eigen/Geometry:
+../Core/Inc/Thruster.hpp:
+../Core/Inc/Eigen/Dense:
 ../Core/Inc/Eigen/Core:
 ../Core/Inc/Eigen/src/Core/util/DisableStupidWarnings.h:
 ../Core/Inc/Eigen/src/Core/util/Macros.h:
@@ -278,13 +335,19 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
 ../Core/Inc/Eigen/src/Core/StlIterators.h:
 ../Core/Inc/Eigen/src/Core/GlobalFunctions.h:
 ../Core/Inc/Eigen/src/Core/util/ReenableStupidWarnings.h:
-../Core/Inc/Eigen/SVD:
-../Core/Inc/Eigen/QR:
+../Core/Inc/Eigen/LU:
+../Core/Inc/Eigen/src/misc/Kernel.h:
+../Core/Inc/Eigen/src/misc/Image.h:
+../Core/Inc/Eigen/src/LU/FullPivLU.h:
+../Core/Inc/Eigen/src/LU/PartialPivLU.h:
+../Core/Inc/Eigen/src/LU/Determinant.h:
+../Core/Inc/Eigen/src/LU/InverseImpl.h:
 ../Core/Inc/Eigen/Cholesky:
 ../Core/Inc/Eigen/Jacobi:
 ../Core/Inc/Eigen/src/Jacobi/Jacobi.h:
 ../Core/Inc/Eigen/src/Cholesky/LLT.h:
 ../Core/Inc/Eigen/src/Cholesky/LDLT.h:
+../Core/Inc/Eigen/QR:
 ../Core/Inc/Eigen/Householder:
 ../Core/Inc/Eigen/src/Householder/Householder.h:
 ../Core/Inc/Eigen/src/Householder/HouseholderSequence.h:
@@ -293,18 +356,13 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
 ../Core/Inc/Eigen/src/QR/FullPivHouseholderQR.h:
 ../Core/Inc/Eigen/src/QR/ColPivHouseholderQR.h:
 ../Core/Inc/Eigen/src/QR/CompleteOrthogonalDecomposition.h:
+../Core/Inc/Eigen/SVD:
 ../Core/Inc/Eigen/src/misc/RealSvd2x2.h:
 ../Core/Inc/Eigen/src/SVD/UpperBidiagonalization.h:
 ../Core/Inc/Eigen/src/SVD/SVDBase.h:
 ../Core/Inc/Eigen/src/SVD/JacobiSVD.h:
 ../Core/Inc/Eigen/src/SVD/BDCSVD.h:
-../Core/Inc/Eigen/LU:
-../Core/Inc/Eigen/src/misc/Kernel.h:
-../Core/Inc/Eigen/src/misc/Image.h:
-../Core/Inc/Eigen/src/LU/FullPivLU.h:
-../Core/Inc/Eigen/src/LU/PartialPivLU.h:
-../Core/Inc/Eigen/src/LU/Determinant.h:
-../Core/Inc/Eigen/src/LU/InverseImpl.h:
+../Core/Inc/Eigen/Geometry:
 ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h:
 ../Core/Inc/Eigen/src/Geometry/EulerAngles.h:
 ../Core/Inc/Eigen/src/Geometry/Homogeneous.h:
@@ -319,3 +377,63 @@ Core/Src/FlightController.o: ../Core/Src/FlightController.cpp \
 ../Core/Inc/Eigen/src/Geometry/ParametrizedLine.h:
 ../Core/Inc/Eigen/src/Geometry/AlignedBox.h:
 ../Core/Inc/Eigen/src/Geometry/Umeyama.h:
+../Core/Inc/Eigen/Eigenvalues:
+../Core/Inc/Eigen/src/Eigenvalues/Tridiagonalization.h:
+../Core/Inc/Eigen/src/Eigenvalues/RealSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
+../Core/Inc/Eigen/src/Eigenvalues/EigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./RealSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./Tridiagonalization.h:
+../Core/Inc/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
+../Core/Inc/Eigen/src/Eigenvalues/ComplexSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./ComplexSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/RealQZ.h:
+../Core/Inc/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./RealQZ.h:
+../Core/Inc/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+../Core/Inc/SubConfig.h:
+../Core/Inc/throttleController.h:
+../Core/Inc/dshot.h:
+../Core/Inc/tim.h:
+../Core/Inc/main.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
+../Core/Inc/stm32f4xx_hal_conf.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h:
+../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
+../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h:
+../Drivers/CMSIS/Include/core_cm4.h:
+../Drivers/CMSIS/Include/cmsis_version.h:
+../Drivers/CMSIS/Include/cmsis_compiler.h:
+../Drivers/CMSIS/Include/cmsis_gcc.h:
+../Drivers/CMSIS/Include/mpu_armv7.h:
+../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_exti.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_adc.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h:
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h:
+../Core/Inc/Eigen/Geometry:

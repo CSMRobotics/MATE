@@ -1,27 +1,42 @@
 #include "FlightController.h"
 
+#include <algorithm>
+
 FlightController::FlightController(
     float update_period, 
-    float altitude,
+    float init_depth,
+    Eigen::Quaternionf& init_orientation,
     float orient_kp, float orient_ki, float orient_kd, 
-    float altitude_kp, float altitude_ki, float altitude_kd,
+    float depth_kp, float depth_ki, float depth_kd,
     float max_omega,
     float max_vertical_vel,
     ThrottleController* throttle_controller
 ) {
-    // Initialize variables
+    // Initialize math constants
     _update_period = update_period;
     _update_freq = 1/update_period;
-    _altitude_state = altitude;
+    
     _safe_mode = true;
     _orient_kp = orient_kp;
     _orient_ki = orient_ki;
     _orient_kd = orient_kd;
-    _alti_kp = altitude_kp;
-    _alti_ki = altitude_ki;
-    _alti_kd = altitude_kd;
+    _depth_kp = depth_kp;
+    _depth_ki = depth_ki;
+    _depth_kd = depth_kd;
     _max_omega = max_omega;
     _max_vertical_vel = max_vertical_vel;
+
+    // Initialize state and setpoints
+    _safe_mode = true;
+    _init_update_loop = true;
+
+    _orient_state = init_orientation;
+    _orient_setpoint = init_orientation;
+    _prev_orient_setpoint = init_orientation;
+
+    _depth_state = init_depth;
+    _prev_depth_state = init_depth;
+    _depth_setpoint = init_depth;
 
     _thrusters = load_thrusters();
     _throttle_controller = throttle_controller;
@@ -31,9 +46,9 @@ void FlightController::update_orient_state(const Eigen::Quaternionf& orientation
     _orient_state = orientation;
 }
 
-void FlightController::update_altitude_state(float altitude) {
-    _prev_altitude_state = _altitude_state;
-    _altitude_state = altitude;
+void FlightController::update_depth_state(float depth) {
+    _prev_depth_state = _depth_state;
+    _depth_state = depth;
 }
 
 void FlightController::update_sub_controls(const SubControls& controls) {
@@ -47,9 +62,9 @@ void FlightController::update_sub_controls(const SubControls& controls) {
     _orient_setpoint = _orient_setpoint * delta_q;
     _orient_setpoint.normalize();
 
-    // Update desired altitude setpoint
-    float delta_alt = (controls.velocityZ * _max_vertical_vel) * _update_period;
-    _altitude_setpoint += delta_alt;
+    // Update desired depth setpoint
+    float delta_depth = (controls.velocityZ * _max_vertical_vel) * _update_period;
+    _depth_setpoint += delta_depth;
 }
 
 void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
@@ -103,16 +118,16 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
     // Update target attitude
     _attitude_setpoints = attitude_setpoints;
 
-    // Altitude PID calculation
-    _alti_error = _altitude_setpoint - _altitude_state;
-    _alti_int_error += _alti_error * _update_period;
-    _alti_int_error = std::clamp(_alti_int_error, -_altitude_integral_error_limit, _altitude_integral_error_limit);
-    _alti_der_error = (_altitude_state - _prev_altitude_state) * _update_freq;
+    // Depth PID calculation
+    _depth_error = _depth_setpoint - _depth_state;
+    _depth_int_error += _depth_error * _update_period;
+    _depth_int_error = std::max(-_depth_integral_error_limit, std::min(_depth_int_error, _depth_integral_error_limit));
+    _depth_der_error = (_depth_state - _prev_depth_state) * _update_freq;
 
     float translate_z_setpoint = 
-        _alti_kp * _alti_error + 
-        _alti_ki * _alti_int_error -
-        _alti_kd * _alti_der_error;
+        _depth_kp * _depth_error + 
+        _depth_ki * _depth_int_error -
+        _depth_kd * _depth_der_error;
 
     // Rotate to body frame
     Eigen::Vector3f translate_setpoints_ned = {0, 0, translate_z_setpoint};
@@ -127,6 +142,9 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
     _translate_setpoints = translate_setpoints_frd + control_translate_setpoints_frd;
 
     _update_thruster_actuations();
+
+    // Update FlightController state
+    _update_state();
 }
 
 void FlightController::update_simple() {
@@ -136,6 +154,9 @@ void FlightController::update_simple() {
 
     // Send to thrusterController
     _update_thruster_actuations();
+
+    // Update FlightController state
+    _update_state();
 }
 
 void FlightController::_update_thruster_actuations() {
@@ -177,5 +198,42 @@ void FlightController::_clamp_actuations(Eigen::Matrix<float,NUM_THRUSTERS,1>* t
         *throttles = *throttles * ratioA;
     } else {
         *throttles = *throttles * ratioB;
+    }
+}
+
+void FlightController::set_orient_setpoint(const Eigen::Quaternionf& orientation) {
+    _prev_orient_setpoint = _orient_setpoint;
+    _orient_setpoint = orientation;
+}
+
+void FlightController::set_depth_setpoint(const float depth) {
+    _depth_setpoint = depth;
+}
+
+void FlightController::set_orient_pid_constants(float kp, float ki, float kd) {
+    _orient_kp = kp;
+    _orient_ki = ki;
+    _orient_kd = kd;
+}
+
+void FlightController::set_depth_pid_constants(float kp, float ki, float kd) {
+    _depth_kp = kp;
+    _depth_ki = ki;
+    _depth_kd = kd;
+}
+
+void FlightController::activate_safe_mode() {
+    _safe_mode = true;
+}
+
+void FlightController::disable_safe_mode() {
+    // Reset all state
+    _init_update_loop = true;
+    _safe_mode = false;
+}
+
+void FlightController::_update_state() {
+    if (_init_update_loop) {
+        _init_update_loop = false;
     }
 }

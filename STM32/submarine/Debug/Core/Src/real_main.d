@@ -38,7 +38,7 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h \
  ../Core/Inc/FlightController.h ../Core/Inc/SubControls.h \
- ../Core/Inc/Eigen/Geometry ../Core/Inc/Eigen/Core \
+ ../Core/Inc/Thruster.hpp ../Core/Inc/Eigen/Dense ../Core/Inc/Eigen/Core \
  ../Core/Inc/Eigen/src/Core/util/DisableStupidWarnings.h \
  ../Core/Inc/Eigen/src/Core/util/Macros.h \
  ../Core/Inc/Eigen/src/Core/util/ConfigureVectorization.h \
@@ -155,10 +155,15 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
  ../Core/Inc/Eigen/src/Core/StlIterators.h \
  ../Core/Inc/Eigen/src/Core/GlobalFunctions.h \
  ../Core/Inc/Eigen/src/Core/util/ReenableStupidWarnings.h \
- ../Core/Inc/Eigen/SVD ../Core/Inc/Eigen/QR ../Core/Inc/Eigen/Cholesky \
+ ../Core/Inc/Eigen/LU ../Core/Inc/Eigen/src/misc/Kernel.h \
+ ../Core/Inc/Eigen/src/misc/Image.h ../Core/Inc/Eigen/src/LU/FullPivLU.h \
+ ../Core/Inc/Eigen/src/LU/PartialPivLU.h \
+ ../Core/Inc/Eigen/src/LU/Determinant.h \
+ ../Core/Inc/Eigen/src/LU/InverseImpl.h ../Core/Inc/Eigen/Cholesky \
  ../Core/Inc/Eigen/Jacobi ../Core/Inc/Eigen/src/Jacobi/Jacobi.h \
  ../Core/Inc/Eigen/src/Cholesky/LLT.h \
- ../Core/Inc/Eigen/src/Cholesky/LDLT.h ../Core/Inc/Eigen/Householder \
+ ../Core/Inc/Eigen/src/Cholesky/LDLT.h ../Core/Inc/Eigen/QR \
+ ../Core/Inc/Eigen/Householder \
  ../Core/Inc/Eigen/src/Householder/Householder.h \
  ../Core/Inc/Eigen/src/Householder/HouseholderSequence.h \
  ../Core/Inc/Eigen/src/Householder/BlockHouseholder.h \
@@ -166,16 +171,11 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
  ../Core/Inc/Eigen/src/QR/FullPivHouseholderQR.h \
  ../Core/Inc/Eigen/src/QR/ColPivHouseholderQR.h \
  ../Core/Inc/Eigen/src/QR/CompleteOrthogonalDecomposition.h \
- ../Core/Inc/Eigen/src/misc/RealSvd2x2.h \
+ ../Core/Inc/Eigen/SVD ../Core/Inc/Eigen/src/misc/RealSvd2x2.h \
  ../Core/Inc/Eigen/src/SVD/UpperBidiagonalization.h \
  ../Core/Inc/Eigen/src/SVD/SVDBase.h \
  ../Core/Inc/Eigen/src/SVD/JacobiSVD.h ../Core/Inc/Eigen/src/SVD/BDCSVD.h \
- ../Core/Inc/Eigen/LU ../Core/Inc/Eigen/src/misc/Kernel.h \
- ../Core/Inc/Eigen/src/misc/Image.h ../Core/Inc/Eigen/src/LU/FullPivLU.h \
- ../Core/Inc/Eigen/src/LU/PartialPivLU.h \
- ../Core/Inc/Eigen/src/LU/Determinant.h \
- ../Core/Inc/Eigen/src/LU/InverseImpl.h \
- ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h \
+ ../Core/Inc/Eigen/Geometry ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h \
  ../Core/Inc/Eigen/src/Geometry/EulerAngles.h \
  ../Core/Inc/Eigen/src/Geometry/Homogeneous.h \
  ../Core/Inc/Eigen/src/Geometry/RotationBase.h \
@@ -188,7 +188,24 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
  ../Core/Inc/Eigen/src/Geometry/Hyperplane.h \
  ../Core/Inc/Eigen/src/Geometry/ParametrizedLine.h \
  ../Core/Inc/Eigen/src/Geometry/AlignedBox.h \
- ../Core/Inc/Eigen/src/Geometry/Umeyama.h
+ ../Core/Inc/Eigen/src/Geometry/Umeyama.h ../Core/Inc/Eigen/Eigenvalues \
+ ../Core/Inc/Eigen/src/Eigenvalues/Tridiagonalization.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/RealSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/EigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./RealSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./Tridiagonalization.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/ComplexSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./ComplexSchur.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/RealQZ.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/./RealQZ.h \
+ ../Core/Inc/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ ../Core/Inc/SubConfig.h ../Core/Inc/Eigen/Geometry
 ../Core/Inc/real_main.h:
 ../Core/Inc/throttleController.h:
 ../Core/Inc/dshot.h:
@@ -233,7 +250,8 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h:
 ../Core/Inc/FlightController.h:
 ../Core/Inc/SubControls.h:
-../Core/Inc/Eigen/Geometry:
+../Core/Inc/Thruster.hpp:
+../Core/Inc/Eigen/Dense:
 ../Core/Inc/Eigen/Core:
 ../Core/Inc/Eigen/src/Core/util/DisableStupidWarnings.h:
 ../Core/Inc/Eigen/src/Core/util/Macros.h:
@@ -358,13 +376,19 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
 ../Core/Inc/Eigen/src/Core/StlIterators.h:
 ../Core/Inc/Eigen/src/Core/GlobalFunctions.h:
 ../Core/Inc/Eigen/src/Core/util/ReenableStupidWarnings.h:
-../Core/Inc/Eigen/SVD:
-../Core/Inc/Eigen/QR:
+../Core/Inc/Eigen/LU:
+../Core/Inc/Eigen/src/misc/Kernel.h:
+../Core/Inc/Eigen/src/misc/Image.h:
+../Core/Inc/Eigen/src/LU/FullPivLU.h:
+../Core/Inc/Eigen/src/LU/PartialPivLU.h:
+../Core/Inc/Eigen/src/LU/Determinant.h:
+../Core/Inc/Eigen/src/LU/InverseImpl.h:
 ../Core/Inc/Eigen/Cholesky:
 ../Core/Inc/Eigen/Jacobi:
 ../Core/Inc/Eigen/src/Jacobi/Jacobi.h:
 ../Core/Inc/Eigen/src/Cholesky/LLT.h:
 ../Core/Inc/Eigen/src/Cholesky/LDLT.h:
+../Core/Inc/Eigen/QR:
 ../Core/Inc/Eigen/Householder:
 ../Core/Inc/Eigen/src/Householder/Householder.h:
 ../Core/Inc/Eigen/src/Householder/HouseholderSequence.h:
@@ -373,18 +397,13 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
 ../Core/Inc/Eigen/src/QR/FullPivHouseholderQR.h:
 ../Core/Inc/Eigen/src/QR/ColPivHouseholderQR.h:
 ../Core/Inc/Eigen/src/QR/CompleteOrthogonalDecomposition.h:
+../Core/Inc/Eigen/SVD:
 ../Core/Inc/Eigen/src/misc/RealSvd2x2.h:
 ../Core/Inc/Eigen/src/SVD/UpperBidiagonalization.h:
 ../Core/Inc/Eigen/src/SVD/SVDBase.h:
 ../Core/Inc/Eigen/src/SVD/JacobiSVD.h:
 ../Core/Inc/Eigen/src/SVD/BDCSVD.h:
-../Core/Inc/Eigen/LU:
-../Core/Inc/Eigen/src/misc/Kernel.h:
-../Core/Inc/Eigen/src/misc/Image.h:
-../Core/Inc/Eigen/src/LU/FullPivLU.h:
-../Core/Inc/Eigen/src/LU/PartialPivLU.h:
-../Core/Inc/Eigen/src/LU/Determinant.h:
-../Core/Inc/Eigen/src/LU/InverseImpl.h:
+../Core/Inc/Eigen/Geometry:
 ../Core/Inc/Eigen/src/Geometry/OrthoMethods.h:
 ../Core/Inc/Eigen/src/Geometry/EulerAngles.h:
 ../Core/Inc/Eigen/src/Geometry/Homogeneous.h:
@@ -399,3 +418,22 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
 ../Core/Inc/Eigen/src/Geometry/ParametrizedLine.h:
 ../Core/Inc/Eigen/src/Geometry/AlignedBox.h:
 ../Core/Inc/Eigen/src/Geometry/Umeyama.h:
+../Core/Inc/Eigen/Eigenvalues:
+../Core/Inc/Eigen/src/Eigenvalues/Tridiagonalization.h:
+../Core/Inc/Eigen/src/Eigenvalues/RealSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
+../Core/Inc/Eigen/src/Eigenvalues/EigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./RealSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./Tridiagonalization.h:
+../Core/Inc/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
+../Core/Inc/Eigen/src/Eigenvalues/ComplexSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./ComplexSchur.h:
+../Core/Inc/Eigen/src/Eigenvalues/RealQZ.h:
+../Core/Inc/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+../Core/Inc/Eigen/src/Eigenvalues/./RealQZ.h:
+../Core/Inc/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+../Core/Inc/SubConfig.h:
+../Core/Inc/Eigen/Geometry:

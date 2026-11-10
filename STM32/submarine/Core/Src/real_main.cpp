@@ -12,10 +12,21 @@ int real_main()
 
 	// Flight control loop
 	SubControls sub_controls = {0, 0, 0, 0, 0, 0};
-	FlightController flight_controller(0.01, -4, 2, 0.5, 0.25);
+	Eigen::Quaternionf test = Eigen::Quaternionf::Identity();
+	FlightController flight_controller(
+		0.01f, 
+		4.0f, 
+		test, 
+		2.0f, 0.5f, 0.25f, 
+		0.0f, 0.0f, 0.0f, 
+		0.0f, 
+		0.0f, 
+		&tc
+	);
 	flight_controller.update_orient_state(Eigen::Quaternionf::Identity());
-	flight_controller.update_altitude_state(-4);
+	flight_controller.update_depth_state(-4);
 	flight_controller.update_sub_controls(sub_controls);
+	flight_controller.update_pid(Eigen::Vector3f(0.0f, 0.0f, 0.0f));
 	
 	return 1;
 }
