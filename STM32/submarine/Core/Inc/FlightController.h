@@ -125,8 +125,8 @@ private:
     bool _safe_mode = true;
     bool _init_update_loop = true;  // Is this the initial run of the flight control update loop?
 
-    Eigen::Quaternionf _orient_state = Eigen::Quaternionf::Identity();     // Measured orientation state
-    Eigen::Quaternionf _orient_setpoint = Eigen::Quaternionf::Identity();   // Desired orientation
+    Eigen::Quaternionf _orient_state = Eigen::Quaternionf::Identity();     // Measured orientation state in NED coords
+    Eigen::Quaternionf _orient_setpoint = Eigen::Quaternionf::Identity();   // Desired orientation in NED coords
     Eigen::Quaternionf _prev_orient_setpoint = Eigen::Quaternionf::Identity();
 
     float _depth_state = 0;         // Measured depth in meters

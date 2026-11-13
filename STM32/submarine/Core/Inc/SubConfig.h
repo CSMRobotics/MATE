@@ -20,8 +20,8 @@
  ********************************************************/
 #define NUM_THRUSTERS 8
 
-#define FRONT_LEFT_POS {1.0f, -0.5f, 0.0f}  // Normalized coordinates in NED
-#define FRONT_LEFT_THRUST {0.707106781f, 0.707106781f, 0.0f}   // Normalized thrust vector in NED
+#define FRONT_LEFT_POS {1.0f, -0.5f, 0.0f}  // Normalized coordinates in FRD body frame (Forward, Right, Down)
+#define FRONT_LEFT_THRUST {0.707106781f, 0.707106781f, 0.0f}   // Normalized thrust vector in FRD
 #define FRONT_LEFT_IDX 0    // ThrottleController index
 
 #define FRONT_RIGHT_POS {1.0f, 0.5f, 0.0f}
