@@ -2,7 +2,7 @@
  * @file writer.cpp
  * @brief Test program for publishing a MAVLink raw_IMU message over shared memory.
  */
-#include "fast_sensor_fusion/MavlinkPubSub.hpp"
+#include "MavlinkPubSub.hpp"
 
 #include <atomic>
 #include <cerrno>

@@ -25,12 +25,22 @@ target_include_directories(fast_sensor_fusion PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
+target_include_directories(fast_sensor_fusion SYSTEM PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+  $<INSTALL_INTERFACE:include>
+)
+
 install(TARGETS fast_sensor_fusion
   DESTINATION lib/${PROJECT_NAME})
 
 target_include_directories(writer PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+target_include_directories(writer SYSTEM PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+  $<INSTALL_INTERFACE:include>
+)
 
 install(TARGETS writer
   DESTINATION lib/${PROJECT_NAME})
