@@ -1,4 +1,3 @@
-
 #ifndef MAVLINK_PUB_SUB_HPP
 #define MAVLINK_PUB_SUB_HPP
 

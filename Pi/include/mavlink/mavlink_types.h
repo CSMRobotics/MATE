@@ -58,7 +58,7 @@ typedef struct param_union {
 	uint8_t type;
 }) mavlink_param_union_t;
 
-#pragma GCC diagnostic ignored "-Wpedantic"
+
 /**
  * New-style 8 byte param union
  * mavlink_param_union_double_t will be 8 bytes long, and treated as needing 8 byte alignment for the purposes of MAVLink 1.0 field ordering.
@@ -93,7 +93,6 @@ typedef struct param_union_extended {
     uint8_t data[8];
     };
 }) mavlink_param_union_double_t;
-#pragma GCC diagnostic pop
 
 /**
  * This structure is required to make the mavlink_send_xxx convenience functions
