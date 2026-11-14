@@ -1,0 +1,20 @@
+uart_manager:
+  ros__parameters:
+    uart:
+      serial_port: "/dev/serial0"
+
+    tx:
+      channels:
+        - name: "mavlink_sub_controls"
+          shm_name: "/mavlink_sub_controls"
+          priority: 0
+
+        - name: "mavlink_sensor_fusion"
+          shm_name: "/mavlink_sensor_fusion"
+          priority: 0
+      
+    rx:
+      channels:
+        - name: "mavlink_bno086"
+          shm_name: "/mavlink_bno086"
+          priority: 0

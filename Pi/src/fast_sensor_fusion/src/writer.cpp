@@ -24,7 +24,7 @@ extern "C" {
 
 const auto start_time = std::chrono::steady_clock::now();
 
-static constexpr const char* SHM_NAME = "/mavlink_shm_sensor_fusion";
+static constexpr const char* SHM_NAME = "/mavlink_sensor_fusion";
 
 int main() {
     // Setup shared memory data structure

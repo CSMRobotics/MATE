@@ -8,8 +8,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-// Include MAVLink C headers
-#include "mavlink/common/mavlink.h"
+#include "uart_manager/UartManager.h"
 
 #define SERIAL_PORT_PATH "/dev/ttyAMA0"
 
@@ -95,23 +94,14 @@ static void transmit_mavlink(void) {
 
 int main(int argc, char * argv[]) {
     rclcpp::init(argc, argv);
+    std::shared_ptr<UartManager> uart_manager_node = std::make_shared<UartManager>();
 
-    std::cout << "Starting UART MAVLink Manager on " << SERIAL_PORT_PATH << "...\n";
+    // Spins until death
+    rclcpp::spin(uart_manager_node);
 
-    open_serial_port();
-    configure_serial_port();
+    uart_manager_node->shutdown();
 
-    // Polling loop until CTRL+C / ROS shutdown
-    while (rclcpp::ok()) {
-        receive_mavlink();
-        usleep(10000); // 10ms poll delay
-        // transmit_mavlink();
-        // usleep(10000);
-    }
-
-    if (g_fd >= 0) {
-        close(g_fd);
-    }
+    uart_manager_node.reset();
 
     rclcpp::shutdown();
     return 0;

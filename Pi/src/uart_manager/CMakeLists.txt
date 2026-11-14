@@ -14,6 +14,7 @@ find_package(rclcpp REQUIRED)
 
 add_executable(uart_manager 
   src/main.cpp
+  src/UartManager.cpp
 )
 
 target_include_directories(uart_manager PUBLIC
