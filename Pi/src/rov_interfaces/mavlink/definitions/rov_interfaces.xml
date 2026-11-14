@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<mavlink>
+    <include>common.xml</include>
+    <messages>
+        <message id="200" name="SUB_CONTROLS">
+            <description>
+                Submarine control inputs. All control values are normalized and unitless.
+            </description>
+
+            <field type="float" name="velocity_x">
+                Forward velocity (+Forward)
+            </field>
+            <field type="float" name="velocity_y">
+                Lateral velocity (+Right)
+            </field>
+            <field type="float" name="velocity_z">
+                Vertical velocity (+Down)
+            </field>
+
+            <field type="float" name="omega_x">
+                Roll rate (+Clockwise looking down x axis, from back to front)
+            </field>
+            <field type="float" name="omega_y">
+                Pitch rate (+Pull up)
+            </field>
+            <field type="float" name="omega_z">
+                Yaw rate (+Turn right)
+            </field>
+
+            <field type="uint8_t" name="mode_switch">
+                Mode switch (0 = disabled, 1 = enabled)
+            </field>
+            <field type="uint8_t" name="estop">
+                Emergency stop (0 = inactive, 1 = active)
+            </field>
+        </message>
+    </messages>
+</mavlink>
