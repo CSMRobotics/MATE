@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(uart_manager)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -Wno-address-of-packed-member)
 endif()
 
 # find dependencies
@@ -19,6 +19,11 @@ add_executable(uart_manager
 target_include_directories(uart_manager PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+target_include_directories(uart_manager SYSTEM PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+  $<INSTALL_INTERFACE:include>
+)
 
 install(TARGETS uart_manager
   DESTINATION lib/${PROJECT_NAME})
