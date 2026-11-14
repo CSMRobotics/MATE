@@ -13,7 +13,7 @@
 #define MAVLINK_STX 253
 #endif
 
-#include <mavlink/message.hpp>
+#include "../message.hpp"
 
 namespace mavlink {
 namespace standard {
@@ -96,8 +96,8 @@ constexpr auto FIRMWARE_VERSION_TYPE_ENUM_END = 256;
 } // namespace mavlink
 
 // MESSAGE DEFINITIONS
-#include <mavlink/standard/mavlink_msg_global_position_int.hpp>
-#include <mavlink/standard/mavlink_msg_autopilot_version.hpp>
+#include "./mavlink_msg_global_position_int.hpp"
+#include "./mavlink_msg_autopilot_version.hpp"
 
 // base include
-#include <mavlink/minimal/minimal.hpp>
+#include "../minimal/minimal.hpp"

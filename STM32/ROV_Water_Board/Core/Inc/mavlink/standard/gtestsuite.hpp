@@ -6,12 +6,12 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include <mavlink/standard/standard.hpp>
+#include "standard.hpp"
 
 #ifdef TEST_INTEROP
 using namespace mavlink;
 #undef MAVLINK_HELPER
-#include <mavlink/standard/mavlink.h>
+#include "mavlink.h"
 #endif
 
 

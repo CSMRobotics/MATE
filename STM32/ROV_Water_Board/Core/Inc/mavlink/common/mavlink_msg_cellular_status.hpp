@@ -26,7 +26,7 @@ struct CELLULAR_STATUS : mavlink::Message {
 
 
     uint8_t status; /*<  Cellular modem status */
-    uint8_t failure_reason; /*<  Failure reason when status is CELLULAR_STATUS_FLAG_FAILED */
+    uint8_t failure_reason; /*<  Failure reason when status in in CELLULAR_STATUS_FLAG_FAILED */
     uint8_t type; /*<  Cellular network radio type: gsm, cdma, lte... */
     uint8_t quality; /*<  Signal quality in percent. If unknown, set to UINT8_MAX */
     uint16_t mcc; /*<  Mobile country code. If unknown, set to UINT16_MAX */

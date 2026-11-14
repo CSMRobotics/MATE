@@ -32,7 +32,7 @@ struct LANDING_TARGET : mavlink::Message {
     float z; /*< [m] Z Position of the landing target in MAV_FRAME */
     std::array<float, 4> q; /*<  Quaternion of landing target orientation (w, x, y, z order, zero-rotation is 1, 0, 0, 0) */
     uint8_t type; /*<  Type of landing target */
-    uint8_t position_valid; /*<  Position fields (x, y, z, q, type) contain valid target position information (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE indicates the position information is invalid. Values not equal to 0 or 1 are invalid. */
+    uint8_t position_valid; /*<  Position fields (x, y, z, q, type) contain valid target position information (MAV_BOOL_FALSE: invalid values). Values not equal to 0 or 1 are invalid. */
 
 
     inline std::string get_name(void) const override

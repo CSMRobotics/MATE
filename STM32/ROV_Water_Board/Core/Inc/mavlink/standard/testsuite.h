@@ -22,7 +22,7 @@ static void mavlink_test_all(uint8_t system_id, uint8_t component_id, mavlink_me
 }
 #endif
 
-#include <mavlink/minimal/testsuite.h>
+#include "../minimal/testsuite.h"
 
 
 static void mavlink_test_global_position_int(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)

@@ -28,7 +28,7 @@
 #define MAVLINK_COMMAND_24BIT 1
 #endif
 
-#include <mavlink/minimal/version.h>
-#include <mavlink/minimal/minimal.h>
+#include "version.h"
+#include "minimal.h"
 
 #endif // MAVLINK_H

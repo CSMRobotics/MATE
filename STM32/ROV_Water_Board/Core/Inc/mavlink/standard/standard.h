@@ -26,7 +26,7 @@ extern "C" {
 #define MAVLINK_MESSAGE_CRCS {{0, 50, 9, 9, 0, 0, 0}, {33, 104, 28, 28, 0, 0, 0}, {148, 178, 60, 78, 0, 0, 0}}
 #endif
 
-#include <mavlink/protocol.h>
+#include "../protocol.h"
 
 #define MAVLINK_ENABLED_STANDARD
 
@@ -109,18 +109,18 @@ typedef enum FIRMWARE_VERSION_TYPE
 #endif
 
 // MESSAGE DEFINITIONS
-#include <mavlink/standard/mavlink_msg_global_position_int.h>
-#include <mavlink/standard/mavlink_msg_autopilot_version.h>
+#include "./mavlink_msg_global_position_int.h"
+#include "./mavlink_msg_autopilot_version.h"
 
 // base include
-#include <mavlink/minimal/minimal.h>
+#include "../minimal/minimal.h"
 
 
 #if MAVLINK_STANDARD_XML_HASH == MAVLINK_PRIMARY_XML_HASH
 # define MAVLINK_MESSAGE_INFO {MAVLINK_MESSAGE_INFO_HEARTBEAT, MAVLINK_MESSAGE_INFO_GLOBAL_POSITION_INT, MAVLINK_MESSAGE_INFO_AUTOPILOT_VERSION}
 # define MAVLINK_MESSAGE_NAMES {{ "AUTOPILOT_VERSION", 148 }, { "GLOBAL_POSITION_INT", 33 }, { "HEARTBEAT", 0 }}
 # if MAVLINK_COMMAND_24BIT
-#  include <mavlink/mavlink_get_info.h>
+#  include "../mavlink_get_info.h"
 # endif
 #endif
 

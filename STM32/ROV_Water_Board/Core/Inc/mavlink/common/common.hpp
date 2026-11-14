@@ -13,7 +13,7 @@
 #define MAVLINK_STX 253
 #endif
 
-#include <mavlink/message.hpp>
+#include "../message.hpp"
 
 namespace mavlink {
 namespace common {
@@ -21,7 +21,7 @@ namespace common {
 /**
  * Array of msg_entry needed for @p mavlink_parse_char() (through @p mavlink_get_msg_entry())
  */
-constexpr std::array<mavlink_msg_entry_t, 235> MESSAGE_ENTRIES {{ {0, 50, 9, 9, 0, 0, 0}, {1, 124, 31, 43, 0, 0, 0}, {2, 137, 12, 12, 0, 0, 0}, {4, 237, 14, 14, 3, 12, 13}, {5, 217, 28, 28, 1, 0, 0}, {6, 104, 3, 3, 0, 0, 0}, {7, 119, 32, 32, 0, 0, 0}, {8, 117, 36, 36, 0, 0, 0}, {11, 89, 6, 6, 1, 4, 0}, {20, 214, 20, 20, 3, 2, 3}, {21, 159, 2, 2, 3, 0, 1}, {22, 220, 25, 25, 0, 0, 0}, {23, 168, 23, 23, 3, 4, 5}, {24, 24, 30, 52, 0, 0, 0}, {25, 23, 101, 101, 0, 0, 0}, {26, 170, 22, 24, 0, 0, 0}, {27, 144, 26, 29, 0, 0, 0}, {28, 67, 16, 16, 0, 0, 0}, {29, 115, 14, 16, 0, 0, 0}, {30, 39, 28, 28, 0, 0, 0}, {31, 246, 32, 48, 0, 0, 0}, {32, 185, 28, 28, 0, 0, 0}, {33, 104, 28, 28, 0, 0, 0}, {34, 237, 22, 22, 0, 0, 0}, {35, 244, 22, 22, 0, 0, 0}, {36, 222, 21, 37, 0, 0, 0}, {37, 212, 6, 7, 3, 4, 5}, {38, 9, 6, 7, 3, 4, 5}, {39, 254, 37, 38, 3, 32, 33}, {40, 230, 4, 5, 3, 2, 3}, {41, 28, 4, 4, 3, 2, 3}, {42, 28, 2, 18, 0, 0, 0}, {43, 132, 2, 3, 3, 0, 1}, {44, 221, 4, 9, 3, 2, 3}, {45, 232, 2, 3, 3, 0, 1}, {46, 11, 2, 2, 0, 0, 0}, {47, 153, 3, 8, 3, 0, 1}, {48, 41, 13, 21, 1, 12, 0}, {49, 39, 12, 20, 0, 0, 0}, {50, 78, 37, 37, 3, 18, 19}, {51, 196, 4, 5, 3, 2, 3}, {54, 15, 27, 27, 3, 24, 25}, {55, 3, 25, 25, 0, 0, 0}, {61, 167, 72, 72, 0, 0, 0}, {62, 183, 26, 26, 0, 0, 0}, {63, 119, 181, 181, 0, 0, 0}, {64, 191, 225, 225, 0, 0, 0}, {65, 118, 42, 42, 0, 0, 0}, {66, 148, 6, 6, 3, 2, 3}, {67, 21, 4, 4, 0, 0, 0}, {69, 243, 11, 30, 1, 10, 0}, {70, 124, 18, 38, 3, 16, 17}, {73, 38, 37, 38, 3, 32, 33}, {74, 20, 20, 20, 0, 0, 0}, {75, 158, 35, 35, 3, 30, 31}, {76, 152, 33, 33, 3, 30, 31}, {77, 143, 3, 10, 3, 8, 9}, {80, 14, 4, 4, 3, 2, 3}, {81, 106, 22, 22, 0, 0, 0}, {82, 49, 39, 51, 3, 36, 37}, {83, 22, 37, 37, 0, 0, 0}, {84, 143, 53, 53, 3, 50, 51}, {85, 140, 51, 51, 0, 0, 0}, {86, 5, 53, 53, 3, 50, 51}, {87, 150, 51, 51, 0, 0, 0}, {89, 231, 28, 28, 0, 0, 0}, {90, 183, 56, 56, 0, 0, 0}, {91, 63, 42, 42, 0, 0, 0}, {92, 54, 33, 33, 0, 0, 0}, {93, 47, 81, 81, 0, 0, 0}, {100, 175, 26, 34, 0, 0, 0}, {101, 102, 32, 117, 0, 0, 0}, {102, 158, 32, 117, 0, 0, 0}, {103, 208, 20, 57, 0, 0, 0}, {104, 56, 32, 116, 0, 0, 0}, {105, 93, 62, 63, 0, 0, 0}, {106, 138, 44, 44, 0, 0, 0}, {107, 108, 64, 65, 0, 0, 0}, {108, 32, 84, 92, 0, 0, 0}, {109, 185, 9, 9, 0, 0, 0}, {110, 84, 254, 254, 3, 1, 2}, {111, 34, 16, 18, 3, 16, 17}, {112, 174, 12, 12, 0, 0, 0}, {113, 124, 36, 39, 0, 0, 0}, {114, 237, 44, 44, 0, 0, 0}, {115, 4, 64, 64, 0, 0, 0}, {116, 76, 22, 24, 0, 0, 0}, {117, 128, 6, 6, 3, 4, 5}, {118, 56, 14, 14, 0, 0, 0}, {119, 116, 12, 12, 3, 10, 11}, {120, 134, 97, 97, 0, 0, 0}, {121, 237, 2, 2, 3, 0, 1}, {122, 203, 2, 2, 3, 0, 1}, {123, 250, 113, 113, 3, 0, 1}, {124, 87, 35, 57, 0, 0, 0}, {125, 203, 6, 6, 0, 0, 0}, {126, 220, 79, 81, 3, 79, 80}, {127, 25, 35, 35, 0, 0, 0}, {128, 226, 35, 35, 0, 0, 0}, {129, 46, 22, 24, 0, 0, 0}, {130, 29, 13, 13, 0, 0, 0}, {131, 223, 255, 255, 0, 0, 0}, {132, 85, 14, 39, 0, 0, 0}, {133, 6, 18, 18, 0, 0, 0}, {134, 229, 43, 43, 0, 0, 0}, {135, 203, 8, 8, 0, 0, 0}, {136, 1, 22, 22, 0, 0, 0}, {137, 195, 14, 16, 0, 0, 0}, {138, 109, 36, 120, 0, 0, 0}, {139, 168, 43, 43, 3, 41, 42}, {140, 181, 41, 41, 0, 0, 0}, {141, 47, 32, 32, 0, 0, 0}, {142, 72, 243, 243, 0, 0, 0}, {143, 131, 14, 16, 0, 0, 0}, {144, 127, 93, 93, 0, 0, 0}, {146, 103, 100, 100, 0, 0, 0}, {147, 154, 36, 54, 0, 0, 0}, {148, 178, 60, 78, 0, 0, 0}, {149, 200, 30, 60, 0, 0, 0}, {162, 189, 8, 9, 0, 0, 0}, {192, 36, 44, 54, 0, 0, 0}, {225, 208, 65, 73, 0, 0, 0}, {230, 163, 42, 42, 0, 0, 0}, {231, 105, 40, 40, 0, 0, 0}, {232, 151, 63, 65, 0, 0, 0}, {233, 35, 182, 182, 0, 0, 0}, {234, 150, 40, 40, 0, 0, 0}, {235, 179, 42, 42, 0, 0, 0}, {241, 90, 32, 32, 0, 0, 0}, {242, 104, 52, 60, 0, 0, 0}, {243, 85, 53, 61, 1, 52, 0}, {244, 95, 6, 6, 0, 0, 0}, {245, 130, 2, 2, 0, 0, 0}, {246, 184, 38, 38, 0, 0, 0}, {247, 81, 19, 19, 0, 0, 0}, {248, 8, 254, 254, 3, 3, 4}, {249, 204, 36, 36, 0, 0, 0}, {250, 49, 30, 30, 0, 0, 0}, {251, 170, 18, 18, 0, 0, 0}, {252, 44, 18, 18, 0, 0, 0}, {253, 83, 51, 54, 0, 0, 0}, {254, 46, 9, 9, 0, 0, 0}, {256, 71, 42, 42, 3, 8, 9}, {257, 131, 9, 9, 0, 0, 0}, {258, 187, 32, 232, 3, 0, 1}, {259, 92, 235, 237, 0, 0, 0}, {260, 146, 5, 14, 0, 0, 0}, {261, 179, 27, 61, 0, 0, 0}, {262, 12, 18, 23, 0, 0, 0}, {263, 133, 255, 255, 0, 0, 0}, {264, 49, 28, 32, 0, 0, 0}, {265, 26, 16, 20, 0, 0, 0}, {266, 193, 255, 255, 3, 2, 3}, {267, 35, 255, 255, 3, 2, 3}, {268, 14, 4, 4, 3, 2, 3}, {269, 109, 213, 215, 0, 0, 0}, {270, 59, 19, 20, 0, 0, 0}, {271, 22, 52, 53, 0, 0, 0}, {275, 126, 31, 32, 0, 0, 0}, {276, 18, 49, 50, 0, 0, 0}, {277, 62, 30, 30, 0, 0, 0}, {280, 70, 33, 33, 0, 0, 0}, {281, 48, 13, 13, 0, 0, 0}, {282, 123, 35, 35, 3, 32, 33}, {283, 74, 144, 149, 0, 0, 0}, {284, 99, 32, 32, 3, 30, 31}, {285, 137, 40, 49, 3, 38, 39}, {286, 210, 53, 57, 3, 50, 51}, {287, 1, 23, 23, 3, 20, 21}, {288, 20, 23, 23, 3, 20, 21}, {290, 251, 46, 46, 0, 0, 0}, {291, 10, 57, 57, 0, 0, 0}, {295, 234, 12, 12, 0, 0, 0}, {296, 158, 41, 41, 3, 36, 37}, {299, 19, 96, 98, 0, 0, 0}, {300, 217, 22, 22, 0, 0, 0}, {301, 243, 58, 58, 0, 0, 0}, {310, 28, 17, 17, 0, 0, 0}, {311, 95, 116, 116, 0, 0, 0}, {320, 243, 20, 20, 3, 2, 3}, {321, 88, 2, 2, 3, 0, 1}, {322, 243, 149, 149, 0, 0, 0}, {323, 78, 147, 147, 3, 0, 1}, {324, 132, 146, 146, 0, 0, 0}, {330, 23, 158, 167, 0, 0, 0}, {331, 91, 230, 233, 0, 0, 0}, {332, 236, 239, 239, 0, 0, 0}, {333, 231, 109, 109, 0, 0, 0}, {334, 72, 10, 53, 0, 0, 0}, {335, 225, 24, 24, 0, 0, 0}, {336, 245, 84, 84, 0, 0, 0}, {339, 199, 5, 5, 0, 0, 0}, {340, 99, 70, 70, 0, 0, 0}, {345, 209, 21, 21, 3, 2, 3}, {350, 232, 20, 252, 0, 0, 0}, {360, 11, 25, 25, 0, 0, 0}, {361, 93, 33, 33, 0, 0, 0}, {370, 75, 87, 109, 0, 0, 0}, {371, 10, 26, 26, 0, 0, 0}, {372, 26, 140, 140, 0, 0, 0}, {373, 117, 42, 42, 0, 0, 0}, {375, 251, 140, 140, 0, 0, 0}, {376, 199, 8, 8, 0, 0, 0}, {380, 232, 20, 20, 0, 0, 0}, {385, 147, 133, 133, 3, 2, 3}, {386, 132, 16, 16, 3, 4, 5}, {387, 4, 72, 72, 3, 4, 5}, {388, 8, 37, 37, 3, 32, 33}, {390, 156, 238, 240, 0, 0, 0}, {395, 0, 212, 212, 0, 0, 0}, {396, 50, 160, 160, 0, 0, 0}, {397, 182, 108, 108, 0, 0, 0}, {400, 110, 254, 254, 3, 4, 5}, {401, 183, 6, 6, 3, 4, 5}, {410, 160, 53, 53, 0, 0, 0}, {411, 106, 3, 3, 0, 0, 0}, {412, 33, 6, 6, 3, 4, 5}, {413, 77, 7, 7, 3, 4, 5}, {420, 20, 9, 73, 3, 6, 7}, {435, 134, 46, 47, 0, 0, 0}, {436, 193, 9, 9, 0, 0, 0}, {437, 30, 1, 1, 0, 0, 0}, {440, 66, 35, 35, 0, 0, 0}, {9000, 113, 137, 137, 0, 0, 0}, {9005, 117, 34, 34, 0, 0, 0}, {12900, 114, 44, 44, 3, 0, 1}, {12901, 254, 59, 59, 3, 30, 31}, {12902, 140, 53, 53, 3, 4, 5}, {12903, 249, 46, 46, 3, 0, 1}, {12904, 77, 54, 54, 3, 28, 29}, {12905, 49, 43, 43, 3, 0, 1}, {12915, 94, 249, 249, 3, 0, 1}, {12918, 139, 51, 51, 0, 0, 0}, {12919, 7, 18, 18, 3, 16, 17}, {12920, 20, 5, 5, 0, 0, 0} }};
+constexpr std::array<mavlink_msg_entry_t, 234> MESSAGE_ENTRIES {{ {0, 50, 9, 9, 0, 0, 0}, {1, 124, 31, 43, 0, 0, 0}, {2, 137, 12, 12, 0, 0, 0}, {4, 237, 14, 14, 3, 12, 13}, {5, 217, 28, 28, 1, 0, 0}, {6, 104, 3, 3, 0, 0, 0}, {7, 119, 32, 32, 0, 0, 0}, {8, 117, 36, 36, 0, 0, 0}, {11, 89, 6, 6, 1, 4, 0}, {20, 214, 20, 20, 3, 2, 3}, {21, 159, 2, 2, 3, 0, 1}, {22, 220, 25, 25, 0, 0, 0}, {23, 168, 23, 23, 3, 4, 5}, {24, 24, 30, 52, 0, 0, 0}, {25, 23, 101, 101, 0, 0, 0}, {26, 170, 22, 24, 0, 0, 0}, {27, 144, 26, 29, 0, 0, 0}, {28, 67, 16, 16, 0, 0, 0}, {29, 115, 14, 16, 0, 0, 0}, {30, 39, 28, 28, 0, 0, 0}, {31, 246, 32, 48, 0, 0, 0}, {32, 185, 28, 28, 0, 0, 0}, {33, 104, 28, 28, 0, 0, 0}, {34, 237, 22, 22, 0, 0, 0}, {35, 244, 22, 22, 0, 0, 0}, {36, 222, 21, 37, 0, 0, 0}, {37, 212, 6, 7, 3, 4, 5}, {38, 9, 6, 7, 3, 4, 5}, {39, 254, 37, 38, 3, 32, 33}, {40, 230, 4, 5, 3, 2, 3}, {41, 28, 4, 4, 3, 2, 3}, {42, 28, 2, 18, 0, 0, 0}, {43, 132, 2, 3, 3, 0, 1}, {44, 221, 4, 9, 3, 2, 3}, {45, 232, 2, 3, 3, 0, 1}, {46, 11, 2, 2, 0, 0, 0}, {47, 153, 3, 8, 3, 0, 1}, {48, 41, 13, 21, 1, 12, 0}, {49, 39, 12, 20, 0, 0, 0}, {50, 78, 37, 37, 3, 18, 19}, {51, 196, 4, 5, 3, 2, 3}, {54, 15, 27, 27, 3, 24, 25}, {55, 3, 25, 25, 0, 0, 0}, {61, 167, 72, 72, 0, 0, 0}, {62, 183, 26, 26, 0, 0, 0}, {63, 119, 181, 181, 0, 0, 0}, {64, 191, 225, 225, 0, 0, 0}, {65, 118, 42, 42, 0, 0, 0}, {66, 148, 6, 6, 3, 2, 3}, {67, 21, 4, 4, 0, 0, 0}, {69, 243, 11, 30, 1, 10, 0}, {70, 124, 18, 38, 3, 16, 17}, {73, 38, 37, 38, 3, 32, 33}, {74, 20, 20, 20, 0, 0, 0}, {75, 158, 35, 35, 3, 30, 31}, {76, 152, 33, 33, 3, 30, 31}, {77, 143, 3, 10, 3, 8, 9}, {80, 14, 4, 4, 3, 2, 3}, {81, 106, 22, 22, 0, 0, 0}, {82, 49, 39, 51, 3, 36, 37}, {83, 22, 37, 37, 0, 0, 0}, {84, 143, 53, 53, 3, 50, 51}, {85, 140, 51, 51, 0, 0, 0}, {86, 5, 53, 53, 3, 50, 51}, {87, 150, 51, 51, 0, 0, 0}, {89, 231, 28, 28, 0, 0, 0}, {90, 183, 56, 56, 0, 0, 0}, {91, 63, 42, 42, 0, 0, 0}, {92, 54, 33, 33, 0, 0, 0}, {93, 47, 81, 81, 0, 0, 0}, {100, 175, 26, 34, 0, 0, 0}, {101, 102, 32, 117, 0, 0, 0}, {102, 158, 32, 117, 0, 0, 0}, {103, 208, 20, 57, 0, 0, 0}, {104, 56, 32, 116, 0, 0, 0}, {105, 93, 62, 63, 0, 0, 0}, {106, 138, 44, 44, 0, 0, 0}, {107, 108, 64, 65, 0, 0, 0}, {108, 32, 84, 92, 0, 0, 0}, {109, 185, 9, 9, 0, 0, 0}, {110, 84, 254, 254, 3, 1, 2}, {111, 34, 16, 18, 3, 16, 17}, {112, 174, 12, 12, 0, 0, 0}, {113, 124, 36, 39, 0, 0, 0}, {114, 237, 44, 44, 0, 0, 0}, {115, 4, 64, 64, 0, 0, 0}, {116, 76, 22, 24, 0, 0, 0}, {117, 128, 6, 6, 3, 4, 5}, {118, 56, 14, 14, 0, 0, 0}, {119, 116, 12, 12, 3, 10, 11}, {120, 134, 97, 97, 0, 0, 0}, {121, 237, 2, 2, 3, 0, 1}, {122, 203, 2, 2, 3, 0, 1}, {123, 250, 113, 113, 3, 0, 1}, {124, 87, 35, 57, 0, 0, 0}, {125, 203, 6, 6, 0, 0, 0}, {126, 220, 79, 81, 3, 79, 80}, {127, 25, 35, 35, 0, 0, 0}, {128, 226, 35, 35, 0, 0, 0}, {129, 46, 22, 24, 0, 0, 0}, {130, 29, 13, 13, 0, 0, 0}, {131, 223, 255, 255, 0, 0, 0}, {132, 85, 14, 39, 0, 0, 0}, {133, 6, 18, 18, 0, 0, 0}, {134, 229, 43, 43, 0, 0, 0}, {135, 203, 8, 8, 0, 0, 0}, {136, 1, 22, 22, 0, 0, 0}, {137, 195, 14, 16, 0, 0, 0}, {138, 109, 36, 120, 0, 0, 0}, {139, 168, 43, 43, 3, 41, 42}, {140, 181, 41, 41, 0, 0, 0}, {141, 47, 32, 32, 0, 0, 0}, {142, 72, 243, 243, 0, 0, 0}, {143, 131, 14, 16, 0, 0, 0}, {144, 127, 93, 93, 0, 0, 0}, {146, 103, 100, 100, 0, 0, 0}, {147, 154, 36, 54, 0, 0, 0}, {148, 178, 60, 78, 0, 0, 0}, {149, 200, 30, 60, 0, 0, 0}, {162, 189, 8, 9, 0, 0, 0}, {192, 36, 44, 54, 0, 0, 0}, {225, 208, 65, 73, 0, 0, 0}, {230, 163, 42, 42, 0, 0, 0}, {231, 105, 40, 40, 0, 0, 0}, {232, 151, 63, 65, 0, 0, 0}, {233, 35, 182, 182, 0, 0, 0}, {234, 150, 40, 40, 0, 0, 0}, {235, 179, 42, 42, 0, 0, 0}, {241, 90, 32, 32, 0, 0, 0}, {242, 104, 52, 60, 0, 0, 0}, {243, 85, 53, 61, 1, 52, 0}, {244, 95, 6, 6, 0, 0, 0}, {245, 130, 2, 2, 0, 0, 0}, {246, 184, 38, 38, 0, 0, 0}, {247, 81, 19, 19, 0, 0, 0}, {248, 8, 254, 254, 3, 3, 4}, {249, 204, 36, 36, 0, 0, 0}, {250, 49, 30, 30, 0, 0, 0}, {251, 170, 18, 18, 0, 0, 0}, {252, 44, 18, 18, 0, 0, 0}, {253, 83, 51, 54, 0, 0, 0}, {254, 46, 9, 9, 0, 0, 0}, {256, 71, 42, 42, 3, 8, 9}, {257, 131, 9, 9, 0, 0, 0}, {258, 187, 32, 232, 3, 0, 1}, {259, 92, 235, 237, 0, 0, 0}, {260, 146, 5, 14, 0, 0, 0}, {261, 179, 27, 61, 0, 0, 0}, {262, 12, 18, 23, 0, 0, 0}, {263, 133, 255, 255, 0, 0, 0}, {264, 49, 28, 32, 0, 0, 0}, {265, 26, 16, 20, 0, 0, 0}, {266, 193, 255, 255, 3, 2, 3}, {267, 35, 255, 255, 3, 2, 3}, {268, 14, 4, 4, 3, 2, 3}, {269, 109, 213, 215, 0, 0, 0}, {270, 59, 19, 20, 0, 0, 0}, {271, 22, 52, 53, 0, 0, 0}, {275, 126, 31, 32, 0, 0, 0}, {276, 18, 49, 50, 0, 0, 0}, {277, 62, 30, 30, 0, 0, 0}, {280, 70, 33, 33, 0, 0, 0}, {281, 48, 13, 13, 0, 0, 0}, {282, 123, 35, 35, 3, 32, 33}, {283, 74, 144, 149, 0, 0, 0}, {284, 99, 32, 32, 3, 30, 31}, {285, 137, 40, 49, 3, 38, 39}, {286, 210, 53, 57, 3, 50, 51}, {287, 1, 23, 23, 3, 20, 21}, {288, 20, 23, 23, 3, 20, 21}, {290, 251, 46, 46, 0, 0, 0}, {291, 10, 57, 57, 0, 0, 0}, {295, 234, 12, 12, 0, 0, 0}, {296, 158, 41, 41, 3, 36, 37}, {299, 19, 96, 98, 0, 0, 0}, {300, 217, 22, 22, 0, 0, 0}, {301, 243, 58, 58, 0, 0, 0}, {310, 28, 17, 17, 0, 0, 0}, {311, 95, 116, 116, 0, 0, 0}, {320, 243, 20, 20, 3, 2, 3}, {321, 88, 2, 2, 3, 0, 1}, {322, 243, 149, 149, 0, 0, 0}, {323, 78, 147, 147, 3, 0, 1}, {324, 132, 146, 146, 0, 0, 0}, {330, 23, 158, 167, 0, 0, 0}, {331, 91, 230, 233, 0, 0, 0}, {332, 236, 239, 239, 0, 0, 0}, {333, 231, 109, 109, 0, 0, 0}, {334, 72, 10, 53, 0, 0, 0}, {335, 225, 24, 24, 0, 0, 0}, {336, 245, 84, 84, 0, 0, 0}, {339, 199, 5, 5, 0, 0, 0}, {340, 99, 70, 70, 0, 0, 0}, {345, 209, 21, 21, 3, 2, 3}, {350, 232, 20, 252, 0, 0, 0}, {360, 11, 25, 25, 0, 0, 0}, {361, 93, 33, 33, 0, 0, 0}, {370, 75, 87, 109, 0, 0, 0}, {371, 10, 26, 26, 0, 0, 0}, {372, 26, 140, 140, 0, 0, 0}, {373, 117, 42, 42, 0, 0, 0}, {375, 251, 140, 140, 0, 0, 0}, {376, 199, 8, 8, 0, 0, 0}, {380, 232, 20, 20, 0, 0, 0}, {385, 147, 133, 133, 3, 2, 3}, {386, 132, 16, 16, 3, 4, 5}, {387, 4, 72, 72, 3, 4, 5}, {388, 8, 37, 37, 3, 32, 33}, {390, 156, 238, 240, 0, 0, 0}, {395, 0, 212, 212, 0, 0, 0}, {396, 50, 160, 160, 0, 0, 0}, {397, 182, 108, 108, 0, 0, 0}, {400, 110, 254, 254, 3, 4, 5}, {401, 183, 6, 6, 3, 4, 5}, {410, 160, 53, 53, 0, 0, 0}, {411, 106, 3, 3, 0, 0, 0}, {412, 33, 6, 6, 3, 4, 5}, {413, 77, 7, 7, 3, 4, 5}, {435, 134, 46, 47, 0, 0, 0}, {436, 193, 9, 9, 0, 0, 0}, {437, 30, 1, 1, 0, 0, 0}, {440, 66, 35, 35, 0, 0, 0}, {9000, 113, 137, 137, 0, 0, 0}, {9005, 117, 34, 34, 0, 0, 0}, {12900, 114, 44, 44, 3, 0, 1}, {12901, 254, 59, 59, 3, 30, 31}, {12902, 140, 53, 53, 3, 4, 5}, {12903, 249, 46, 46, 3, 0, 1}, {12904, 77, 54, 54, 3, 28, 29}, {12905, 49, 43, 43, 3, 0, 1}, {12915, 94, 249, 249, 3, 0, 1}, {12918, 139, 51, 51, 0, 0, 0}, {12919, 7, 18, 18, 3, 16, 17}, {12920, 20, 5, 5, 0, 0, 0} }};
 
 //! MAVLINK VERSION
 constexpr auto MAVLINK_VERSION = 3;
@@ -269,7 +269,7 @@ enum class GIMBAL_DEVICE_CAP_FLAGS : uint32_t
     HAS_YAW_FOLLOW=512, /* Gimbal device supports to follow a yaw angle relative to the vehicle (generally that's the default). | */
     HAS_YAW_LOCK=1024, /* Gimbal device supports locking to an absolute heading, i.e., yaw angle relative to North (earth frame, often this is an option available). | */
     SUPPORTS_INFINITE_YAW=2048, /* Gimbal device supports yawing/panning infinitely (e.g. using slip disk). | */
-    SUPPORTS_YAW_IN_EARTH_FRAME=4096, /* Gimbal device supports yaw angles and angular velocities relative to North (earth frame). This usually requires support by an autopilot via AUTOPILOT_STATE_FOR_GIMBAL_DEVICE. Support can go on and off during runtime, which is reported by the flag GIMBAL_DEVICE_FLAGS_ACCEPTS_YAW_IN_EARTH_FRAME. | */
+    SUPPORTS_YAW_IN_EARTH_FRAME=4096, /* Gimbal device supports yaw angles and angular velocities relative to North (earth frame). This usually requires support by an autopilot via AUTOPILOT_STATE_FOR_GIMBAL_DEVICE. Support can go on and off during runtime, which is reported by the flag GIMBAL_DEVICE_FLAGS_CAN_ACCEPT_YAW_IN_EARTH_FRAME. | */
     HAS_RC_INPUTS=8192, /* Gimbal device supports radio control inputs as an alternative input for controlling the gimbal orientation. | */
     CAN_POINT_LOCATION_LOCAL=65536, /* Gimbal device supports to point to a local position. | */
     CAN_POINT_LOCATION_GLOBAL=131072, /* Gimbal device supports to point to a global latitude, longitude, altitude position. | */
@@ -693,18 +693,19 @@ enum class MAV_CMD : uint16_t
 {
     NAV_WAYPOINT=16, /* Navigate to waypoint. This is intended for use in missions (for guided commands outside of missions use MAV_CMD_DO_REPOSITION). |Hold time. (ignored by fixed wing, time to stay at waypoint for rotary wing)| Acceptance radius (if the sphere with this radius is hit, the waypoint counts as reached)| 0 to pass through the WP, if > 0 radius to pass by WP. Positive value for clockwise orbit, negative value for counter-clockwise orbit. Allows trajectory control.| Desired yaw angle at waypoint (rotary wing). NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude| Longitude| Altitude|  */
     NAV_LOITER_UNLIM=17, /* Loiter around this waypoint an unlimited amount of time |Empty| Empty| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise| Desired yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude| Longitude| Altitude|  */
-    NAV_LOITER_TURNS=18, /* Loiter around this waypoint for X turns |Number of turns.| Leave loiter circle only when track heads towards the next waypoint (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE causes leaving when turns complete. Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
-    NAV_LOITER_TIME=19, /* Loiter at the specified latitude, longitude and altitude for a certain amount of time. Multicopter vehicles stop at the point (within a vehicle-specific acceptance radius). Forward-only moving vehicles (e.g. fixed-wing) circle the point with the specified radius/direction. If the Heading Required parameter (2) is non-zero forward moving aircraft will only leave the loiter circle once heading towards the next waypoint. |Loiter time (only starts once Lat, Lon and Alt is reached).| Leave loiter circle only when track heading towards the next waypoint (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE causes leaving on time expiry. Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise.| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
+    NAV_LOITER_TURNS=18, /* Loiter around this waypoint for X turns |Number of turns.| Leave loiter circle only when track heads towards the next waypoint (MAV_BOOL_FALSE: Leave when turns complete). Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
+    NAV_LOITER_TIME=19, /* Loiter at the specified latitude, longitude and altitude for a certain amount of time. Multicopter vehicles stop at the point (within a vehicle-specific acceptance radius). Forward-only moving vehicles (e.g. fixed-wing) circle the point with the specified radius/direction. If the Heading Required parameter (2) is non-zero forward moving aircraft will only leave the loiter circle once heading towards the next waypoint. |Loiter time (only starts once Lat, Lon and Alt is reached).| Leave loiter circle only when track heading towards the next waypoint (MAV_BOOL_FALSE: Leave on time expiry). Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise.| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
     NAV_RETURN_TO_LAUNCH=20, /* Return to launch location |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
     NAV_LAND=21, /* Land at location. |Minimum target altitude if landing is aborted (0 = undefined/use system default).| Precision land mode.| Empty.| Desired yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude.| Longitude.| Landing altitude (ground level in current frame).|  */
     NAV_TAKEOFF=22, /* Takeoff from ground / hand. Vehicles that support multiple takeoff modes (e.g. VTOL quadplane) should take off using the currently configured mode. |Minimum pitch (if airspeed sensor present), desired pitch without sensor| Empty| Bitmask of options flags.| Yaw angle (if magnetometer present), ignored without magnetometer. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude| Longitude| Altitude|  */
     NAV_LAND_LOCAL=23, /* Land at local position (local frame only) |Landing target number (if available)| Maximum accepted offset from desired landing position - computed magnitude from spherical coordinates: d = sqrt(x^2 + y^2 + z^2), which gives the maximum accepted distance between the desired landing position and the position where the vehicle is about to land| Landing descend rate| Desired yaw angle| Y-axis position| X-axis position| Z-axis / ground level position|  */
     NAV_TAKEOFF_LOCAL=24, /* Takeoff from local position (local frame only) |Minimum pitch (if airspeed sensor present), desired pitch without sensor| Empty| Takeoff ascend rate| Yaw angle (if magnetometer or another yaw estimation source present), ignored without one of these| Y-axis position| X-axis position| Z-axis position|  */
+    NAV_FOLLOW=25, /* Vehicle following, i.e. this waypoint represents the position of a moving vehicle |Following logic to use (e.g. loitering or sinusoidal following) - depends on specific autopilot implementation| Ground speed of vehicle to be followed| Radius around waypoint. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
     NAV_CONTINUE_AND_CHANGE_ALT=30, /* Continue on the current course and climb/descend to specified altitude.  When the altitude is reached continue to the next command (i.e., don't proceed to the next command until the desired altitude is reached. |Climb or Descend (0 = Neutral, command completes when within 5m of this command's altitude, 1 = Climbing, command completes when at or above this command's altitude, 2 = Descending, command completes when at or below this command's altitude.| Empty| Empty| Empty| Empty| Empty| Desired altitude|  */
-    NAV_LOITER_TO_ALT=31, /* Begin loiter at the specified Latitude and Longitude.  If Lat=Lon=0, then loiter at the current position.  Don't consider the navigation command complete (don't leave loiter) until the altitude has been reached. Additionally, if the Heading Required parameter is non-zero the aircraft will not leave the loiter until heading toward the next waypoint. |Leave loiter circle only when track heading towards the next waypoint (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE causes leaving when altitude is reached. Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, negative counter-clockwise, 0 means no change to standard loiter.| Empty| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
+    NAV_LOITER_TO_ALT=31, /* Begin loiter at the specified Latitude and Longitude.  If Lat=Lon=0, then loiter at the current position.  Don't consider the navigation command complete (don't leave loiter) until the altitude has been reached. Additionally, if the Heading Required parameter is non-zero the aircraft will not leave the loiter until heading toward the next waypoint. |Leave loiter circle only when track heading towards the next waypoint (MAV_BOOL_FALSE: Leave when altitude reached). Values not equal to 0 or 1 are invalid.| Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, negative counter-clockwise, 0 means no change to standard loiter.| Empty| Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. NaN to use the current system default xtrack behaviour.| Latitude| Longitude| Altitude|  */
     DO_FOLLOW=32, /* Begin following a target |System ID (of the FOLLOW_TARGET beacon). Send 0 to disable follow-me and return to the default position hold mode.| Reserved| Reserved| Altitude mode: 0: Keep current altitude, 1: keep altitude difference to target, 2: go to a fixed altitude above home.| Altitude above home. (used if mode=2)| Reserved| Time to land in which the MAV should go to the default position hold mode after a message RX timeout.|  */
     DO_FOLLOW_REPOSITION=33, /* Reposition the MAV after a follow target command has been sent |Camera q1 (where 0 is on the ray from the camera to the tracking device)| Camera q2| Camera q3| Camera q4| altitude offset from target| X offset from target| Y offset from target|  */
-    DO_ORBIT=34, /* Start orbiting on the circumference of a circle defined by the parameters. Setting values to NaN/INT32_MAX (as appropriate) results in using defaults. |Radius of the circle. Positive: orbit clockwise. Negative: orbit counter-clockwise. NaN: Use vehicle default radius, or current radius if already orbiting.| Tangential Velocity. NaN: Use vehicle default velocity, or current velocity if already orbiting.| Yaw behavior of the vehicle.| Orbit around the centre point for this many radians (i.e. for a three-quarter orbit set 270*Pi/180). 0: Orbit forever. NaN: Use vehicle default, or current value if already orbiting.| Center point latitude (if no MAV_FRAME specified) / X coordinate according to MAV_FRAME. INT32_MAX (COMMAND_INT) or NaN (COMMAND_LONG): Use current vehicle position, or current center if already orbiting.| Center point longitude (if no MAV_FRAME specified) / Y coordinate according to MAV_FRAME. INT32_MAX (COMMAND_INT) or NaN (COMMAND_LONG): Use current vehicle position, or current center if already orbiting.| Center point altitude (MSL) (if no MAV_FRAME specified) / Z coordinate according to MAV_FRAME. NaN: Use current vehicle altitude.|  */
+    DO_ORBIT=34, /* Start orbiting on the circumference of a circle defined by the parameters. Setting values to NaN/INT32_MAX (as appropriate) results in using defaults. |Radius of the circle. Positive: orbit clockwise. Negative: orbit counter-clockwise. NaN: Use vehicle default radius, or current radius if already orbiting.| Tangential Velocity. NaN: Use vehicle default velocity, or current velocity if already orbiting.| Yaw behavior of the vehicle.| Orbit around the centre point for this many radians (i.e. for a three-quarter orbit set 270*Pi/180). 0: Orbit forever. NaN: Use vehicle default, or current value if already orbiting.| Center point latitude (if no MAV_FRAME specified) / X coordinate according to MAV_FRAME. INT32_MAX (or NaN if sent in COMMAND_LONG): Use current vehicle position, or current center if already orbiting.| Center point longitude (if no MAV_FRAME specified) / Y coordinate according to MAV_FRAME. INT32_MAX (or NaN if sent in COMMAND_LONG): Use current vehicle position, or current center if already orbiting.| Center point altitude (MSL) (if no MAV_FRAME specified) / Z coordinate according to MAV_FRAME. NaN: Use current vehicle altitude.|  */
     DO_FIGURE_EIGHT=35, /* Fly a figure eight path as defined by the parameters.
           Set parameters to NaN/INT32_MAX (as appropriate) to use system-default values.
           The command is intended for fixed wing vehicles (and VTOL hybrids flying in fixed-wing mode), allowing POI tracking for gimbals that don't support infinite rotation.
@@ -714,8 +715,8 @@ enum class MAV_CMD : uint16_t
         NaN: The radius will be set to 2.5 times the minor radius and direction is clockwise.
         Must be greater or equal to two times the minor radius for feasible values.| Minor axis radius of the figure eight. Defines the radius of the two circles that make up the figure. Negative value has no effect.
         NaN: The radius will be set to the default loiter radius.| Reserved (default:NaN)| Orientation of the figure eight major axis with respect to true north (range: [-pi,pi]). NaN: use default orientation aligned to true north.| Center point latitude/X coordinate according to MAV_FRAME. If no MAV_FRAME specified, MAV_FRAME_GLOBAL is assumed.
-        INT32_MAX (COMMAND_INT) or NaN (COMMAND_LONG): Use current vehicle position, or current center if already loitering.| Center point longitude/Y coordinate according to MAV_FRAME. If no MAV_FRAME specified, MAV_FRAME_GLOBAL is assumed.
-        INT32_MAX (COMMAND_INT) or NaN (COMMAND_LONG): Use current vehicle position, or current center if already loitering.| Center point altitude MSL/Z coordinate according to MAV_FRAME. If no MAV_FRAME specified, MAV_FRAME_GLOBAL is assumed.
+        INT32_MAX or NaN: Use current vehicle position, or current center if already loitering.| Center point longitude/Y coordinate according to MAV_FRAME. If no MAV_FRAME specified, MAV_FRAME_GLOBAL is assumed.
+        INT32_MAX or NaN: Use current vehicle position, or current center if already loitering.| Center point altitude MSL/Z coordinate according to MAV_FRAME. If no MAV_FRAME specified, MAV_FRAME_GLOBAL is assumed.
         INT32_MAX or NaN: Use current vehicle altitude.|  */
     NAV_ARC_WAYPOINT=36, /* Circular arc path waypoint.
           This defines the end/exit point and angle (param1) of an arc path from the previous waypoint. A position is required before this command to define the start of the arc (e.g. current position, a MAV_CMD_NAV_WAYPOINT, or a MAV_CMD_NAV_ARC_WAYPOINT).
@@ -726,14 +727,14 @@ enum class MAV_CMD : uint16_t
     NAV_SPLINE_WAYPOINT=82, /* Navigate to waypoint using a spline path. |Hold time. (ignored by fixed wing, time to stay at waypoint for rotary wing)| Empty| Empty| Empty| Latitude/X of goal| Longitude/Y of goal| Altitude/Z of goal|  */
     NAV_VTOL_TAKEOFF=84, /* Takeoff from ground using VTOL mode, and transition to forward flight with specified heading. The command should be ignored by vehicles that dont support both VTOL and fixed-wing flight (multicopters, boats,etc.). |Empty| Front transition heading.| Empty| Yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude| Longitude| Altitude|  */
     NAV_VTOL_LAND=85, /* Land using VTOL mode |Landing behaviour.| Empty| Approach altitude (with the same reference as the Altitude field). NaN if unspecified.| Yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).| Latitude| Longitude| Altitude (ground level) relative to the current coordinate frame. NaN to use system default landing altitude (ignore value).|  */
-    NAV_GUIDED_ENABLE=92, /* Hand control over to an external controller |Guided mode on (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE turns guided mode off. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    NAV_GUIDED_ENABLE=92, /* Hand control over to an external controller |Guided mode on (MAV_BOOL_FALSE: Off). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
     NAV_DELAY=93, /* Delay the next navigation command a number of seconds or until a specified time |Delay (-1 to enable time-of-day fields)| hour (24h format, UTC, -1 to ignore)| minute (24h format, UTC, -1 to ignore)| second (24h format, UTC, -1 to ignore)| Empty| Empty| Empty|  */
     NAV_PAYLOAD_PLACE=94, /* Descend and place payload. Vehicle moves to specified location, descends until it detects a hanging payload has reached the ground, and then releases the payload. If ground is not detected before the reaching the maximum descent value (param1), the command will complete without releasing the payload. |Maximum distance to descend.| Empty| Empty| Empty| Latitude| Longitude| Altitude|  */
     NAV_LAST=95, /* NOP - This command is only used to mark the upper limit of the NAV/ACTION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
     CONDITION_DELAY=112, /* Delay mission state machine. |Delay| Empty| Empty| Empty| Empty| Empty| Empty|  */
     CONDITION_CHANGE_ALT=113, /* Ascend/descend to target altitude at specified rate. Delay mission state machine until desired altitude reached. |Descent / Ascend rate.| Empty| Empty| Empty| Empty| Empty| Target Altitude|  */
     CONDITION_DISTANCE=114, /* Delay mission state machine until within desired distance of next NAV point. |Distance.| Empty| Empty| Empty| Empty| Empty| Empty|  */
-    CONDITION_YAW=115, /* Reach a certain target angle. |target angle [0-360]. Absolute angles: 0 is north. Relative angle: 0 is initial yaw. Direction set by param3.| angular speed| direction: -1: counter clockwise, 0: shortest direction, 1: clockwise| Relative offset (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE specifies an absolute angle. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty|  */
+    CONDITION_YAW=115, /* Reach a certain target angle. |target angle [0-360]. Absolute angles: 0 is north. Relative angle: 0 is initial yaw. Direction set by param3.| angular speed| direction: -1: counter clockwise, 0: shortest direction, 1: clockwise| Relative offset (MAV_BOOL_FALSE: absolute angle). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty|  */
     CONDITION_LAST=159, /* NOP - This command is only used to mark the upper limit of the CONDITION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
     DO_SET_MODE=176, /* Set system mode. |Mode flags. MAV_MODE values can be used to set some mode flag combinations.| Custom system-specific mode (see target autopilot specifications for mode information). If MAV_MODE_FLAG_CUSTOM_MODE_ENABLED is set in param1 (mode) this mode is used: otherwise the field is ignored.| Custom sub mode - this is system specific, please refer to the individual autopilot specifications for details.| Empty| Empty| Empty| Empty|  */
     DO_JUMP=177, /* Jump to the desired command in the mission list.  Repeat this action only the specified number of times |Sequence number| Repeat count| Empty| Empty| Empty| Empty| Empty|  */
@@ -743,7 +744,7 @@ enum class MAV_CMD : uint16_t
           The home position is the default position that the system will return to and land on.
           The position is set automatically by the system during the takeoff (and may also be set using this command).
           Note: the current home position may be emitted in a HOME_POSITION message on request (using MAV_CMD_REQUEST_MESSAGE with param1=242).
-         |Use current location (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE uses the specified location. Values not equal to 0 or 1 are invalid.| Roll angle (of surface). Range: -180..180 degrees. NAN or 0 means value not set. 0.01 indicates zero roll.| Pitch angle (of surface). Range: -90..90 degrees. NAN or 0 means value not set. 0.01 means zero pitch.| Yaw angle. NaN to use default heading. Range: -180..180 degrees.| Latitude| Longitude| Altitude|  */
+         |Use current location (MAV_BOOL_FALSE: use specified location). Values not equal to 0 or 1 are invalid.| Roll angle (of surface). Range: -180..180 degrees. NAN or 0 means value not set. 0.01 indicates zero roll.| Pitch angle (of surface). Range: -90..90 degrees. NAN or 0 means value not set. 0.01 means zero pitch.| Yaw angle. NaN to use default heading. Range: -180..180 degrees.| Latitude| Longitude| Altitude|  */
     DO_SET_PARAMETER=180, /* Set a system parameter.  Caution!  Use of this command requires knowledge of the numeric enumeration value of the parameter. |Parameter number| Parameter value| Empty| Empty| Empty| Empty| Empty|  */
     DO_SET_RELAY=181, /* Set a relay to a condition. The current value may optionally be reported using RELAY_STATUS. |Relay instance number.| Setting. (1=on, 0=off, others possible depending on system hardware)| Empty| Empty| Empty| Empty| Empty|  */
     DO_REPEAT_RELAY=182, /* Cycle a relay on and off for a desired number of cycles with a desired period. |Relay instance number.| Cycle count.| Cycle time.| Empty| Empty| Empty| Empty|  */
@@ -766,7 +767,7 @@ enum class MAV_CMD : uint16_t
     DO_RETURN_PATH_START=188, /* Mission item to specify the start of a failsafe/landing return-path segment (the end of the segment is the next MAV_CMD_DO_LAND_START item).
           A vehicle that is using missions for landing (e.g. in a return mode) will join the mission on the closest path of the return-path segment (instead of MAV_CMD_DO_LAND_START or the nearest waypoint).
           The main use case is to minimize the failsafe flight path in corridor missions, where the inbound/outbound paths are constrained (by geofences) to the same particular path.
-          The MAV_CMD_DO_RETURN_PATH_START would be placed at the start of the return path.
+          The MAV_CMD_NAV_RETURN_PATH_START would be placed at the start of the return path.
           If a failsafe occurs on the outbound path the vehicle will move to the nearest point on the return path (which is parallel for this kind of mission), effectively turning round and following the shortest path to landing.
           If a failsafe occurs on the inbound path the vehicle is already on the return segment and will continue to landing.
           The Latitude/Longitude/Altitude are optional, and may be set to 0 if not needed.
@@ -780,17 +781,17 @@ enum class MAV_CMD : uint16_t
         The start marker positional params are used only for selecting what landing pattern to use if several are defined in the mission (the selected pattern will be the one with the marker position that is closest to the vehicle when a landing is commanded).
         If the marker item position has zero-values for latitude, longitude, and altitude, then landing pattern selection is instead based on the position of the first waypoint in the landing sequence.
 
-	    When sent as a command it triggers a landing using a mission landing pattern.
-	    The location parameters are not used in this case, and should be set to 0.
+	      When sent as a command it triggers a landing using a mission landing pattern.
+	      The location parameters are not used in this case, and should be set to 0.
 	 |Empty| Empty| Empty| Empty| Latitude for landing sequence selection, or 0 (see description). Ignored in commands (set 0).| Longitude for landing sequence selection, or 0 (see description). Ignored in commands (set 0).| Altitude for landing sequence selection, or 0 (see description). Ignored in commands (set 0).|  */
-    DO_RALLY_LAND=190, /* Command to perform a landing from a rally point. |Break altitude| Landing speed| Empty| Empty| Empty| Empty| Empty|  */
-    DO_GO_AROUND=191, /* Command to safely abort an autonomous landing. |Altitude| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    DO_RALLY_LAND=190, /* Mission command to perform a landing from a rally point. |Break altitude| Landing speed| Empty| Empty| Empty| Empty| Empty|  */
+    DO_GO_AROUND=191, /* Mission command to safely abort an autonomous landing. |Altitude| Empty| Empty| Empty| Empty| Empty| Empty|  */
     DO_REPOSITION=192, /* Reposition the vehicle to a specific WGS84 global position. This command is intended for guided commands (for missions use MAV_CMD_NAV_WAYPOINT instead). |Ground speed, less than 0 (-1) for default| Bitmask of option flags.| Loiter radius for planes. Positive values only, direction is controlled by Yaw value. A value of zero or NaN is ignored. | Yaw heading (heading reference defined in Bitmask field). NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.). For planes indicates loiter direction (0: clockwise, 1: counter clockwise)| Latitude| Longitude| Altitude|  */
-    DO_PAUSE_CONTINUE=193, /* If in a GPS controlled position mode, hold the current position or continue. |Continue mission (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE pauses the current mission or reposition command and holds current position (a VTOL capable vehicle should enter hover mode (multicopter and VTOL planes); a plane should loiter with the default loiter radius). Values not equal to 0 or 1 are invalid.| Reserved| Reserved| Reserved| Reserved| Reserved| Reserved|  */
-    DO_SET_REVERSE=194, /* Set moving direction to forward or reverse. |Reverse direction (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE specifies forward direction. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
-    DO_SET_ROI_LOCATION=195, /* Sets the region of interest (ROI) to a location. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. |Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Empty| Empty| Empty| Latitude of ROI location| Longitude of ROI location| Altitude of ROI location|  */
+    DO_PAUSE_CONTINUE=193, /* If in a GPS controlled position mode, hold the current position or continue. |Continue mission (MAV_BOOL_TRUE), Pause current mission or reposition command, hold current position (MAV_BOOL_FALSE). Values not equal to 0 or 1 are invalid. A VTOL capable vehicle should enter hover mode (multicopter and VTOL planes). A plane should loiter with the default loiter radius.| Reserved| Reserved| Reserved| Reserved| Reserved| Reserved|  */
+    DO_SET_REVERSE=194, /* Set moving direction to forward or reverse. |Reverse direction (MAV_BOOL_FALSE: Forward direction). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    DO_SET_ROI_LOCATION=195, /* Sets the region of interest (ROI) to a location. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. This command can be sent to a gimbal manager but not to a gimbal device. A gimbal is not to react to this message. |Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Empty| Empty| Empty| Latitude of ROI location| Longitude of ROI location| Altitude of ROI location|  */
     DO_SET_ROI_WPNEXT_OFFSET=196, /* Sets the region of interest (ROI) to be toward next waypoint, with optional pitch/roll/yaw offset. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. This command can be sent to a gimbal manager but not to a gimbal device. A gimbal device is not to react to this message. |Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Empty| Empty| Empty| Pitch offset from next waypoint, positive pitching up| Roll offset from next waypoint, positive rolling to the right| Yaw offset from next waypoint, positive yawing to the right|  */
-    DO_SET_ROI_NONE=197, /* Cancels any previous ROI command returning the vehicle/sensors to default flight characteristics. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. After this command the gimbal manager should go back to manual input if available, and otherwise assume a neutral position. |Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    DO_SET_ROI_NONE=197, /* Cancels any previous ROI command returning the vehicle/sensors to default flight characteristics. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. This command can be sent to a gimbal manager but not to a gimbal device. A gimbal device is not to react to this message. After this command the gimbal manager should go back to manual input if available, and otherwise assume a neutral position. |Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Empty| Empty| Empty| Empty| Empty| Empty|  */
     DO_SET_ROI_SYSID=198, /* Mount tracks system with specified system ID. Determination of target vehicle position may be done with GLOBAL_POSITION_INT or any other means. This command can be sent to a gimbal manager but not to a gimbal device. A gimbal device is not to react to this message. |System ID| Component ID of gimbal device to address (or 1-6 for non-MAVLink gimbal), 0 for all gimbal device components. Send command multiple times for more than one gimbal (but not all gimbals).| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     DO_CONTROL_VIDEO=200, /* Control onboard camera system. |Camera ID (-1 for all)| Transmission: 0: disabled, 1: enabled compressed, 2: enabled raw| Transmission mode: 0: video stream, >0: single images every n seconds| Recording: 0: disabled, 1: enabled compressed, 2: enabled raw| Empty| Empty| Empty|  */
     DO_SET_ROI=201, /* Sets the region of interest (ROI) for a sensor set or the vehicle itself. This can then be used by the vehicle's control system to control the vehicle attitude and the attitude of various sensors such as cameras. |Region of interest mode.| Waypoint index/ target ID (depends on param 1).| Region of interest index. (allows a vehicle to manage multiple ROI's)| Empty| MAV_ROI_WPNEXT: pitch offset from next waypoint, MAV_ROI_LOCATION: latitude| MAV_ROI_WPNEXT: roll offset from next waypoint, MAV_ROI_LOCATION: longitude| MAV_ROI_WPNEXT: yaw offset from next waypoint, MAV_ROI_LOCATION: altitude|  */
@@ -808,15 +809,15 @@ enum class MAV_CMD : uint16_t
 	 |enable? (0=disable, 1=enable, 2=disable_floor_only)| Fence types to enable or disable as a bitmask. 0: field is unused/all fences should be enabled or disabled (for compatibility reasons). Parameter is ignored if param1=2.| Empty| Empty| Empty| Empty| Empty|  */
     DO_PARACHUTE=208, /* Mission item/command to release a parachute or enable/disable auto release. |Action| Empty| Empty| Empty| Empty| Empty| Empty|  */
     DO_MOTOR_TEST=209, /* Command to perform motor test. |Motor instance number (from 1 to max number of motors on the vehicle).| Throttle type (whether the Throttle Value in param3 is a percentage, PWM value, etc.)| Throttle value.| Timeout between tests that are run in sequence.| Motor count. Number of motors to test in sequence: 0/1=one motor, 2= two motors, etc. The Timeout (param4) is used between tests.| Motor test order.| Empty|  */
-    DO_INVERTED_FLIGHT=210, /* Change to/from inverted flight. |Inverted flight (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE specifies normal flight. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    DO_INVERTED_FLIGHT=210, /* Change to/from inverted flight. |Inverted flight (MAV_BOOL_False: normal flight). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
     DO_GRIPPER=211, /* Mission command to operate a gripper. |Gripper ID. 1-6 for an autopilot connected gripper. In missions this may be set to 1-6 for an autopilot gripper, or the gripper component id for a MAVLink gripper. 0 targets all grippers.| Gripper action to perform.| Empty| Empty| Empty| Empty| Empty|  */
-    DO_AUTOTUNE_ENABLE=212, /* Enable/disable autotune. |Enable autotune (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE disables autotune. Values not equal to 0 or 1 are invalid.| Specify axes for which autotuning is enabled/disabled. 0 indicates the field is unused (for compatibility reasons). If 0 the autopilot will follow its default behaviour, which is usually to tune all axes.| Empty.| Empty.| Empty.| Empty.| Empty.|  */
-    NAV_SET_YAW_SPEED=213, /* Sets a desired vehicle turn angle and speed change. |Yaw angle to adjust steering by.| Speed.| Relative final angle (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE specifies an absolute angle. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty|  */
+    DO_AUTOTUNE_ENABLE=212, /* Enable/disable autotune. |Enable autotune (MAV_BOOL_FALSE: disable autotune). Values not equal to 0 or 1 are invalid.| Specify axes for which autotuning is enabled/disabled. 0 indicates the field is unused (for compatibility reasons). If 0 the autopilot will follow its default behaviour, which is usually to tune all axes.| Empty.| Empty.| Empty.| Empty.| Empty.|  */
+    NAV_SET_YAW_SPEED=213, /* Sets a desired vehicle turn angle and speed change. |Yaw angle to adjust steering by.| Speed.| Relative final angle (MAV_BOOL_FALSE: Absolute angle). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty|  */
     DO_SET_CAM_TRIGG_INTERVAL=214, /* Mission command to set camera trigger interval for this flight. If triggering is enabled, the camera is triggered each time this interval expires. This command can also be used to set the shutter integration time for the camera. |Camera trigger cycle time. -1 or 0 to ignore.| Camera shutter integration time. Should be less than trigger cycle time. -1 or 0 to ignore.| Target camera ID. 7 to 255: MAVLink camera component id. 1 to 6 for cameras attached to the autopilot, which don't have a distinct component id. 0: all cameras. This is used to target specific autopilot-connected cameras. It is also used to target specific cameras when the MAV_CMD is used in a mission.| Empty| Empty| Empty| Empty|  */
     DO_MOUNT_CONTROL_QUAT=220, /* Mission command to control a camera or antenna mount, using a quaternion as reference. |quaternion param q1, w (1 in null-rotation)| quaternion param q2, x (0 in null-rotation)| quaternion param q3, y (0 in null-rotation)| quaternion param q4, z (0 in null-rotation)| Empty| Empty| Empty|  */
     DO_GUIDED_MASTER=221, /* set id of master controller |System ID| Component ID| Empty| Empty| Empty| Empty| Empty|  */
     DO_GUIDED_LIMITS=222, /* Set limits for external control |Timeout - maximum time that external controller will be allowed to control vehicle. 0 means no timeout.| Altitude (MSL) min - if vehicle moves below this alt, the command will be aborted and the mission will continue. 0 means no lower altitude limit.| Altitude (MSL) max - if vehicle moves above this alt, the command will be aborted and the mission will continue. 0 means no upper altitude limit.| Horizontal move limit - if vehicle moves more than this distance from its location at the moment the command was executed, the command will be aborted and the mission will continue. 0 means no horizontal move limit.| Empty| Empty| Empty|  */
-    DO_ENGINE_CONTROL=223, /* Control vehicle engine. This is interpreted by the vehicles engine controller to change the target engine state. It is intended for vehicles with internal combustion engines |Start engine (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE stops the engine. Values not equal to 0 or 1 are invalid.| Cold start engine (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE performs a warm start. Controls use of choke where applicable. Values not equal to 0 or 1 are invalid.| Height delay. This is for commanding engine start only after the vehicle has gained the specified height. Used in VTOL vehicles during takeoff to start engine after the aircraft is off the ground. Zero for no delay.| A bitmask of options for engine control| Empty| Empty| Empty|  */
+    DO_ENGINE_CONTROL=223, /* Control vehicle engine. This is interpreted by the vehicles engine controller to change the target engine state. It is intended for vehicles with internal combustion engines |Start engine (MAV_BOOL_False: Stop engine). Values not equal to 0 or 1 are invalid.| Cold start engine (MAV_BOOL_FALSE: Warm start). Values not equal to 0 or 1 are invalid. Controls use of choke where applicable| Height delay. This is for commanding engine start only after the vehicle has gained the specified height. Used in VTOL vehicles during takeoff to start engine after the aircraft is off the ground. Zero for no delay.| A bitmask of options for engine control| Empty| Empty| Empty|  */
     DO_SET_MISSION_CURRENT=224, /* 
           Set the mission item with sequence number seq as the current item and emit MISSION_CURRENT (whether or not the mission number changed).
           If a mission is currently being executed, the system will continue to this new mission item on the shortest path, skipping any intermediate mission items.
@@ -831,9 +832,9 @@ enum class MAV_CMD : uint16_t
           Resetting also explicitly changes a mission state of MISSION_STATE_COMPLETE to MISSION_STATE_PAUSED or MISSION_STATE_ACTIVE, potentially allowing it to resume when it is (next) in a mission mode.
 
 	  The command will ACK with MAV_RESULT_FAILED if the sequence number is out of range (including if there is no mission item).
-         |Mission sequence value to set. -1 for the current mission item (use to reset mission without changing current mission item).| Reset mission. A value of MAV_BOOL_TRUE resets jump counters to initial values and changes mission state "completed" to be "active" or "paused". Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty|  */
+         |Mission sequence value to set. -1 for the current mission item (use to reset mission without changing current mission item).| Reset mission (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid. Resets jump counters to initial values and changes mission state "completed" to be "active" or "paused".| Empty| Empty| Empty| Empty| Empty|  */
     DO_LAST=240, /* NOP - This command is only used to mark the upper limit of the DO commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
-    PREFLIGHT_CALIBRATION=241, /* Trigger calibration. This command will be only accepted if in pre-flight mode. Except for Temperature Calibration, only one sensor should be set in a single message and all others should be zero. |1: gyro calibration, 3: gyro temperature calibration| Magnetometer calibration action.| Ground pressure calibration (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| 1: radio RC calibration, 2: RC trim calibration| Accelerometer calibration action.| 1: APM: compass/motor interference calibration (PX4: airspeed calibration, deprecated), 2: airspeed calibration| 1: ESC calibration, 3: barometer temperature calibration|  */
+    PREFLIGHT_CALIBRATION=241, /* Trigger calibration. This command will be only accepted if in pre-flight mode. Except for Temperature Calibration, only one sensor should be set in a single message and all others should be zero. |1: gyro calibration, 3: gyro temperature calibration| Magnetometer calibration action.| Ground pressure calibration. Values not equal to 0 or 1 are invalid.| 1: radio RC calibration, 2: RC trim calibration| Accelerometer calibration action.| 1: APM: compass/motor interference calibration (PX4: airspeed calibration, deprecated), 2: airspeed calibration| 1: ESC calibration, 3: barometer temperature calibration|  */
     PREFLIGHT_SET_SENSOR_OFFSETS=242, /* Set sensor offsets. This command will be only accepted if in pre-flight mode. |Sensor to adjust the offsets for: 0: gyros, 1: accelerometer, 2: magnetometer, 3: barometer, 4: optical flow, 5: second magnetometer, 6: third magnetometer| X axis offset (or generic dimension 1), in the sensor's raw units| Y axis offset (or generic dimension 2), in the sensor's raw units| Z axis offset (or generic dimension 3), in the sensor's raw units| Generic dimension 4, in the sensor's raw units| Generic dimension 5, in the sensor's raw units| Generic dimension 6, in the sensor's raw units|  */
     PREFLIGHT_UAVCAN=243, /* Trigger UAVCAN configuration (actuator ID assignment and direction mapping). Note that this maps to the legacy UAVCAN v0 function UAVCAN_ENUMERATE, which is intended to be executed just once during initial vehicle configuration (it is not a normal pre-flight command and has been poorly named). |1: Trigger actuator ID assignment and direction mapping. 0: Cancel command.| Reserved| Reserved| Reserved| Reserved| Reserved| Reserved|  */
     PREFLIGHT_STORAGE=245, /* Request storage of different parameter values and logs. This command will be only accepted if in pre-flight mode. |Action to perform on the persistent parameter storage| Reserved| Onboard logging: 0: Ignore, 1: Start default rate logging, -1: Stop logging, > 1: logging rate (e.g. set to 1000 for 1000 Hz logging)| Reserved| Empty| Empty| Empty|  */
@@ -847,14 +848,14 @@ enum class MAV_CMD : uint16_t
     MISSION_START=300, /* start running a mission |first_item: the first mission item to run| last_item:  the last mission item to run (after this item is run, the mission ends)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     ACTUATOR_TEST=310, /* Actuator testing command. This is similar to MAV_CMD_DO_MOTOR_TEST but operates on the level of output functions, i.e. it is possible to test Motor1 independent from which output it is configured on. Autopilots must NACK this command with MAV_RESULT_TEMPORARILY_REJECTED while armed. |Output value: 1 means maximum positive output, 0 to center servos or minimum motor thrust (expected to spin), -1 for maximum negative (if not supported by the motors, i.e. motor is not reversible, smaller than 0 maps to NaN). And NaN maps to disarmed (stop the motors).| Timeout after which the test command expires and the output is restored to the previous value. A timeout has to be set for safety reasons. A timeout of 0 means to restore the previous value immediately.| Reserved (default:0)| Reserved (default:0)| Actuator Output function| Reserved (default:0)| Reserved (default:0)|  */
     CONFIGURE_ACTUATOR=311, /* Actuator configuration command. |Actuator configuration action| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Actuator Output function| Reserved (default:0)| Reserved (default:0)|  */
-    COMPONENT_ARM_DISARM=400, /* Arms / Disarms a component |Arm (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE disarms. Values not equal to 0 or 1 are invalid.| 0: arm-disarm unless prevented by safety checks (i.e. when landed), 21196: force arming/disarming (e.g. allow arming to override preflight checks and disarming in flight)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
+    COMPONENT_ARM_DISARM=400, /* Arms / Disarms a component |Arm (MAV_BOOL_FALSE: disarm). Values not equal to 0 or 1 are invalid.| 0: arm-disarm unless prevented by safety checks (i.e. when landed), 21196: force arming/disarming (e.g. allow arming to override preflight checks and disarming in flight)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     RUN_PREARM_CHECKS=401, /* Instructs a target system to run pre-arm checks.
           This allows preflight checks to be run on demand, which may be useful on systems that normally run them at low rate, or which do not trigger checks when the armable state might have changed.
           This command should return MAV_RESULT_ACCEPTED if it will run the checks.
-          The results of the checks are usually then reported in SYS_STATUS, EVENT, or STATUSTEXT messages (this is system-specific).
+          The results of the checks are usually then reported in SYS_STATUS messages (this is system-specific).
           The command should return MAV_RESULT_TEMPORARILY_REJECTED if the system is already armed.
          |Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
-    ILLUMINATOR_ON_OFF=405, /* Turns illuminators ON/OFF. An illuminator is a light source that is used for lighting up dark areas external to the system: e.g. a torch or searchlight (as opposed to a light source for illuminating the system itself, e.g. an indicator light). |Illuminators on (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE turns illuminators off. Values not equal to 0 or 1 are invalid.| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
+    ILLUMINATOR_ON_OFF=405, /* Turns illuminators ON/OFF. An illuminator is a light source that is used for lighting up dark areas external to the system: e.g. a torch or searchlight (as opposed to a light source for illuminating the system itself, e.g. an indicator light). |Illuminators on/off (MAV_BOOL_TRUE: illuminators on). Values not equal to 0 or 1 are invalid.| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     DO_ILLUMINATOR_CONFIGURE=406, /* Configures illuminator settings. An illuminator is a light source that is used for lighting up dark areas external to the system: e.g. a torch or searchlight (as opposed to a light source for illuminating the system itself, e.g. an indicator light). |Mode| 0%: Off, 100%: Max Brightness| Strobe period in seconds where 0 means strobing is not used| Strobe duty cycle where 100% means it is on constantly and 0 means strobing is not used| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     GET_HOME_POSITION=410, /* Request the home position from the vehicle.
           The vehicle will ACK the command and emit the HOME_POSITION message. |Reserved| Reserved| Reserved| Reserved| Reserved| Reserved| Reserved|  */
@@ -871,7 +872,7 @@ enum class MAV_CMD : uint16_t
     REQUEST_CAMERA_INFORMATION=521, /* Request camera information (CAMERA_INFORMATION). |Request camera capabilities (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     REQUEST_CAMERA_SETTINGS=522, /* Request camera settings (CAMERA_SETTINGS). |Request camera settings (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     REQUEST_STORAGE_INFORMATION=525, /* Request storage information (STORAGE_INFORMATION). Use the command's target_component to target a specific component's storage. |Storage ID (0 for all, 1 for first, 2 for second, etc.)| Request storage information (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
-    STORAGE_FORMAT=526, /* Format a storage medium. Once format is complete, a STORAGE_INFORMATION message is sent. Use the command's target_component to target a specific component's storage. |Storage ID (1 for first, 2 for second, etc.)| Format storage (and reset image log) (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reset Image Log (without formatting storage medium) (MAV_BOOL_TRUE). This will reset CAMERA_CAPTURE_STATUS.image_count and CAMERA_IMAGE_CAPTURED.image_index. Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
+    STORAGE_FORMAT=526, /* Format a storage medium. Once format is complete, a STORAGE_INFORMATION message is sent. Use the command's target_component to target a specific component's storage. |Storage ID (1 for first, 2 for second, etc.)| Format storage (and reset image log). Values not equal to 0 or 1 are invalid.| Reset Image Log (without formatting storage medium). This will reset CAMERA_CAPTURE_STATUS.image_count and CAMERA_IMAGE_CAPTURED.image_index. Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     REQUEST_CAMERA_CAPTURE_STATUS=527, /* Request camera capture status (CAMERA_CAPTURE_STATUS) |Request camera capture status (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     REQUEST_FLIGHT_INFORMATION=528, /* Request flight information (FLIGHT_INFORMATION) |Request flight information (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Reserved (all remaining params)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     RESET_CAMERA_SETTINGS=529, /* Reset all camera settings to Factory Default |Reset all settings (MAV_BOOL_TRUE). Values not equal to 0 or 1 are invalid.| Target camera ID. 7 to 255: MAVLink camera component id. 1 to 6 for cameras attached to the autopilot, which don't have a distinct component id. 0: all cameras. This is used to target specific autopilot-connected cameras. It is also used to target specific cameras when the MAV_CMD is used in a mission.| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
@@ -936,7 +937,7 @@ enum class MAV_CMD : uint16_t
     LOGGING_START=2510, /* Request to start streaming logging data over MAVLink (see also LOGGING_DATA message) |Format: 0: ULog| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)|  */
     LOGGING_STOP=2511, /* Request to stop streaming log data over MAVLink |Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)| Reserved (set to 0)|  */
     AIRFRAME_CONFIGURATION=2520, /*  |Landing gear ID (default: 0, -1 for all)| Landing gear position (Down: 0, Up: 1, NaN for no change)| Reserved (default:NaN)| Reserved (default:NaN)| Reserved (default:0)| Reserved (default:0)| Reserved (default:NaN)|  */
-    CONTROL_HIGH_LATENCY=2600, /* Request to start/stop transmitting over the high latency telemetry |Start transmission over high latency telemetry (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE stops transmission. Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
+    CONTROL_HIGH_LATENCY=2600, /* Request to start/stop transmitting over the high latency telemetry |Start transmission over high latency telemetry (MAV_BOOL_FALSE: stop transmission). Values not equal to 0 or 1 are invalid.| Empty| Empty| Empty| Empty| Empty| Empty|  */
     PANORAMA_CREATE=2800, /* Create a panorama at the current position |Viewing angle horizontal of the panorama (+- 0.5 the total angle)| Viewing angle vertical of panorama.| Speed of the horizontal rotation.| Speed of the vertical rotation.| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     DO_VTOL_TRANSITION=3000, /* Request VTOL transition |The target VTOL state. For normal transitions, only MAV_VTOL_STATE_MC and MAV_VTOL_STATE_FW can be used.| Force immediate transition to the specified MAV_VTOL_STATE. 1: Force immediate, 0: normal transition. Can be used, for example, to trigger an emergency "Quadchute". Caution: Can be dangerous/damage vehicle, depending on autopilot implementation of this command.| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     ARM_AUTHORIZATION_REQUEST=3001, /* Request authorization to arm the vehicle to a external entity, the arm authorizer is responsible to request all data that is needs from the vehicle before authorize or deny the request.
@@ -947,7 +948,7 @@ enum class MAV_CMD : uint16_t
                    |Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)| Reserved (default:0)|  */
     SET_GUIDED_SUBMODE_CIRCLE=4001, /* This command sets submode circle when vehicle is in guided mode. Vehicle flies along a circle facing the center of the circle. The user can input the velocity along the circle and change the radius. If no input is given the vehicle will hold position.
                    |Radius of desired circle in CIRCLE_MODE| User defined| User defined| User defined| Target latitude of center of circle in CIRCLE_MODE| Target longitude of center of circle in CIRCLE_MODE| Reserved (default:0)|  */
-    CONDITION_GATE=4501, /* Delay mission state machine until gate has been reached. |Geometry: 0: orthogonal to path between previous and next waypoint.| Use altitude (MAV_BOOL_TRUE). A value of MAV_BOOL_FALSE ignores altitude. Values not equal to 0 or 1 are invalid.| Empty| Empty| Latitude| Longitude| Altitude|  */
+    CONDITION_GATE=4501, /* Delay mission state machine until gate has been reached. |Geometry: 0: orthogonal to path between previous and next waypoint.| Use altitude (MAV_BOOL_FALSE: ignore altitude). Values not equal to 0 or 1 are invalid.| Empty| Empty| Latitude| Longitude| Altitude|  */
     NAV_FENCE_RETURN_POINT=5000, /* Fence return point (there can only be one such point in a geofence definition). If rally points are supported they should be used instead. |Reserved| Reserved| Reserved| Reserved| Latitude| Longitude| Altitude|  */
     NAV_FENCE_POLYGON_VERTEX_INCLUSION=5001, /* Fence vertex for an inclusion polygon (the polygon must not be self-intersecting). The vehicle must stay within this area. Minimum of 3 vertices required.
           The vertices for a polygon must be sent sequentially, each with param1 set to the total number of vertices in the polygon.
@@ -1012,7 +1013,9 @@ enum class MAV_DATA_STREAM : uint8_t
 //! MAV_DATA_STREAM ENUM_END
 constexpr auto MAV_DATA_STREAM_ENUM_END = 13;
 
-/** @brief The ROI (region of interest) for the vehicle. This can be used by the vehicle for camera/vehicle attitude alignment (see MAV_CMD_NAV_ROI). */
+/** @brief The ROI (region of interest) for the vehicle. This can be
+                be used by the vehicle for camera/vehicle attitude alignment (see
+                MAV_CMD_NAV_ROI). */
 enum class MAV_ROI
 {
     NONE=0, /* No region of interest. | */
@@ -1348,7 +1351,7 @@ enum class MAV_BATTERY_FAULT : uint32_t
 {
     DEEP_DISCHARGE=1, /* Battery has deep discharged. | */
     SPIKES=2, /* Voltage spikes. | */
-    CELL_FAIL=4, /* One or more cells have failed. Battery should also report MAV_BATTERY_CHARGE_STATE_FAILED (and should not be used). | */
+    CELL_FAIL=4, /* One or more cells have failed. Battery should also report MAV_BATTERY_CHARGE_STATE_FAILE (and should not be used). | */
     OVER_CURRENT=8, /* Over-current fault. | */
     OVER_TEMPERATURE=16, /* Over-temperature fault. | */
     UNDER_TEMPERATURE=32, /* Under-temperature fault. | */
@@ -1802,7 +1805,7 @@ enum class PARAM_ACK : uint8_t
     ACCEPTED=0, /* Parameter value ACCEPTED and SET | */
     VALUE_UNSUPPORTED=1, /* Parameter value UNKNOWN/UNSUPPORTED | */
     FAILED=2, /* Parameter failed to set | */
-    IN_PROGRESS=3, /* Parameter value received but not yet set/accepted. A subsequent PARAM_EXT_ACK with the final result will follow once operation is completed. This is returned immediately for parameters that take longer to set, indicating that the parameter was received and does not need to be resent. | */
+    IN_PROGRESS=3, /* Parameter value received but not yet set/accepted. A subsequent PARAM_EXT_ACK with the final result will follow once operation is completed. This is returned immediately for parameters that take longer to set, indicating that the the parameter was received and does not need to be resent. | */
 };
 
 //! PARAM_ACK ENUM_END
@@ -1853,16 +1856,6 @@ enum class RC_SUB_TYPE
 
 //! RC_SUB_TYPE ENUM_END
 constexpr auto RC_SUB_TYPE_ENUM_END = 3;
-
-/** @brief RADIO_RC_CHANNELS flags (bitmask). */
-enum class RADIO_RC_CHANNELS_FLAGS : uint16_t
-{
-    FAILSAFE=1, /* Failsafe is active. The content of the RC channels data in the RADIO_RC_CHANNELS message is implementation dependent. | */
-    OUTDATED=2, /* Channel data may be out of date. This is set when the receiver is unable to validate incoming data from the transmitter and has therefore resent the last valid data it received. | */
-};
-
-//! RADIO_RC_CHANNELS_FLAGS ENUM_END
-constexpr auto RADIO_RC_CHANNELS_FLAGS_ENUM_END = 3;
 
 /** @brief Engine control options */
 enum class ENGINE_CONTROL_OPTIONS
@@ -2732,7 +2725,7 @@ enum class MAV_STANDARD_MODE : uint8_t
          | */
     SAFE_RECOVERY=5, /* Safe recovery mode (auto).
           Automatic mode that takes vehicle to a predefined safe location via a safe flight path, and may also automatically land the vehicle.
-          This mode is more commonly referred to as RTL and/or Smart RTL.
+          This mode is more commonly referred to as RTL and/or or Smart RTL.
           The precise return location, flight path, and landing behaviour depend on vehicle configuration and type.
           For example, the vehicle might return to the home/launch location, a rally point, or the start of a mission landing, it might follow a direct path, mission path, or breadcrumb path, and land using a mission landing pattern or some other kind of descent.
          | */
@@ -2846,238 +2839,237 @@ constexpr auto FOLLOW_TARGET_CAP_FLAGS_ENUM_END = 9;
 } // namespace mavlink
 
 // MESSAGE DEFINITIONS
-#include <mavlink/common/mavlink_msg_sys_status.hpp>
-#include <mavlink/common/mavlink_msg_system_time.hpp>
-#include <mavlink/common/mavlink_msg_ping.hpp>
-#include <mavlink/common/mavlink_msg_change_operator_control.hpp>
-#include <mavlink/common/mavlink_msg_change_operator_control_ack.hpp>
-#include <mavlink/common/mavlink_msg_auth_key.hpp>
-#include <mavlink/common/mavlink_msg_link_node_status.hpp>
-#include <mavlink/common/mavlink_msg_set_mode.hpp>
-#include <mavlink/common/mavlink_msg_param_request_read.hpp>
-#include <mavlink/common/mavlink_msg_param_request_list.hpp>
-#include <mavlink/common/mavlink_msg_param_value.hpp>
-#include <mavlink/common/mavlink_msg_param_set.hpp>
-#include <mavlink/common/mavlink_msg_gps_raw_int.hpp>
-#include <mavlink/common/mavlink_msg_gps_status.hpp>
-#include <mavlink/common/mavlink_msg_scaled_imu.hpp>
-#include <mavlink/common/mavlink_msg_raw_imu.hpp>
-#include <mavlink/common/mavlink_msg_raw_pressure.hpp>
-#include <mavlink/common/mavlink_msg_scaled_pressure.hpp>
-#include <mavlink/common/mavlink_msg_attitude.hpp>
-#include <mavlink/common/mavlink_msg_attitude_quaternion.hpp>
-#include <mavlink/common/mavlink_msg_local_position_ned.hpp>
-#include <mavlink/common/mavlink_msg_rc_channels_scaled.hpp>
-#include <mavlink/common/mavlink_msg_rc_channels_raw.hpp>
-#include <mavlink/common/mavlink_msg_servo_output_raw.hpp>
-#include <mavlink/common/mavlink_msg_mission_request_partial_list.hpp>
-#include <mavlink/common/mavlink_msg_mission_write_partial_list.hpp>
-#include <mavlink/common/mavlink_msg_mission_item.hpp>
-#include <mavlink/common/mavlink_msg_mission_request.hpp>
-#include <mavlink/common/mavlink_msg_mission_set_current.hpp>
-#include <mavlink/common/mavlink_msg_mission_current.hpp>
-#include <mavlink/common/mavlink_msg_mission_request_list.hpp>
-#include <mavlink/common/mavlink_msg_mission_count.hpp>
-#include <mavlink/common/mavlink_msg_mission_clear_all.hpp>
-#include <mavlink/common/mavlink_msg_mission_item_reached.hpp>
-#include <mavlink/common/mavlink_msg_mission_ack.hpp>
-#include <mavlink/common/mavlink_msg_set_gps_global_origin.hpp>
-#include <mavlink/common/mavlink_msg_gps_global_origin.hpp>
-#include <mavlink/common/mavlink_msg_param_map_rc.hpp>
-#include <mavlink/common/mavlink_msg_mission_request_int.hpp>
-#include <mavlink/common/mavlink_msg_safety_set_allowed_area.hpp>
-#include <mavlink/common/mavlink_msg_safety_allowed_area.hpp>
-#include <mavlink/common/mavlink_msg_attitude_quaternion_cov.hpp>
-#include <mavlink/common/mavlink_msg_nav_controller_output.hpp>
-#include <mavlink/common/mavlink_msg_global_position_int_cov.hpp>
-#include <mavlink/common/mavlink_msg_local_position_ned_cov.hpp>
-#include <mavlink/common/mavlink_msg_rc_channels.hpp>
-#include <mavlink/common/mavlink_msg_request_data_stream.hpp>
-#include <mavlink/common/mavlink_msg_data_stream.hpp>
-#include <mavlink/common/mavlink_msg_manual_control.hpp>
-#include <mavlink/common/mavlink_msg_rc_channels_override.hpp>
-#include <mavlink/common/mavlink_msg_mission_item_int.hpp>
-#include <mavlink/common/mavlink_msg_vfr_hud.hpp>
-#include <mavlink/common/mavlink_msg_command_int.hpp>
-#include <mavlink/common/mavlink_msg_command_long.hpp>
-#include <mavlink/common/mavlink_msg_command_ack.hpp>
-#include <mavlink/common/mavlink_msg_command_cancel.hpp>
-#include <mavlink/common/mavlink_msg_manual_setpoint.hpp>
-#include <mavlink/common/mavlink_msg_set_attitude_target.hpp>
-#include <mavlink/common/mavlink_msg_attitude_target.hpp>
-#include <mavlink/common/mavlink_msg_set_position_target_local_ned.hpp>
-#include <mavlink/common/mavlink_msg_position_target_local_ned.hpp>
-#include <mavlink/common/mavlink_msg_set_position_target_global_int.hpp>
-#include <mavlink/common/mavlink_msg_position_target_global_int.hpp>
-#include <mavlink/common/mavlink_msg_local_position_ned_system_global_offset.hpp>
-#include <mavlink/common/mavlink_msg_hil_state.hpp>
-#include <mavlink/common/mavlink_msg_hil_controls.hpp>
-#include <mavlink/common/mavlink_msg_hil_rc_inputs_raw.hpp>
-#include <mavlink/common/mavlink_msg_hil_actuator_controls.hpp>
-#include <mavlink/common/mavlink_msg_optical_flow.hpp>
-#include <mavlink/common/mavlink_msg_global_vision_position_estimate.hpp>
-#include <mavlink/common/mavlink_msg_vision_position_estimate.hpp>
-#include <mavlink/common/mavlink_msg_vision_speed_estimate.hpp>
-#include <mavlink/common/mavlink_msg_vicon_position_estimate.hpp>
-#include <mavlink/common/mavlink_msg_highres_imu.hpp>
-#include <mavlink/common/mavlink_msg_optical_flow_rad.hpp>
-#include <mavlink/common/mavlink_msg_hil_sensor.hpp>
-#include <mavlink/common/mavlink_msg_sim_state.hpp>
-#include <mavlink/common/mavlink_msg_radio_status.hpp>
-#include <mavlink/common/mavlink_msg_file_transfer_protocol.hpp>
-#include <mavlink/common/mavlink_msg_timesync.hpp>
-#include <mavlink/common/mavlink_msg_camera_trigger.hpp>
-#include <mavlink/common/mavlink_msg_hil_gps.hpp>
-#include <mavlink/common/mavlink_msg_hil_optical_flow.hpp>
-#include <mavlink/common/mavlink_msg_hil_state_quaternion.hpp>
-#include <mavlink/common/mavlink_msg_scaled_imu2.hpp>
-#include <mavlink/common/mavlink_msg_log_request_list.hpp>
-#include <mavlink/common/mavlink_msg_log_entry.hpp>
-#include <mavlink/common/mavlink_msg_log_request_data.hpp>
-#include <mavlink/common/mavlink_msg_log_data.hpp>
-#include <mavlink/common/mavlink_msg_log_erase.hpp>
-#include <mavlink/common/mavlink_msg_log_request_end.hpp>
-#include <mavlink/common/mavlink_msg_gps_inject_data.hpp>
-#include <mavlink/common/mavlink_msg_gps2_raw.hpp>
-#include <mavlink/common/mavlink_msg_power_status.hpp>
-#include <mavlink/common/mavlink_msg_serial_control.hpp>
-#include <mavlink/common/mavlink_msg_gps_rtk.hpp>
-#include <mavlink/common/mavlink_msg_gps2_rtk.hpp>
-#include <mavlink/common/mavlink_msg_scaled_imu3.hpp>
-#include <mavlink/common/mavlink_msg_data_transmission_handshake.hpp>
-#include <mavlink/common/mavlink_msg_encapsulated_data.hpp>
-#include <mavlink/common/mavlink_msg_distance_sensor.hpp>
-#include <mavlink/common/mavlink_msg_terrain_request.hpp>
-#include <mavlink/common/mavlink_msg_terrain_data.hpp>
-#include <mavlink/common/mavlink_msg_terrain_check.hpp>
-#include <mavlink/common/mavlink_msg_terrain_report.hpp>
-#include <mavlink/common/mavlink_msg_scaled_pressure2.hpp>
-#include <mavlink/common/mavlink_msg_att_pos_mocap.hpp>
-#include <mavlink/common/mavlink_msg_set_actuator_control_target.hpp>
-#include <mavlink/common/mavlink_msg_actuator_control_target.hpp>
-#include <mavlink/common/mavlink_msg_altitude.hpp>
-#include <mavlink/common/mavlink_msg_resource_request.hpp>
-#include <mavlink/common/mavlink_msg_scaled_pressure3.hpp>
-#include <mavlink/common/mavlink_msg_follow_target.hpp>
-#include <mavlink/common/mavlink_msg_control_system_state.hpp>
-#include <mavlink/common/mavlink_msg_battery_status.hpp>
-#include <mavlink/common/mavlink_msg_landing_target.hpp>
-#include <mavlink/common/mavlink_msg_fence_status.hpp>
-#include <mavlink/common/mavlink_msg_mag_cal_report.hpp>
-#include <mavlink/common/mavlink_msg_efi_status.hpp>
-#include <mavlink/common/mavlink_msg_estimator_status.hpp>
-#include <mavlink/common/mavlink_msg_wind_cov.hpp>
-#include <mavlink/common/mavlink_msg_gps_input.hpp>
-#include <mavlink/common/mavlink_msg_gps_rtcm_data.hpp>
-#include <mavlink/common/mavlink_msg_high_latency.hpp>
-#include <mavlink/common/mavlink_msg_high_latency2.hpp>
-#include <mavlink/common/mavlink_msg_vibration.hpp>
-#include <mavlink/common/mavlink_msg_home_position.hpp>
-#include <mavlink/common/mavlink_msg_set_home_position.hpp>
-#include <mavlink/common/mavlink_msg_message_interval.hpp>
-#include <mavlink/common/mavlink_msg_extended_sys_state.hpp>
-#include <mavlink/common/mavlink_msg_adsb_vehicle.hpp>
-#include <mavlink/common/mavlink_msg_collision.hpp>
-#include <mavlink/common/mavlink_msg_v2_extension.hpp>
-#include <mavlink/common/mavlink_msg_memory_vect.hpp>
-#include <mavlink/common/mavlink_msg_debug_vect.hpp>
-#include <mavlink/common/mavlink_msg_named_value_float.hpp>
-#include <mavlink/common/mavlink_msg_named_value_int.hpp>
-#include <mavlink/common/mavlink_msg_statustext.hpp>
-#include <mavlink/common/mavlink_msg_debug.hpp>
-#include <mavlink/common/mavlink_msg_setup_signing.hpp>
-#include <mavlink/common/mavlink_msg_button_change.hpp>
-#include <mavlink/common/mavlink_msg_play_tune.hpp>
-#include <mavlink/common/mavlink_msg_camera_information.hpp>
-#include <mavlink/common/mavlink_msg_camera_settings.hpp>
-#include <mavlink/common/mavlink_msg_storage_information.hpp>
-#include <mavlink/common/mavlink_msg_camera_capture_status.hpp>
-#include <mavlink/common/mavlink_msg_camera_image_captured.hpp>
-#include <mavlink/common/mavlink_msg_flight_information.hpp>
-#include <mavlink/common/mavlink_msg_mount_orientation.hpp>
-#include <mavlink/common/mavlink_msg_logging_data.hpp>
-#include <mavlink/common/mavlink_msg_logging_data_acked.hpp>
-#include <mavlink/common/mavlink_msg_logging_ack.hpp>
-#include <mavlink/common/mavlink_msg_video_stream_information.hpp>
-#include <mavlink/common/mavlink_msg_video_stream_status.hpp>
-#include <mavlink/common/mavlink_msg_camera_fov_status.hpp>
-#include <mavlink/common/mavlink_msg_camera_tracking_image_status.hpp>
-#include <mavlink/common/mavlink_msg_camera_tracking_geo_status.hpp>
-#include <mavlink/common/mavlink_msg_camera_thermal_range.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_manager_information.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_manager_status.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_manager_set_attitude.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_device_information.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_device_set_attitude.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_device_attitude_status.hpp>
-#include <mavlink/common/mavlink_msg_autopilot_state_for_gimbal_device.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_manager_set_pitchyaw.hpp>
-#include <mavlink/common/mavlink_msg_gimbal_manager_set_manual_control.hpp>
-#include <mavlink/common/mavlink_msg_esc_info.hpp>
-#include <mavlink/common/mavlink_msg_esc_status.hpp>
-#include <mavlink/common/mavlink_msg_airspeed.hpp>
-#include <mavlink/common/mavlink_msg_global_position_sensor.hpp>
-#include <mavlink/common/mavlink_msg_wifi_config_ap.hpp>
-#include <mavlink/common/mavlink_msg_protocol_version.hpp>
-#include <mavlink/common/mavlink_msg_ais_vessel.hpp>
-#include <mavlink/common/mavlink_msg_uavcan_node_status.hpp>
-#include <mavlink/common/mavlink_msg_uavcan_node_info.hpp>
-#include <mavlink/common/mavlink_msg_param_ext_request_read.hpp>
-#include <mavlink/common/mavlink_msg_param_ext_request_list.hpp>
-#include <mavlink/common/mavlink_msg_param_ext_value.hpp>
-#include <mavlink/common/mavlink_msg_param_ext_set.hpp>
-#include <mavlink/common/mavlink_msg_param_ext_ack.hpp>
-#include <mavlink/common/mavlink_msg_obstacle_distance.hpp>
-#include <mavlink/common/mavlink_msg_odometry.hpp>
-#include <mavlink/common/mavlink_msg_trajectory_representation_waypoints.hpp>
-#include <mavlink/common/mavlink_msg_trajectory_representation_bezier.hpp>
-#include <mavlink/common/mavlink_msg_cellular_status.hpp>
-#include <mavlink/common/mavlink_msg_isbd_link_status.hpp>
-#include <mavlink/common/mavlink_msg_cellular_config.hpp>
-#include <mavlink/common/mavlink_msg_raw_rpm.hpp>
-#include <mavlink/common/mavlink_msg_utm_global_position.hpp>
-#include <mavlink/common/mavlink_msg_param_error.hpp>
-#include <mavlink/common/mavlink_msg_debug_float_array.hpp>
-#include <mavlink/common/mavlink_msg_orbit_execution_status.hpp>
-#include <mavlink/common/mavlink_msg_smart_battery_info.hpp>
-#include <mavlink/common/mavlink_msg_figure_eight_execution_status.hpp>
-#include <mavlink/common/mavlink_msg_fuel_status.hpp>
-#include <mavlink/common/mavlink_msg_battery_info.hpp>
-#include <mavlink/common/mavlink_msg_generator_status.hpp>
-#include <mavlink/common/mavlink_msg_actuator_output_status.hpp>
-#include <mavlink/common/mavlink_msg_relay_status.hpp>
-#include <mavlink/common/mavlink_msg_time_estimate_to_target.hpp>
-#include <mavlink/common/mavlink_msg_tunnel.hpp>
-#include <mavlink/common/mavlink_msg_can_frame.hpp>
-#include <mavlink/common/mavlink_msg_canfd_frame.hpp>
-#include <mavlink/common/mavlink_msg_can_filter_modify.hpp>
-#include <mavlink/common/mavlink_msg_onboard_computer_status.hpp>
-#include <mavlink/common/mavlink_msg_component_information.hpp>
-#include <mavlink/common/mavlink_msg_component_information_basic.hpp>
-#include <mavlink/common/mavlink_msg_component_metadata.hpp>
-#include <mavlink/common/mavlink_msg_play_tune_v2.hpp>
-#include <mavlink/common/mavlink_msg_supported_tunes.hpp>
-#include <mavlink/common/mavlink_msg_event.hpp>
-#include <mavlink/common/mavlink_msg_current_event_sequence.hpp>
-#include <mavlink/common/mavlink_msg_request_event.hpp>
-#include <mavlink/common/mavlink_msg_response_event_error.hpp>
-#include <mavlink/common/mavlink_msg_radio_rc_channels.hpp>
-#include <mavlink/common/mavlink_msg_available_modes.hpp>
-#include <mavlink/common/mavlink_msg_current_mode.hpp>
-#include <mavlink/common/mavlink_msg_available_modes_monitor.hpp>
-#include <mavlink/common/mavlink_msg_illuminator_status.hpp>
-#include <mavlink/common/mavlink_msg_wheel_distance.hpp>
-#include <mavlink/common/mavlink_msg_winch_status.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_basic_id.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_location.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_authentication.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_self_id.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_system.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_operator_id.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_message_pack.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_arm_status.hpp>
-#include <mavlink/common/mavlink_msg_open_drone_id_system_update.hpp>
-#include <mavlink/common/mavlink_msg_hygrometer_sensor.hpp>
+#include "./mavlink_msg_sys_status.hpp"
+#include "./mavlink_msg_system_time.hpp"
+#include "./mavlink_msg_ping.hpp"
+#include "./mavlink_msg_change_operator_control.hpp"
+#include "./mavlink_msg_change_operator_control_ack.hpp"
+#include "./mavlink_msg_auth_key.hpp"
+#include "./mavlink_msg_link_node_status.hpp"
+#include "./mavlink_msg_set_mode.hpp"
+#include "./mavlink_msg_param_request_read.hpp"
+#include "./mavlink_msg_param_request_list.hpp"
+#include "./mavlink_msg_param_value.hpp"
+#include "./mavlink_msg_param_set.hpp"
+#include "./mavlink_msg_gps_raw_int.hpp"
+#include "./mavlink_msg_gps_status.hpp"
+#include "./mavlink_msg_scaled_imu.hpp"
+#include "./mavlink_msg_raw_imu.hpp"
+#include "./mavlink_msg_raw_pressure.hpp"
+#include "./mavlink_msg_scaled_pressure.hpp"
+#include "./mavlink_msg_attitude.hpp"
+#include "./mavlink_msg_attitude_quaternion.hpp"
+#include "./mavlink_msg_local_position_ned.hpp"
+#include "./mavlink_msg_rc_channels_scaled.hpp"
+#include "./mavlink_msg_rc_channels_raw.hpp"
+#include "./mavlink_msg_servo_output_raw.hpp"
+#include "./mavlink_msg_mission_request_partial_list.hpp"
+#include "./mavlink_msg_mission_write_partial_list.hpp"
+#include "./mavlink_msg_mission_item.hpp"
+#include "./mavlink_msg_mission_request.hpp"
+#include "./mavlink_msg_mission_set_current.hpp"
+#include "./mavlink_msg_mission_current.hpp"
+#include "./mavlink_msg_mission_request_list.hpp"
+#include "./mavlink_msg_mission_count.hpp"
+#include "./mavlink_msg_mission_clear_all.hpp"
+#include "./mavlink_msg_mission_item_reached.hpp"
+#include "./mavlink_msg_mission_ack.hpp"
+#include "./mavlink_msg_set_gps_global_origin.hpp"
+#include "./mavlink_msg_gps_global_origin.hpp"
+#include "./mavlink_msg_param_map_rc.hpp"
+#include "./mavlink_msg_mission_request_int.hpp"
+#include "./mavlink_msg_safety_set_allowed_area.hpp"
+#include "./mavlink_msg_safety_allowed_area.hpp"
+#include "./mavlink_msg_attitude_quaternion_cov.hpp"
+#include "./mavlink_msg_nav_controller_output.hpp"
+#include "./mavlink_msg_global_position_int_cov.hpp"
+#include "./mavlink_msg_local_position_ned_cov.hpp"
+#include "./mavlink_msg_rc_channels.hpp"
+#include "./mavlink_msg_request_data_stream.hpp"
+#include "./mavlink_msg_data_stream.hpp"
+#include "./mavlink_msg_manual_control.hpp"
+#include "./mavlink_msg_rc_channels_override.hpp"
+#include "./mavlink_msg_mission_item_int.hpp"
+#include "./mavlink_msg_vfr_hud.hpp"
+#include "./mavlink_msg_command_int.hpp"
+#include "./mavlink_msg_command_long.hpp"
+#include "./mavlink_msg_command_ack.hpp"
+#include "./mavlink_msg_command_cancel.hpp"
+#include "./mavlink_msg_manual_setpoint.hpp"
+#include "./mavlink_msg_set_attitude_target.hpp"
+#include "./mavlink_msg_attitude_target.hpp"
+#include "./mavlink_msg_set_position_target_local_ned.hpp"
+#include "./mavlink_msg_position_target_local_ned.hpp"
+#include "./mavlink_msg_set_position_target_global_int.hpp"
+#include "./mavlink_msg_position_target_global_int.hpp"
+#include "./mavlink_msg_local_position_ned_system_global_offset.hpp"
+#include "./mavlink_msg_hil_state.hpp"
+#include "./mavlink_msg_hil_controls.hpp"
+#include "./mavlink_msg_hil_rc_inputs_raw.hpp"
+#include "./mavlink_msg_hil_actuator_controls.hpp"
+#include "./mavlink_msg_optical_flow.hpp"
+#include "./mavlink_msg_global_vision_position_estimate.hpp"
+#include "./mavlink_msg_vision_position_estimate.hpp"
+#include "./mavlink_msg_vision_speed_estimate.hpp"
+#include "./mavlink_msg_vicon_position_estimate.hpp"
+#include "./mavlink_msg_highres_imu.hpp"
+#include "./mavlink_msg_optical_flow_rad.hpp"
+#include "./mavlink_msg_hil_sensor.hpp"
+#include "./mavlink_msg_sim_state.hpp"
+#include "./mavlink_msg_radio_status.hpp"
+#include "./mavlink_msg_file_transfer_protocol.hpp"
+#include "./mavlink_msg_timesync.hpp"
+#include "./mavlink_msg_camera_trigger.hpp"
+#include "./mavlink_msg_hil_gps.hpp"
+#include "./mavlink_msg_hil_optical_flow.hpp"
+#include "./mavlink_msg_hil_state_quaternion.hpp"
+#include "./mavlink_msg_scaled_imu2.hpp"
+#include "./mavlink_msg_log_request_list.hpp"
+#include "./mavlink_msg_log_entry.hpp"
+#include "./mavlink_msg_log_request_data.hpp"
+#include "./mavlink_msg_log_data.hpp"
+#include "./mavlink_msg_log_erase.hpp"
+#include "./mavlink_msg_log_request_end.hpp"
+#include "./mavlink_msg_gps_inject_data.hpp"
+#include "./mavlink_msg_gps2_raw.hpp"
+#include "./mavlink_msg_power_status.hpp"
+#include "./mavlink_msg_serial_control.hpp"
+#include "./mavlink_msg_gps_rtk.hpp"
+#include "./mavlink_msg_gps2_rtk.hpp"
+#include "./mavlink_msg_scaled_imu3.hpp"
+#include "./mavlink_msg_data_transmission_handshake.hpp"
+#include "./mavlink_msg_encapsulated_data.hpp"
+#include "./mavlink_msg_distance_sensor.hpp"
+#include "./mavlink_msg_terrain_request.hpp"
+#include "./mavlink_msg_terrain_data.hpp"
+#include "./mavlink_msg_terrain_check.hpp"
+#include "./mavlink_msg_terrain_report.hpp"
+#include "./mavlink_msg_scaled_pressure2.hpp"
+#include "./mavlink_msg_att_pos_mocap.hpp"
+#include "./mavlink_msg_set_actuator_control_target.hpp"
+#include "./mavlink_msg_actuator_control_target.hpp"
+#include "./mavlink_msg_altitude.hpp"
+#include "./mavlink_msg_resource_request.hpp"
+#include "./mavlink_msg_scaled_pressure3.hpp"
+#include "./mavlink_msg_follow_target.hpp"
+#include "./mavlink_msg_control_system_state.hpp"
+#include "./mavlink_msg_battery_status.hpp"
+#include "./mavlink_msg_landing_target.hpp"
+#include "./mavlink_msg_fence_status.hpp"
+#include "./mavlink_msg_mag_cal_report.hpp"
+#include "./mavlink_msg_efi_status.hpp"
+#include "./mavlink_msg_estimator_status.hpp"
+#include "./mavlink_msg_wind_cov.hpp"
+#include "./mavlink_msg_gps_input.hpp"
+#include "./mavlink_msg_gps_rtcm_data.hpp"
+#include "./mavlink_msg_high_latency.hpp"
+#include "./mavlink_msg_high_latency2.hpp"
+#include "./mavlink_msg_vibration.hpp"
+#include "./mavlink_msg_home_position.hpp"
+#include "./mavlink_msg_set_home_position.hpp"
+#include "./mavlink_msg_message_interval.hpp"
+#include "./mavlink_msg_extended_sys_state.hpp"
+#include "./mavlink_msg_adsb_vehicle.hpp"
+#include "./mavlink_msg_collision.hpp"
+#include "./mavlink_msg_v2_extension.hpp"
+#include "./mavlink_msg_memory_vect.hpp"
+#include "./mavlink_msg_debug_vect.hpp"
+#include "./mavlink_msg_named_value_float.hpp"
+#include "./mavlink_msg_named_value_int.hpp"
+#include "./mavlink_msg_statustext.hpp"
+#include "./mavlink_msg_debug.hpp"
+#include "./mavlink_msg_setup_signing.hpp"
+#include "./mavlink_msg_button_change.hpp"
+#include "./mavlink_msg_play_tune.hpp"
+#include "./mavlink_msg_camera_information.hpp"
+#include "./mavlink_msg_camera_settings.hpp"
+#include "./mavlink_msg_storage_information.hpp"
+#include "./mavlink_msg_camera_capture_status.hpp"
+#include "./mavlink_msg_camera_image_captured.hpp"
+#include "./mavlink_msg_flight_information.hpp"
+#include "./mavlink_msg_mount_orientation.hpp"
+#include "./mavlink_msg_logging_data.hpp"
+#include "./mavlink_msg_logging_data_acked.hpp"
+#include "./mavlink_msg_logging_ack.hpp"
+#include "./mavlink_msg_video_stream_information.hpp"
+#include "./mavlink_msg_video_stream_status.hpp"
+#include "./mavlink_msg_camera_fov_status.hpp"
+#include "./mavlink_msg_camera_tracking_image_status.hpp"
+#include "./mavlink_msg_camera_tracking_geo_status.hpp"
+#include "./mavlink_msg_camera_thermal_range.hpp"
+#include "./mavlink_msg_gimbal_manager_information.hpp"
+#include "./mavlink_msg_gimbal_manager_status.hpp"
+#include "./mavlink_msg_gimbal_manager_set_attitude.hpp"
+#include "./mavlink_msg_gimbal_device_information.hpp"
+#include "./mavlink_msg_gimbal_device_set_attitude.hpp"
+#include "./mavlink_msg_gimbal_device_attitude_status.hpp"
+#include "./mavlink_msg_autopilot_state_for_gimbal_device.hpp"
+#include "./mavlink_msg_gimbal_manager_set_pitchyaw.hpp"
+#include "./mavlink_msg_gimbal_manager_set_manual_control.hpp"
+#include "./mavlink_msg_esc_info.hpp"
+#include "./mavlink_msg_esc_status.hpp"
+#include "./mavlink_msg_airspeed.hpp"
+#include "./mavlink_msg_global_position_sensor.hpp"
+#include "./mavlink_msg_wifi_config_ap.hpp"
+#include "./mavlink_msg_protocol_version.hpp"
+#include "./mavlink_msg_ais_vessel.hpp"
+#include "./mavlink_msg_uavcan_node_status.hpp"
+#include "./mavlink_msg_uavcan_node_info.hpp"
+#include "./mavlink_msg_param_ext_request_read.hpp"
+#include "./mavlink_msg_param_ext_request_list.hpp"
+#include "./mavlink_msg_param_ext_value.hpp"
+#include "./mavlink_msg_param_ext_set.hpp"
+#include "./mavlink_msg_param_ext_ack.hpp"
+#include "./mavlink_msg_obstacle_distance.hpp"
+#include "./mavlink_msg_odometry.hpp"
+#include "./mavlink_msg_trajectory_representation_waypoints.hpp"
+#include "./mavlink_msg_trajectory_representation_bezier.hpp"
+#include "./mavlink_msg_cellular_status.hpp"
+#include "./mavlink_msg_isbd_link_status.hpp"
+#include "./mavlink_msg_cellular_config.hpp"
+#include "./mavlink_msg_raw_rpm.hpp"
+#include "./mavlink_msg_utm_global_position.hpp"
+#include "./mavlink_msg_param_error.hpp"
+#include "./mavlink_msg_debug_float_array.hpp"
+#include "./mavlink_msg_orbit_execution_status.hpp"
+#include "./mavlink_msg_smart_battery_info.hpp"
+#include "./mavlink_msg_figure_eight_execution_status.hpp"
+#include "./mavlink_msg_fuel_status.hpp"
+#include "./mavlink_msg_battery_info.hpp"
+#include "./mavlink_msg_generator_status.hpp"
+#include "./mavlink_msg_actuator_output_status.hpp"
+#include "./mavlink_msg_relay_status.hpp"
+#include "./mavlink_msg_time_estimate_to_target.hpp"
+#include "./mavlink_msg_tunnel.hpp"
+#include "./mavlink_msg_can_frame.hpp"
+#include "./mavlink_msg_canfd_frame.hpp"
+#include "./mavlink_msg_can_filter_modify.hpp"
+#include "./mavlink_msg_onboard_computer_status.hpp"
+#include "./mavlink_msg_component_information.hpp"
+#include "./mavlink_msg_component_information_basic.hpp"
+#include "./mavlink_msg_component_metadata.hpp"
+#include "./mavlink_msg_play_tune_v2.hpp"
+#include "./mavlink_msg_supported_tunes.hpp"
+#include "./mavlink_msg_event.hpp"
+#include "./mavlink_msg_current_event_sequence.hpp"
+#include "./mavlink_msg_request_event.hpp"
+#include "./mavlink_msg_response_event_error.hpp"
+#include "./mavlink_msg_available_modes.hpp"
+#include "./mavlink_msg_current_mode.hpp"
+#include "./mavlink_msg_available_modes_monitor.hpp"
+#include "./mavlink_msg_illuminator_status.hpp"
+#include "./mavlink_msg_wheel_distance.hpp"
+#include "./mavlink_msg_winch_status.hpp"
+#include "./mavlink_msg_open_drone_id_basic_id.hpp"
+#include "./mavlink_msg_open_drone_id_location.hpp"
+#include "./mavlink_msg_open_drone_id_authentication.hpp"
+#include "./mavlink_msg_open_drone_id_self_id.hpp"
+#include "./mavlink_msg_open_drone_id_system.hpp"
+#include "./mavlink_msg_open_drone_id_operator_id.hpp"
+#include "./mavlink_msg_open_drone_id_message_pack.hpp"
+#include "./mavlink_msg_open_drone_id_arm_status.hpp"
+#include "./mavlink_msg_open_drone_id_system_update.hpp"
+#include "./mavlink_msg_hygrometer_sensor.hpp"
 
 // base include
-#include <mavlink/standard/standard.hpp>
+#include "../standard/standard.hpp"

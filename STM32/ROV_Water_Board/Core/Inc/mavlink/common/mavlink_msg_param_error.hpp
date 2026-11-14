@@ -22,7 +22,7 @@ struct PARAM_ERROR : mavlink::Message {
 
     uint8_t target_system; /*<  System ID */
     uint8_t target_component; /*<  Component ID */
-    std::array<char, 16> param_id; /*<  Parameter id. Terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string. Encoded as 7-bit ASCII. */
+    std::array<char, 16> param_id; /*<  Parameter id. Terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string */
     int16_t param_index; /*<  Parameter index. Will be -1 if the param ID field should be used as an identifier (else the param id will be ignored) */
     uint8_t error; /*<  Error being returned to client. */
 

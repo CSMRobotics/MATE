@@ -13,7 +13,7 @@
 #endif
 
 #define MAVLINK_USE_CXX_NAMESPACE	// put C-lib into namespace
-#include <mavlink/mavlink_types.h>
+#include "mavlink_types.h"
 
 #define  _MAVLINK_CONVERSIONS_H_	// do not include mavlink_conversions.h
 #define MAVLINK_GET_MSG_ENTRY		// user should provide mavlink_get_msg_entry()
@@ -30,9 +30,9 @@ namespace mavlink {
 const mavlink_msg_entry_t *mavlink_get_msg_entry(uint32_t msgid);
 } // namespace mavlink
 
-#include <mavlink/mavlink_helpers.h>
+#include "mavlink_helpers.h"
 
-#include <mavlink/msgmap.hpp>
+#include "msgmap.hpp"
 
 namespace mavlink {
 

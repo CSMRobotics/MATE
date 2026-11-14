@@ -28,7 +28,7 @@
 #define MAVLINK_COMMAND_24BIT 1
 #endif
 
-#include <mavlink/standard/version.h>
-#include <mavlink/standard/standard.h>
+#include "version.h"
+#include "standard.h"
 
 #endif // MAVLINK_H

@@ -6,12 +6,12 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include <mavlink/common/common.hpp>
+#include "common.hpp"
 
 #ifdef TEST_INTEROP
 using namespace mavlink;
 #undef MAVLINK_HELPER
-#include <mavlink/common/mavlink.h>
+#include "mavlink.h"
 #endif
 
 
@@ -19013,85 +19013,6 @@ TEST(common_interop, RESPONSE_EVENT_ERROR)
     EXPECT_EQ(packet_in.sequence, packet2.sequence);
     EXPECT_EQ(packet_in.sequence_oldest_available, packet2.sequence_oldest_available);
     EXPECT_EQ(packet_in.reason, packet2.reason);
-
-#ifdef PRINT_MSG
-    PRINT_MSG(msg);
-#endif
-}
-#endif
-
-TEST(common, RADIO_RC_CHANNELS)
-{
-    mavlink::mavlink_message_t msg;
-    mavlink::MsgMap map1(msg);
-    mavlink::MsgMap map2(msg);
-
-    mavlink::common::msg::RADIO_RC_CHANNELS packet_in{};
-    packet_in.target_system = 151;
-    packet_in.target_component = 218;
-    packet_in.time_last_update_ms = 963497464;
-    packet_in.flags = 17443;
-    packet_in.count = 29;
-    packet_in.channels = {{ 17703, 17704, 17705, 17706, 17707, 17708, 17709, 17710, 17711, 17712, 17713, 17714, 17715, 17716, 17717, 17718, 17719, 17720, 17721, 17722, 17723, 17724, 17725, 17726, 17727, 17728, 17729, 17730, 17731, 17732, 17733, 17734 }};
-
-    mavlink::common::msg::RADIO_RC_CHANNELS packet1{};
-    mavlink::common::msg::RADIO_RC_CHANNELS packet2{};
-
-    packet1 = packet_in;
-
-    //std::cout << packet1.to_yaml() << std::endl;
-
-    packet1.serialize(map1);
-
-    mavlink::mavlink_finalize_message(&msg, 1, 1, packet1.MIN_LENGTH, packet1.LENGTH, packet1.CRC_EXTRA);
-
-    packet2.deserialize(map2);
-
-    EXPECT_EQ(packet1.target_system, packet2.target_system);
-    EXPECT_EQ(packet1.target_component, packet2.target_component);
-    EXPECT_EQ(packet1.time_last_update_ms, packet2.time_last_update_ms);
-    EXPECT_EQ(packet1.flags, packet2.flags);
-    EXPECT_EQ(packet1.count, packet2.count);
-    EXPECT_EQ(packet1.channels, packet2.channels);
-}
-
-#ifdef TEST_INTEROP
-TEST(common_interop, RADIO_RC_CHANNELS)
-{
-    mavlink_message_t msg;
-
-    // to get nice print
-    memset(&msg, 0, sizeof(msg));
-
-    mavlink_radio_rc_channels_t packet_c {
-         963497464, 17443, 151, 218, 29, { 17703, 17704, 17705, 17706, 17707, 17708, 17709, 17710, 17711, 17712, 17713, 17714, 17715, 17716, 17717, 17718, 17719, 17720, 17721, 17722, 17723, 17724, 17725, 17726, 17727, 17728, 17729, 17730, 17731, 17732, 17733, 17734 }
-    };
-
-    mavlink::common::msg::RADIO_RC_CHANNELS packet_in{};
-    packet_in.target_system = 151;
-    packet_in.target_component = 218;
-    packet_in.time_last_update_ms = 963497464;
-    packet_in.flags = 17443;
-    packet_in.count = 29;
-    packet_in.channels = {{ 17703, 17704, 17705, 17706, 17707, 17708, 17709, 17710, 17711, 17712, 17713, 17714, 17715, 17716, 17717, 17718, 17719, 17720, 17721, 17722, 17723, 17724, 17725, 17726, 17727, 17728, 17729, 17730, 17731, 17732, 17733, 17734 }};
-
-    mavlink::common::msg::RADIO_RC_CHANNELS packet2{};
-
-    mavlink_msg_radio_rc_channels_encode(1, 1, &msg, &packet_c);
-
-    // simulate message-handling callback
-    [&packet2](const mavlink_message_t *cmsg) {
-        MsgMap map2(cmsg);
-
-        packet2.deserialize(map2);
-    } (&msg);
-
-    EXPECT_EQ(packet_in.target_system, packet2.target_system);
-    EXPECT_EQ(packet_in.target_component, packet2.target_component);
-    EXPECT_EQ(packet_in.time_last_update_ms, packet2.time_last_update_ms);
-    EXPECT_EQ(packet_in.flags, packet2.flags);
-    EXPECT_EQ(packet_in.count, packet2.count);
-    EXPECT_EQ(packet_in.channels, packet2.channels);
 
 #ifdef PRINT_MSG
     PRINT_MSG(msg);

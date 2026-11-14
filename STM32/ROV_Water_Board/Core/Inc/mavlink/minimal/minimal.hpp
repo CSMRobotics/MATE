@@ -13,7 +13,7 @@
 #define MAVLINK_STX 253
 #endif
 
-#include <mavlink/message.hpp>
+#include "../message.hpp"
 
 namespace mavlink {
 namespace minimal {
@@ -330,7 +330,7 @@ constexpr auto MAV_COMPONENT_ENUM_END = 251;
 } // namespace mavlink
 
 // MESSAGE DEFINITIONS
-#include <mavlink/minimal/mavlink_msg_heartbeat.hpp>
+#include "./mavlink_msg_heartbeat.hpp"
 
 // base include
 
