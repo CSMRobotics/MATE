@@ -27,7 +27,13 @@ target_include_directories(uart_manager SYSTEM PUBLIC
 )
 
 install(TARGETS uart_manager
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_target_dependencies(uart_manager
   rclcpp

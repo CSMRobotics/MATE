@@ -259,12 +259,6 @@ public:
         msg = parsed_msg;
         status = parsed_status;
 
-        std::cout
-            << "Received MAVLink message: msgid=" << msg.msgid
-            << " sysid=" << static_cast<int>(msg.sysid)
-            << " compid=" << static_cast<int>(msg.compid)
-            << '\n';
-
         return 1;
     }
 

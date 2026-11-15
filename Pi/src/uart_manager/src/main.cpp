@@ -10,40 +10,6 @@
 
 #include "uart_manager/UartManager.h"
 
-#define SERIAL_PORT_PATH "/dev/ttyAMA0"
-
-int g_fd = -1;
-
-static void open_serial_port(void) {
-    g_fd = open(SERIAL_PORT_PATH, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (g_fd < 0) {
-        perror("Failed to open " SERIAL_PORT_PATH);
-        exit(EXIT_FAILURE);
-    }
-}
-
-static void configure_serial_port(void) {
-    struct termios tty;
-    if (tcgetattr(g_fd, &tty) != 0) {
-        perror("Error getting termios attributes");
-        exit(EXIT_FAILURE);
-    }
-
-    // Set Baud Rate to 115200
-    cfsetispeed(&tty, B115200);
-    cfsetospeed(&tty, B115200);
-
-    // Set 8N1 raw mode
-    cfmakeraw(&tty);
-    tty.c_cflag |= (CLOCAL | CREAD);
-
-    tcflush(g_fd, TCIFLUSH);
-    if (tcsetattr(g_fd, TCSANOW, &tty) != 0) {
-        perror("Error setting termios attributes");
-        exit(EXIT_FAILURE);
-    }
-}
-
 static void receive_mavlink(void) {
     uint8_t rx_buffer[256];
     ssize_t bytes_read = read(g_fd, rx_buffer, sizeof(rx_buffer));
@@ -69,28 +35,6 @@ static void receive_mavlink(void) {
     }
 }
 
-static void transmit_mavlink(void) {
-    static mavlink_message_t msg;
-    static uint8_t txBuffer[MAVLINK_MAX_PACKET_LEN];
-
-    mavlink_msg_heartbeat_pack(
-			255, // system id
-			1, // component id
-			&msg, // message
-			MAV_TYPE_GCS, // control unit
-			MAV_AUTOPILOT_GENERIC,   // Autopilot type
-			MAV_MODE_PREFLIGHT,      // System mode
-			0,                       // Custom mode
-			MAV_STATE_STANDBY        // System status
-	);
-    uint16_t len = mavlink_msg_to_send_buffer(txBuffer, &msg);
-    ssize_t bytes_written = write(g_fd,txBuffer,len);
-
-    if (bytes_written < 0) {
-        std::cerr << "Failed to send over UART!!!" << std::endl;
-    }
-
-}
 
 int main(int argc, char * argv[]) {
     rclcpp::init(argc, argv);
