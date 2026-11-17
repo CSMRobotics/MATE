@@ -7,9 +7,17 @@ uart_manager:
     rx_polling_rate: 100
 
     # pi->microcontroller channels with corresponding priorities
-    tx_channel_names:
-      - "/mavlink_sensor_fusion"
+    # tx_channel_names:
+    #   - "/mavlink_sensor_fusion"
 
     # Corresponds to each channel, 0 = normal, 1 = high priority
-    tx_channel_priorities:
+    # tx_channel_priorities:
+    #   - 0
+
+    rx_channel_names:
+      - "/mavlink_test_heartbeat"
+      - "/mavlink_sensor_fusion"
+
+    rx_message_ids:
       - 0
+      - 27

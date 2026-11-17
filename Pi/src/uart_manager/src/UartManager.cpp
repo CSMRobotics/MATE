@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <termios.h>
+#include <poll.h>
 #include <cerrno>
 #include <cstring>
 #include <chrono>
@@ -88,7 +89,7 @@ void UartManager::_load_config() {
         std::string name = rx_channel_names[i];
         int64_t message_id = message_ids[i];
         try {
-            this->_pub_channels[message_id] = std::make_shared<MavlinkPubSub>(true, name);
+            this->_pub_channels[message_id].push_back(std::make_shared<MavlinkPubSub>(true, name));
             RCLCPP_INFO(
                 this->get_logger(),
                 "Loaded RX channel with name: '%s', message_id: %ld", 
@@ -177,7 +178,7 @@ void UartManager::_configure_serial_port() {
 //*****************************************************************
 // Multithreaded reader and writers
 void UartManager::micro_to_pi(
-    const std::unordered_map<int, std::shared_ptr<MavlinkPubSub>>& pub_channels,
+    const std::unordered_map<int, std::vector<std::shared_ptr<MavlinkPubSub>>>& pub_channels,
     const int polling_rate,
     const int serial_fd
 ) {
@@ -191,20 +192,68 @@ void UartManager::micro_to_pi(
     );
     auto desired_period = std::chrono::duration<double, std::milli>(std::chrono::duration<double>(1.0 / polling_rate));
     auto next_tick = std::chrono::steady_clock::now();
-    auto prev_tick = next_tick;
 
+    struct pollfd poll_fd {serial_fd, POLLIN, 0};
 
     // Ze loop
     while (_run_threads.load()) {
-        // Read a message from serial port
-
-
-        // Check if polling rate is met
-        auto actual_period = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - prev_tick);
-        if (actual_period > desired_period + (0.2 * desired_period)) {
-            RCLCPP_WARN(this->get_logger(), "UART RX update period exceeded expectation: Actual: %.3f, Desired: %.3f", actual_period.count(), desired_period.count());
+        // Wait for data
+        int poll_result = poll(&poll_fd, 1, 1000);
+        if (poll_result < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            RCLCPP_ERROR(this->get_logger(), "UART poll failed: %s", strerror(errno));
+            return;
+        } else if (poll_result == 0) {
+            // Timeout while waiting for data
+            continue;
         }
-        prev_tick = std::chrono::steady_clock::now();
+
+        if (poll_fd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            RCLCPP_ERROR(this->get_logger(), "UART poll error: 0x%x", poll_fd.revents);
+            return;
+        }
+
+        // Read from serial port
+        ssize_t bytes_read = 1;
+        uint8_t buffer[256];
+        while (bytes_read > 0) {
+            bytes_read = read(serial_fd, buffer, sizeof(buffer));
+            if (bytes_read > 0) {
+                // Parse MAVLink Bytes
+                for (ssize_t i = 0; i < bytes_read; ++i) {
+                    mavlink_message_t msg;
+                    mavlink_status_t status;
+
+                    if (mavlink_parse_char(MAVLINK_COMM_0, buffer[i], &msg, &status)) {
+                        // Send to correct PubSub channel
+                        if (pub_channels.find(msg.msgid) == pub_channels.end()) {
+                            RCLCPP_WARN(
+                                this->get_logger(), 
+                                "Received MAVLink message with ID '%d' which does not have a publish channel in config. Tossing message...", 
+                                msg.msgid
+                            );
+                            continue;
+                        }
+                        for (const std::shared_ptr<MavlinkPubSub>& pub : pub_channels.at(msg.msgid)) {
+                            pub->write(msg);
+                            RCLCPP_INFO(this->get_logger(), "Published message with ID %d", msg.msgid);
+                        }
+                    }
+                }
+            } else if (bytes_read < 0) {
+                // Thx chat's error handling
+                if (errno == EINTR) {
+                    continue;
+                }
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    break;
+                }
+                RCLCPP_ERROR(this->get_logger(), "UART read failed: %s", strerror(errno));
+                return;
+            }
+        }
 
         // Delay until next polling cycle
         next_tick += update_period;
@@ -228,7 +277,6 @@ void UartManager::pi_to_micro(
     );
     const auto desired_period = std::chrono::duration<double, std::milli>(update_period);
     auto next_tick = std::chrono::steady_clock::now();
-    auto prev_tick = next_tick;
 
     // Ze loop
     while (_run_threads.load()) {
@@ -255,9 +303,9 @@ void UartManager::pi_to_micro(
         }
 
         // Round robin normal channels
-        for (size_t i = 0; i < _sub_channels_norm.size(); i++) {
+        for (size_t i = 0; i < sub_channels_norm.size(); i++) {
             // Read in message
-            const std::shared_ptr<MavlinkPubSub>& sub = _sub_channels_norm[i];
+            const std::shared_ptr<MavlinkPubSub>& sub = sub_channels_norm[i];
             mavlink_message_t msg{};
             mavlink_status_t status{};
             if (sub->read(msg, status) != 1) {
@@ -278,13 +326,6 @@ void UartManager::pi_to_micro(
 
         // Delay until next polling cycle
         next_tick += update_period;
-
-        // Check if polling rate is met
-        auto actual_period = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - prev_tick);
-        if (actual_period > desired_period + (0.2 * desired_period)) {
-            RCLCPP_WARN(this->get_logger(), "UART TX update period exceeded expectation: Actual: %.3f, Desired: %.3f", actual_period.count(), desired_period.count());
-        }
-        prev_tick = std::chrono::steady_clock::now();
 
         std::this_thread::sleep_until(next_tick);
     }

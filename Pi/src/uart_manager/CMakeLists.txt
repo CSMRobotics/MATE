@@ -17,6 +17,10 @@ add_executable(uart_manager
   src/UartManager.cpp
 )
 
+add_executable(test_receive
+  src/test_receive.cpp
+)
+
 target_include_directories(uart_manager PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
@@ -27,6 +31,19 @@ target_include_directories(uart_manager SYSTEM PUBLIC
 )
 
 install(TARGETS uart_manager
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+target_include_directories(test_receive PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+target_include_directories(test_receive SYSTEM PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+  $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS test_receive
   DESTINATION lib/${PROJECT_NAME}
 )
 

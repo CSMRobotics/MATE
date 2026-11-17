@@ -36,7 +36,7 @@ private:
     int _serial_fd = -1;
     std::string _serial_port_path = "";
 
-    std::unordered_map<int, std::shared_ptr<MavlinkPubSub>> _pub_channels = {};  // MavlinkMsgID: PubSubChannel, for quick lookup upon msg receive
+    std::unordered_map<int, std::vector<std::shared_ptr<MavlinkPubSub>>> _pub_channels = {};  // MavlinkMsgID: PubSubChannel, for quick lookup upon msg receive
     std::vector<std::shared_ptr<MavlinkPubSub>> _sub_channels_norm = {};
     std::vector<std::shared_ptr<MavlinkPubSub>> _sub_channels_priority = {};   // Higher priority messages when scheuduling transmits
 
@@ -57,7 +57,7 @@ private:
      * @param serial_fd: File descriptor of serial port
      */
     void micro_to_pi(
-        const std::unordered_map<int, std::shared_ptr<MavlinkPubSub>>& pub_channels,
+        const std::unordered_map<int, std::vector<std::shared_ptr<MavlinkPubSub>>>& pub_channels,
         const int polling_rate,
         const int serial_fd
     );
