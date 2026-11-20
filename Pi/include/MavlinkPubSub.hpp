@@ -25,9 +25,9 @@ static constexpr std::size_t MAX_FRAME_SIZE = 280;
 /**
  * Single-producer, single-consumer MAVLink queue in POSIX shared memory.
  *
- * Start the publisher first so it can initialize a newly created object.
- * The shared-memory object must not be unlinked while either endpoint is
- * using it.
+ * Either the publisher or subscriber can start first to initialize 
+ * a newly created object. The shared-memory object must not be unlinked 
+ * while either endpoint is using it.
  */
 class MavlinkPubSub {
 public:
@@ -36,6 +36,9 @@ public:
             std::uint32_t len;
             std::uint8_t data[MAX_FRAME_SIZE];
         };
+
+        // Initialization flag: 0 = uninitialized, 1 = initialized
+        std::atomic<std::uint32_t> initialized;
 
         // Monotonically increasing sequence counters.
         std::atomic<std::uint64_t> write_index;
@@ -58,20 +61,13 @@ public:
 
         bool created = false;
 
-        if (_write_mode) {
-            _fd = shm_open(
-                channel_name.c_str(),
-                O_CREAT | O_EXCL | O_RDWR,
-                0660);
-
-            if (_fd >= 0) {
-                created = true;
-            } else if (errno == EEXIST) {
-                _fd = shm_open(channel_name.c_str(), O_RDWR, 0660);
-            }
-        } else {
-            _fd = shm_open(channel_name.c_str(), O_RDWR, 0660);
-        }
+        errno = 0;
+        // Allow BOTH readers and writers to try creating the shared memory object.
+        // O_CREAT without O_EXCL opens it if it exists, or creates it if it doesn't.
+        _fd = shm_open(
+            channel_name.c_str(),
+            O_CREAT | O_RDWR,
+            0660);
 
         if (_fd < 0) {
             throw std::system_error(
@@ -79,13 +75,11 @@ public:
         }
 
         try {
-            if (created) {
-                if (ftruncate(
-                        _fd,
-                        static_cast<off_t>(sizeof(SharedMavlink))) < 0) {
-                    throw std::system_error(
-                        errno, std::generic_category(), "ftruncate");
-                }
+            // Ensure the shared memory object is sized correctly.
+            // ftruncate is safe to call even if the file was already sized by another process.
+            if (ftruncate(_fd, static_cast<off_t>(sizeof(SharedMavlink))) < 0) {
+                throw std::system_error(
+                    errno, std::generic_category(), "ftruncate");
             }
 
             struct stat st {};
@@ -114,28 +108,30 @@ public:
 
             _shm = static_cast<SharedMavlink*>(addr);
 
-            // Only the process that created the object initializes it.
-            if (created) {
+            // Use an atomic compare-exchange or flag to see who initializes the memory block.
+            // The first process to transition 'initialized' from 0 to 1 performs the constructor/reset.
+            uint32_t expected_init = 0;
+            if (_shm->initialized.compare_exchange_strong(
+                    expected_init, 1, 
+                    std::memory_order_acq_rel, 
+                    std::memory_order_relaxed)) {
+                // We won the race and initialized the memory block
                 ::new (static_cast<void*>(_shm)) SharedMavlink{};
-
+                _shm->initialized.store(1, std::memory_order_release);
                 _shm->read_index.store(0, std::memory_order_relaxed);
                 _shm->write_index.store(0, std::memory_order_relaxed);
-            } else if (!_shm->write_index.is_lock_free() ||
-                       !_shm->read_index.is_lock_free()) {
+                created = true;
+            }
+
+            if (!_shm->write_index.is_lock_free() ||
+                !_shm->read_index.is_lock_free()) {
                 throw std::runtime_error(
                     "Shared-memory atomics must be lock-free");
             }
 
-            if (_write_mode &&
-                (!_shm->write_index.is_lock_free() ||
-                 !_shm->read_index.is_lock_free())) {
-                throw std::runtime_error(
-                    "Shared-memory atomics must be lock-free");
-            }
-
-            // Begin reading at the current queue position.
-            // Existing queued messages are not replayed to a new subscriber.
-            if (!_write_mode) {
+            // If a subscriber joins later and didn't create it, start reading 
+            // at the current write position (dropping older unread backlog).
+            if (!_write_mode && !created) {
                 _shm->read_index.store(
                     _shm->write_index.load(std::memory_order_acquire),
                     std::memory_order_release);
@@ -250,7 +246,7 @@ public:
                 parsed = true;
             }
         }
-
+        
         // Release the slot so the publisher can reuse it.
         _shm->read_index.store(
             read + 1,
@@ -262,12 +258,6 @@ public:
 
         msg = parsed_msg;
         status = parsed_status;
-
-        std::cout
-            << "Received MAVLink message: msgid=" << msg.msgid
-            << " sysid=" << static_cast<int>(msg.sysid)
-            << " compid=" << static_cast<int>(msg.compid)
-            << '\n';
 
         return 1;
     }

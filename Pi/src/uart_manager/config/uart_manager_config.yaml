@@ -1,0 +1,25 @@
+uart_manager:
+  ros__parameters:
+    serial_port: "/dev/ttyAMA0"
+
+    # Polling rate (Hz)
+    tx_polling_rate: 100
+    rx_polling_rate: 100
+
+    # pi->microcontroller channels with corresponding priorities
+    tx_channel_names:
+      - "/mavlink_sub_controls"
+      - "/mavlink_sensor_fusion"
+
+    # Corresponds to each channel, 0 = normal, 1 = high priority
+    tx_channel_priorities:
+      - 0     
+      - 0
+    
+    # microcontroller->pi channels
+    rx_channel_names:
+      - "/mavlink_bno086"
+
+    # For demultiplexing which messages go to which channels
+    rx_message_ids:
+      - 27          # this means send all RAW_IMU (id=27) messages to /mavlink_bno086

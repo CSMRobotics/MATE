@@ -9,7 +9,7 @@
 #include "Eigen/Geometry"
 
 constexpr int64_t LOOP_PERIOD_NS = 1'000'000; // 1 ms
-static constexpr const char* SHM_NAME = "/mavlink_shm_sensor_fusion";
+static constexpr const char* SHM_NAME = "/mavlink_sensor_fusion";
 
 /**
  * @brief Performs state estimation based on sensor information from MAVLink sensor data
