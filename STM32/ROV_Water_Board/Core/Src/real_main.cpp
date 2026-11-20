@@ -1,7 +1,7 @@
 #include "cmsis_os.h"
 #include "real_main.h"
 #include "main.h"
-#include "mavlink/common/mavlink.h"
+#include "mavlink/rov_interfaces/mavlink.h"
 
 extern UART_HandleTypeDef huart1; // defined in main.c so i think you have to do extern
 extern UART_HandleTypeDef huart2;
