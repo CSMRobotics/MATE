@@ -3,16 +3,16 @@ uart_manager:
     serial_port: "/dev/ttyAMA0"
 
     # Polling rate (Hz)
-    tx_polling_rate: 100
-    rx_polling_rate: 100
+    tx_polling_rate: 200
+    rx_polling_rate: 200
 
     # pi->microcontroller channels with corresponding priorities
-    # tx_channel_names:
-    #   - "/mavlink_sensor_fusion"
+    tx_channel_names:
+      - "/sub_controls"
 
     # Corresponds to each channel, 0 = normal, 1 = high priority
-    # tx_channel_priorities:
-    #   - 0
+    tx_channel_priorities:
+      - 0
 
     rx_channel_names:
       - "/mavlink_test_heartbeat"
