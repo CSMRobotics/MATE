@@ -56,9 +56,13 @@ void ROVJoyControl::_mavlink_pub_timer_callback() {
         &_sub_controls
     );
     int write_result = _mavlink_pub->write(msg);
-    // if (write_result == -1) {
-    //     RCLCPP_ERROR(this->get_logger(), "Queue is full %d", write_result);
-    // } else if (write_result != 0) {
-    //     RCLCPP_ERROR(this->get_logger(), "Failed to publish to mavlink channel %d", write_result);
-    // }
+
+    // DEBUG
+    if (write_result == -1) {
+        RCLCPP_WARN(this->get_logger(), "Queue is full %d", write_result);
+    } else if (write_result != 0) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to publish to mavlink channel %d", write_result);
+    } else {
+        RCLCPP_INFO(this->get_logger(), "Published to mavlink");
+    }
 }
