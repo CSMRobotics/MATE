@@ -2,13 +2,12 @@
 #include "real_main.h"
 #include "main.h"
 #include "mavlink/rov_interfaces/mavlink.h"
+#include "UartMavlink.h"
+
+#include <string>
 
 extern UART_HandleTypeDef huart1; // defined in main.c so i think you have to do extern
 extern UART_HandleTypeDef huart2;
-
-void setup() {
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-}
 
 void mavlink_tx_heartbeat(void) {
 	static mavlink_message_t msg;
@@ -29,90 +28,87 @@ void mavlink_tx_heartbeat(void) {
 	HAL_UART_Transmit(&huart1, buffer, len, 1000);
 }
 
-//void mavlink_rx_poll(void) {
-//	uint8_t rx_byte;
-//	static mavlink_message_t msg;
-//	static mavlink_status_t status;
-//
-//	// Drain all available bytes in huart1 (timeout = 0 for non-blocking)
-//	while (HAL_UART_Receive(&huart1, &rx_byte, 1, 0) == HAL_OK) {
-//		if (mavlink_parse_char(MAVLINK_COMM_0, rx_byte, &msg, &status)) {
-//			if (msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-//				char log_buf[80];
-//				int log_len = snprintf(
-//					log_buf, sizeof(log_buf),
-//					"[STM32 RX] Heartbeat from SysID: %d | CompID: %d\r\n",
-//					msg.sysid, msg.compid
-//				);
-//
-//				HAL_UART_Transmit(&huart2, (uint8_t*)log_buf, log_len, 100);
-//			}
-//		}
-//	}
-//}
 
 
+
+static mavlink_message_t mavlink_msg;
+static mavlink_status_t mavlink_status;
+volatile uint8_t sub_controls_received = 0;
+mavlink_sub_controls_t latest_sub_controls;
+uint8_t rx_byte;
+
+// UART Interrupt callback
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+        // Feed received byte into MAVLink parser
+        if (mavlink_parse_char(MAVLINK_COMM_0, rx_byte, &mavlink_msg, &mavlink_status)) {
+            if (mavlink_msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+                // Heartbeat received
+                HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+            }
+
+            else if (mavlink_msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
+                mavlink_msg_sub_controls_decode(
+                    &mavlink_msg,
+                    &latest_sub_controls
+                );
+
+                sub_controls_received = 1;
+            }
+        }
+
+        // Restart reception for the next byte
+        HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+    }
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART1) {
+        __HAL_UART_CLEAR_OREFLAG(huart);
+        __HAL_UART_CLEAR_NEFLAG(huart);
+        __HAL_UART_CLEAR_FEFLAG(huart);
+        __HAL_UART_CLEAR_PEFLAG(huart);
+
+        huart->ErrorCode = HAL_UART_ERROR_NONE;
+        HAL_UART_AbortReceive(huart);          // forces gState/RxState back to READY
+        HAL_UART_Receive_IT(huart, &rx_byte, 1);
+    }
+}
+
+void setup() {
+	HAL_UART_Transmit(
+		&huart2,
+		(uint8_t*)"Interrupt RX Started\r\n",
+		23,
+		100
+	);
+	mavlink_log("Interrupt RX Started", MAV_SEVERITY_INFO);
+
+	// Start receiving one byte using interrupts
+	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+
+}
 
 int real_main() {
-//	HAL_UART_Transmit(&huart2, (uint8_t*)"started\r\n", 9, 100); // send a message to the terminal
-//
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // turn led on before transmitting
-//	mavlink_tx_heartbeat();
-//	osDelay(50); // give it a lil bit
-//	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); // turn led back off (after transmitting)
-//	osDelay(950); // wait some more
+	// Log the velocity joystick command
+	static uint32_t last_log_ms = 0;
 
-//	---------------------------------------------------------------------------------------
-	uint8_t rx_byte;
-	    static mavlink_message_t msg;
-	    static mavlink_status_t status;
+	if (sub_controls_received) {
+		sub_controls_received = 0;
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 
-	    HAL_UART_Transmit(&huart2, (uint8_t*)"RX Poll Started\r\n", 17, 100);
+		uint32_t now = HAL_GetTick();
+		if (now - last_log_ms >= 100) {   // 4 Hz
+			last_log_ms = now;
+			char log_buf[50];
+			std::snprintf(log_buf, sizeof(log_buf), "Vel: (%.2f, %.2f, %.2f)",
+				latest_sub_controls.velocity_x,
+				latest_sub_controls.velocity_y,
+				latest_sub_controls.velocity_z);
+			mavlink_log(log_buf, MAV_SEVERITY_INFO);
+		}
+	}
 
-	    while (1) {
-	        // Clear Overrun Error just in case a byte arrived before the loop started
-	        if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_ORE)) {
-	            __HAL_UART_CLEAR_OREFLAG(&huart1);
-	        }
-
-	        // Continuously check for 1 byte (non-blocking, timeout = 0)
-	        if (HAL_UART_Receive(&huart1, &rx_byte, 1, 0) == HAL_OK) {
-
-	            // Optional: Uncomment the line below to print a dot for EVERY raw byte received
-//	             HAL_UART_Transmit(&huart2, (uint8_t*)".", 1, 10);
-
-	            if (mavlink_parse_char(MAVLINK_COMM_0, rx_byte, &msg, &status)) {
-	                if (msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-	                    char log_buf[80];
-	                    int log_len = snprintf(
-	                        log_buf, sizeof(log_buf),
-	                        "[STM32 RX] Heartbeat from SysID: %d | CompID: %d\r\n",
-	                        msg.sysid, msg.compid
-	                    );
-
-	                    HAL_UART_Transmit(&huart2, (uint8_t*)log_buf, log_len, 100);
-	                } else if (msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
-						mavlink_sub_controls_t sub_controls;
-						mavlink_msg_sub_controls_decode(&msg, &sub_controls);
-
-						char log_buf[180];
-						int len = snprintf(
-								log_buf, sizeof(log_buf),
-								"Sub controls:\r\nVel(%.2f, %.2f, %.2f)\r\nOmega(%.2f, %.2f, %.2f)\r\nMode: %u\r\nEstop: %u\r\n----------\r\n",
-								sub_controls.velocity_x,
-								sub_controls.velocity_y,
-								sub_controls.velocity_z,
-								sub_controls.omega_x,
-								sub_controls.omega_y,
-								sub_controls.omega_z,
-								sub_controls.mode_switch,
-								sub_controls.estop
-								);
-						HAL_UART_Transmit(&huart2, (uint8_t*)log_buf, len, 100);
-	                }
-	            }
-	        }
-	    }
-
-	return 0;
+    return 0;
 }
