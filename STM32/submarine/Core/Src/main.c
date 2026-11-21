@@ -85,6 +85,8 @@ uint16_t my_motor_value[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 uint16_t motorValue = 0;
 
 float motorValueFloat = 0;
+float test_vals[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
 
 float clamp(float input, float min, float max) {
 	if (input > max) {
@@ -172,35 +174,34 @@ int main(void)
 	dshot_init(DSHOT600);
 
 
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  	real_main();
+	  	real_main(test_vals);
 
-	  	/*
-		currentSenseRaw = adcBuffer[0];
-		currentSense = currentSenseRaw * currentSenseScale;
 
-		currentFiltered = currentFiltered * 0.99 + currentSense * 0.01;
+//		currentSenseRaw = adcBuffer[0];
+//		currentSense = currentSenseRaw * currentSenseScale;
+//
+//		currentFiltered = currentFiltered * 0.99 + currentSense * 0.01;
+//
+//		motorValue = motorValueFromFloat(motorValueFloat);
+//
+//		my_motor_value[0] = motorValue;
+//		my_motor_value[1] = motorValue;
+//		my_motor_value[2] = motorValue;
+//		my_motor_value[3] = motorValue;
+//
+//		my_motor_value[4] = motorValue;
+//		my_motor_value[5] = motorValue;
+//		my_motor_value[6] = motorValue;
+//		my_motor_value[7] = motorValue;
+//
+//		dshot_write(my_motor_value);
 
-		motorValue = motorValueFromFloat(motorValueFloat);
-
-		my_motor_value[0] = motorValue;
-		my_motor_value[1] = motorValue;
-		my_motor_value[2] = motorValue;
-		my_motor_value[3] = motorValue;
-
-		my_motor_value[4] = motorValue;
-		my_motor_value[5] = motorValue;
-		my_motor_value[6] = motorValue;
-		my_motor_value[7] = motorValue;
-
-		dshot_write(my_motor_value);
-		*/
 
 		HAL_Delay(1);
 

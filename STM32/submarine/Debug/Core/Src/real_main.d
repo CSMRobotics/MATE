@@ -36,7 +36,8 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h \
+ ../Core/Inc/dshot.h
 ../Core/Inc/real_main.h:
 ../Core/Inc/throttleController.h:
 ../Core/Inc/dshot.h:
@@ -79,3 +80,4 @@ Core/Src/real_main.o: ../Core/Src/real_main.cpp ../Core/Inc/real_main.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h:
+../Core/Inc/dshot.h:

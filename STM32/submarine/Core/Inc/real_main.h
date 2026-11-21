@@ -10,7 +10,7 @@ extern "C"
 #endif
 
 
-int real_main();
+int real_main(float* motor_values);
 
 #ifdef __cplusplus
 }
