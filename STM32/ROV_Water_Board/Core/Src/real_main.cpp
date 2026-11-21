@@ -91,6 +91,24 @@ int real_main() {
 	                    );
 
 	                    HAL_UART_Transmit(&huart2, (uint8_t*)log_buf, log_len, 100);
+	                } else if (msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
+						mavlink_sub_controls_t sub_controls;
+						mavlink_msg_sub_controls_decode(&msg, &sub_controls);
+
+						char log_buf[180];
+						int len = snprintf(
+								log_buf, sizeof(log_buf),
+								"Sub controls:\r\nVel(%.2f, %.2f, %.2f)\r\nOmega(%.2f, %.2f, %.2f)\r\nMode: %u\r\nEstop: %u\r\n----------\r\n",
+								sub_controls.velocity_x,
+								sub_controls.velocity_y,
+								sub_controls.velocity_z,
+								sub_controls.omega_x,
+								sub_controls.omega_y,
+								sub_controls.omega_z,
+								sub_controls.mode_switch,
+								sub_controls.estop
+								);
+						HAL_UART_Transmit(&huart2, (uint8_t*)log_buf, len, 100);
 	                }
 	            }
 	        }
