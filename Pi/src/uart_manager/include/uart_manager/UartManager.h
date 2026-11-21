@@ -8,6 +8,15 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
+/**
+ * Creates a process that handles the UART port.
+ * Takes Mavlink messages from other processes and sends to UART port.
+ * Receives Mavlink message from UART port and sends to other processes.
+ * Configure receiving and sending processes in .yaml config file.
+ * 
+ * This node will log Mavlink STATUSTEXT messages to standard output, 
+ *      allowing flight controller (water board) to log messages.
+ */
 class UartManager : public rclcpp::Node {
 public:
     /**
@@ -76,4 +85,11 @@ private:
         const int polling_rate,
         const int serial_fd
     );
+
+    /**
+     * @brief Logs a mavlink STATUSTEXT message to ros2 standard output
+     * 
+     * @param msg: Mavlink message
+     */
+    void _log_mav_statustext(const mavlink_message_t& msg);
 };

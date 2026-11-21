@@ -63,6 +63,6 @@ void ROVJoyControl::_mavlink_pub_timer_callback() {
     } else if (write_result != 0) {
         RCLCPP_ERROR(this->get_logger(), "Failed to publish to mavlink channel %d", write_result);
     } else {
-        RCLCPP_INFO(this->get_logger(), "Published to mavlink");
+        RCLCPP_DEBUG(this->get_logger(), "Published to mavlink");
     }
 }

@@ -227,8 +227,15 @@ void UartManager::micro_to_pi(
                     mavlink_status_t status;
 
                     if (mavlink_parse_char(MAVLINK_COMM_0, buffer[i], &msg, &status)) {
+                        // Log message if statustext
+                        if (msg.msgid == MAVLINK_MSG_ID_STATUSTEXT) {
+                            _log_mav_statustext(msg);
+                            continue;
+                        } 
+
                         // Send to correct PubSub channel
                         if (pub_channels.find(msg.msgid) == pub_channels.end()) {
+                            
                             RCLCPP_WARN(
                                 this->get_logger(), 
                                 "Received MAVLink message with ID '%d' which does not have a publish channel in config. Tossing message...", 
@@ -238,7 +245,7 @@ void UartManager::micro_to_pi(
                         }
                         for (const std::shared_ptr<MavlinkPubSub>& pub : pub_channels.at(msg.msgid)) {
                             pub->write(msg);
-                            RCLCPP_INFO(this->get_logger(), "Published message with ID %d", msg.msgid);
+                            RCLCPP_DEBUG(this->get_logger(), "Published message with ID %d", msg.msgid);
                         }
                     }
                 }
@@ -298,7 +305,7 @@ void UartManager::pi_to_micro(
             if (bytes_written < 0) {
                 RCLCPP_ERROR(this->get_logger(), "Failed to send over UART!!!");
             } else {
-                RCLCPP_INFO(this->get_logger(), "Sent Priority MAVLink Message!");
+                RCLCPP_DEBUG(this->get_logger(), "Sent Priority MAVLink Message!");
             }
         }
 
@@ -320,7 +327,7 @@ void UartManager::pi_to_micro(
             if (bytes_written < 0) {
                 RCLCPP_ERROR(this->get_logger(), "Failed to send over UART!!!");
             } else {
-                RCLCPP_INFO(this->get_logger(), "Sent MAVLink Message!");
+                RCLCPP_DEBUG(this->get_logger(), "Sent MAVLink Message!");
             }
         }
 
@@ -331,3 +338,19 @@ void UartManager::pi_to_micro(
     }
 }
 
+void UartManager::_log_mav_statustext(const mavlink_message_t& msg) {
+    mavlink_statustext_t status;
+    mavlink_msg_statustext_decode(&msg, &status);
+
+    if (status.severity >= MAV_SEVERITY_EMERGENCY && status.severity < MAV_SEVERITY_ERROR) {
+        RCLCPP_FATAL(this->get_logger(), "[Water Board]: %s", status.text);
+    } else if (status.severity == MAV_SEVERITY_ERROR) {
+        RCLCPP_ERROR(this->get_logger(), "[Water Board]: %s", status.text);
+    } else if (status.severity == MAV_SEVERITY_WARNING) {
+        RCLCPP_WARN(this->get_logger(), "[Water Board]: %s", status.text);
+    } else if (status.severity == MAV_SEVERITY_NOTICE || status.severity == MAV_SEVERITY_INFO) {
+        RCLCPP_INFO(this->get_logger(), "[Water Board]: %s", status.text);
+    } else {
+        RCLCPP_DEBUG(this->get_logger(), "[Water Board]: %s", status.text);
+    }
+}
