@@ -10,6 +10,8 @@
 extern UART_HandleTypeDef huart1; // defined in main.c so i think you have to do extern
 extern UART_HandleTypeDef huart2;
 
+//********************************************************************************************
+// Transmit
 
 /**
  * @brief Log a message to Pi (Flight Computer)
@@ -19,5 +21,14 @@ extern UART_HandleTypeDef huart2;
  */
 void mavlink_log(const std::string& log_msg, MAV_SEVERITY severity);
 
+//********************************************************************************************
+// Receive
+extern volatile uint8_t sub_controls_received;
+extern mavlink_sub_controls_t latest_sub_controls;
+
+/**
+ * @brief Initializes the interrupt driven receive channel
+ */
+void init_uart_mavlink_rx();
 
 #endif
