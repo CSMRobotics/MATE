@@ -22,8 +22,8 @@ int main() {
     MavlinkPubSub shm(false, SHM_NAME);
 
     while (true) {
-        mavlink_message_t msg;
-        mavlink_status_t status;
+        mavlink_message_t msg{};
+        mavlink_status_t status{};
 
         if (shm.read(msg, status) == 1) {
             if (msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {

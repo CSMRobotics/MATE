@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <mavlink/common/mavlink.h>
+#include <mavlink/rov_interfaces/mavlink.h>
 
 static constexpr std::size_t QUEUE_SIZE = 64;
 static constexpr std::size_t MAX_FRAME_SIZE = 280;

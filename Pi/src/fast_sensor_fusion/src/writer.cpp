@@ -61,9 +61,11 @@ int main() {
             &raw_imu
         );
 
-        shm.write(msg);
-
-        std::cout << "Published Raw IMU message" << std::endl;
+        if (shm.write(msg) != 0) {
+            std::cerr << "ERROR: failed to publish raw IMU message" << std::endl;
+        } else {
+            std::cout << "Published Raw IMU message" << std::endl;
+        }
         
         std::this_thread::sleep_for(
         std::chrono::seconds(1));
