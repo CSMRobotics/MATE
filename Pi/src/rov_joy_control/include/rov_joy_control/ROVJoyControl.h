@@ -25,7 +25,7 @@ private:
     const std::string _thrustmaster_topic_name = "/thrustmaster_joy";
     const std::string _logi_topic_name = "/logi_joy";
 
-    const std::string _mavlink_pub_name = "/sub_control";
+    const std::string _mavlink_pub_name = "/sub_controls";
 
     //*************************************************************** */
     // Topics
