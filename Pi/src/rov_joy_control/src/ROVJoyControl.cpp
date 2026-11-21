@@ -14,6 +14,7 @@ ROVJoyControl::ROVJoyControl() : Node("rov_joy_control") {
         10,
         std::bind(&ROVJoyControl::logi_callback, this, std::placeholders::_1)
     );
+    RCLCPP_INFO(this->get_logger(), "Created subscriptions to '/thrustmaster_joy' and 'logi_joy'");
 
     // Setup Mavlink Publisher
     try {
@@ -59,10 +60,10 @@ void ROVJoyControl::_mavlink_pub_timer_callback() {
 
     // DEBUG
     if (write_result == -1) {
-        RCLCPP_WARN(this->get_logger(), "Queue is full %d", write_result);
+        RCLCPP_WARN(this->get_logger(), "Mavlink Publisher queue is full");
     } else if (write_result != 0) {
         RCLCPP_ERROR(this->get_logger(), "Failed to publish to mavlink channel %d", write_result);
     } else {
-        RCLCPP_DEBUG(this->get_logger(), "Published to mavlink");
+        RCLCPP_DEBUG(this->get_logger(), "Published to mavlink channel");
     }
 }
