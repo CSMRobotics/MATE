@@ -8,22 +8,8 @@
 extern UART_HandleTypeDef huart1; // defined in main.c so i think you have to do extern
 extern UART_HandleTypeDef huart2;
 
-void setup() {
-	HAL_UART_Transmit(
-		&huart2,
-		(uint8_t*)"Interrupt RX Started\r\n",
-		23,
-		100
-	);
-	mavlink_log("Interrupt RX Started", MAV_SEVERITY_INFO);
-
-	// Start receiving one byte using interrupts
-	init_uart_mavlink_rx();
-
-}
-
-int real_main() {
-	// Log the velocity joystick command
+void log_joy_command() {
+	// Log the joystick command
 	static uint32_t last_log_ms = 0;
 
 	if (sub_controls_received) {
@@ -52,6 +38,24 @@ int real_main() {
 			mavlink_log(log_buf, MAV_SEVERITY_INFO);
 		}
 	}
+}
 
+void setup() {
+	HAL_UART_Transmit(
+		&huart2,
+		(uint8_t*)"Interrupt RX Started\r\n",
+		23,
+		100
+	);
+	mavlink_log("Interrupt RX Started", MAV_SEVERITY_INFO);
+
+	// Start receiving one byte using interrupts
+	init_uart_mavlink_rx();
+
+}
+
+int real_main() {
+
+	log_joy_command();
     return 0;
 }
