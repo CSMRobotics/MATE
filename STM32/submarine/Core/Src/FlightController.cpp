@@ -70,9 +70,18 @@ void FlightController::update_sub_controls(const SubControls& controls) {
 
     // Update desired rotation setpoint
     _prev_orient_setpoint = _orient_setpoint;
+    float delta_roll = (_control_setpoint.omegaX * _max_omega) * _update_period;
+    float delta_pitch = (_control_setpoint.omegaY * _max_omega) * _update_period;
     float delta_yaw = (_control_setpoint.omegaZ * _max_omega) * _update_period;
+
     Eigen::Quaternionf delta_q = Eigen::Quaternionf::Identity();
-    delta_q = Eigen::Quaternionf(Eigen::AngleAxisf(delta_yaw, Eigen::Vector3f::UnitZ()));
+    Eigen::Vector3f delta_rotation(delta_roll, delta_pitch, delta_yaw);
+    float angle = delta_rotation.norm();
+    if (angle > 1e-6f) {
+        delta_q = Eigen::Quaternionf(
+            Eigen::AngleAxisf(angle, delta_rotation.normalized())
+        );
+    }
     _orient_setpoint = _orient_setpoint * delta_q;
     _orient_setpoint.normalize();
 
@@ -97,8 +106,8 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
         _attitude_setpoints = Eigen::Vector3f::Zero();
     }
 
-    // Compute orientation error
-    Eigen::Quaternionf q_error = _orient_state.conjugate() * _orient_setpoint;
+    // Compute body frame orientation error
+    Eigen::Quaternionf q_error = _orient_state.conjugate() * _orient_setpoint;  // Error in body to world frame
     if (q_error.w() < 0.0f) {
         q_error.coeffs() *= -1.0f;
     }
@@ -115,7 +124,7 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
     }
 
     // Rotate angular_velocity into world frame
-    Eigen::Vector3f angular_velocity_ned = _orient_state.inverse().toRotationMatrix() * angular_velocity;
+    Eigen::Vector3f angular_velocity_frd = angular_velocity;
 
     // Feedforward rate of change of target orientation
     Eigen::Quaternionf q_setpoint_delta = _prev_orient_setpoint.conjugate() * _orient_setpoint;
@@ -125,24 +134,21 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
     q_setpoint_delta.normalize();
 
     Eigen::AngleAxisf delta_rotation(q_setpoint_delta);
-    Eigen::Vector3f angular_velocity_desired_ned = Eigen::Vector3f::Zero();
+    Eigen::Vector3f angular_velocity_desired_frd = Eigen::Vector3f::Zero();
 
     if (delta_rotation.angle() > 1e-6f) {
-        angular_velocity_desired_ned = delta_rotation.axis() * delta_rotation.angle() / _update_period;
+        angular_velocity_desired_frd = delta_rotation.axis() * delta_rotation.angle() / _update_period;
     }
 
     // PID that error
     _orient_int_error += _orient_error * _update_period;
     _orient_int_error = _orient_int_error.cwiseMax(-_orient_integral_error_limit).cwiseMin(_orient_integral_error_limit);
-    _orient_der_error = angular_velocity_desired_ned - angular_velocity_ned;
+    _orient_der_error = angular_velocity_desired_frd - angular_velocity_frd;
     
     Eigen::Vector3f attitude_setpoints = 
         _orient_kp * _orient_error + 
         _orient_ki * _orient_int_error +
         _orient_kd * _orient_der_error;
-    
-    // Rotate to body frame (FRD)
-    attitude_setpoints = _orient_state.toRotationMatrix() * attitude_setpoints;
 
     // Update target attitude
     _attitude_setpoints = attitude_setpoints;
@@ -160,7 +166,7 @@ void FlightController::update_pid(const Eigen::Vector3f& angular_velocity) {
 
     // Rotate to body frame
     Eigen::Vector3f translate_setpoints_ned = {0, 0, translate_z_setpoint};
-    Eigen::Vector3f translate_setpoints_frd = _orient_state.toRotationMatrix() * translate_setpoints_ned;
+    Eigen::Vector3f translate_setpoints_frd = _orient_state.inverse().toRotationMatrix() * translate_setpoints_ned;
 
     // Update translation vector
     Eigen::Vector3f control_translate_setpoints_frd = {

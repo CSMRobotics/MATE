@@ -39,7 +39,7 @@ public:
 
 	/**
 	 * @brief Updates the sub's current orientation state in world frame (NED, North East Down)
-     *      World->Body rotation
+     *      Body->World rotation
      * 
      * @param orientation: orientation of the submarine in world frame
 	 */
