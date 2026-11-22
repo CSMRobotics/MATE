@@ -33,19 +33,23 @@ ROVJoyControl::ROVJoyControl() : Node("rov_joy_control") {
     );
 }
 
+double ROVJoyControl::apply_deadzone(double value, double deadzone) {
+    return (std::abs(value) < deadzone) ? 0.0 : value;
+}
+
 void ROVJoyControl::thrustmaster_callback(sensor_msgs::msg::Joy::SharedPtr msg) {
-    _sub_controls.velocity_x = msg->axes[1];
-    _sub_controls.velocity_y = -msg->axes[0];
-    _sub_controls.velocity_z = -msg->axes[2];
+    _sub_controls.velocity_x = apply_deadzone(msg->axes[1], _deadzone);
+    _sub_controls.velocity_y = apply_deadzone(-msg->axes[0], _deadzone);
+    _sub_controls.velocity_z = apply_deadzone(-msg->axes[2], _deadzone);
 
     _sub_controls.estop = msg->buttons[1];
     _sub_controls.mode_switch = msg->buttons[3];
 }
 
 void ROVJoyControl::logi_callback(sensor_msgs::msg::Joy::SharedPtr msg) {
-    _sub_controls.omega_x = -msg->axes[0];
-    _sub_controls.omega_y = -msg->axes[1];
-    _sub_controls.omega_z = -msg->axes[2];
+    _sub_controls.omega_x = apply_deadzone(-msg->axes[0], _deadzone);
+    _sub_controls.omega_y = apply_deadzone(-msg->axes[1], _deadzone);
+    _sub_controls.omega_z = apply_deadzone(-msg->axes[2], _deadzone);
 }
 
 void ROVJoyControl::_mavlink_pub_timer_callback() {

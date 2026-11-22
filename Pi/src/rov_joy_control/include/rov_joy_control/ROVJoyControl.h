@@ -27,6 +27,15 @@ private:
 
     const std::string _mavlink_pub_name = "/sub_controls";
 
+    const double _deadzone = 0.15;
+
+    //*************************************************************** */
+    // Helpers
+    /**
+     * Returns joystick value with deadzone applied.
+     */
+    double apply_deadzone(double value, double deadzone);
+
     //*************************************************************** */
     // Topics
     /**
