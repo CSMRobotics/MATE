@@ -31,6 +31,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "dshot.h"
+#include "real_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -178,7 +179,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  	real_main();
 
+	  	/*
 		currentSenseRaw = adcBuffer[0];
 		currentSense = currentSenseRaw * currentSenseScale;
 
@@ -197,6 +200,8 @@ int main(void)
 		my_motor_value[7] = motorValue;
 
 		dshot_write(my_motor_value);
+		*/
+
 		HAL_Delay(1);
 
 

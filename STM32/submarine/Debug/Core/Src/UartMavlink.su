@@ -1,0 +1,32 @@
+../Core/Inc/mavlink/rov_interfaces/../checksum.h:35:20:void crc_accumulate(uint8_t, uint16_t*)	24	static
+../Core/Inc/mavlink/rov_interfaces/../checksum.h:52:20:void crc_init(uint16_t*)	16	static
+../Core/Inc/mavlink/rov_interfaces/../checksum.h:65:24:uint16_t crc_calculate(const uint8_t*, uint16_t)	24	static
+../Core/Inc/mavlink/rov_interfaces/../checksum.h:85:20:void crc_accumulate_buffer(uint16_t*, const char*, uint16_t)	32	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_sha256.h:94:21:void mavlink_sha256_init(mavlink_sha256_ctx*)	16	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_sha256.h:107:13:void mavlink_sha256_calc(mavlink_sha256_ctx*)	80	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_sha256.h:171:21:void mavlink_sha256_update(mavlink_sha256_ctx*, const void*, uint32_t)	40	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_sha256.h:197:21:void mavlink_sha256_final_48(mavlink_sha256_ctx*, uint8_t*)	32	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:27:34:mavlink_status_t* mavlink_get_channel_status(uint8_t)	16	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:43:35:mavlink_message_t* mavlink_get_channel_buffer(uint8_t)	16	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:77:24:uint8_t mavlink_sign_packet(mavlink_signing_t*, uint8_t*, const uint8_t*, uint8_t, const uint8_t*, uint8_t, const uint8_t*)	144	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:115:24:uint8_t _mav_trim_payload(const char*, uint8_t)	16	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:127:21:bool mavlink_signature_check(mavlink_signing_t*, mavlink_signing_streams_t*, const mavlink_message_t*)	176	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:227:25:uint16_t mavlink_finalize_message_buffer(mavlink_message_t*, uint8_t, uint8_t, mavlink_status_t*, uint8_t, uint8_t, uint8_t)	80	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:296:25:uint16_t mavlink_finalize_message_chan(mavlink_message_t*, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)	40	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:306:25:uint16_t mavlink_finalize_message(mavlink_message_t*, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)	32	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:312:20:void _mav_parse_error(mavlink_status_t*)	16	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:451:25:uint16_t mavlink_msg_to_send_buffer(uint8_t*, const mavlink_message_t*)	32	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:504:21:void mavlink_start_checksum(mavlink_message_t*)	24	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:511:21:void mavlink_update_checksum(mavlink_message_t*, uint8_t)	24	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:522:43:const mavlink_msg_entry_t* mavlink_get_msg_entry(uint32_t)	32	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:594:24:uint8_t mavlink_frame_char_buffer(mavlink_message_t*, mavlink_status_t*, uint8_t, mavlink_message_t*, mavlink_status_t*)	40	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:931:24:uint8_t mavlink_frame_char(uint8_t, uint8_t, mavlink_message_t*, mavlink_status_t*)	40	static
+../Core/Inc/mavlink/rov_interfaces/../mavlink_helpers.h:1009:24:uint8_t mavlink_parse_char(uint8_t, uint8_t, mavlink_message_t*, mavlink_status_t*)	40	static
+../Core/Inc/mavlink/rov_interfaces/../protocol.h:179:20:void mav_array_memcpy(void*, const void*, size_t)	24	static
+../Core/Inc/mavlink/rov_interfaces/./mavlink_msg_sub_controls.h:538:20:void mavlink_msg_sub_controls_decode(const mavlink_message_t*, mavlink_sub_controls_t*)	24	static
+../Core/Inc/mavlink/rov_interfaces/../common/./mavlink_msg_statustext.h:61:24:uint16_t mavlink_msg_statustext_pack(uint8_t, uint8_t, mavlink_message_t*, uint8_t, const char*, uint16_t, uint8_t)	96	static
+../Core/Src/UartMavlink.cpp:7:6:void mavlink_log(const std::string&, MAV_SEVERITY)	472	static
+../Core/Src/UartMavlink.cpp:46:6:void init_uart_mavlink_rx()	8	static
+../Core/Src/UartMavlink.cpp:51:6:void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)	16	static
+../Core/Src/UartMavlink.cpp:75:6:void HAL_UART_ErrorCallback(UART_HandleTypeDef*)	32	static
+C:\ST\STM32CubeIDE_2.1.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740\tools\arm-none-eabi\include\c++\14.3.1\bits\new_allocator.h:104:7:std::__new_allocator<_Tp>::~__new_allocator() [with _Tp = char]	16	static

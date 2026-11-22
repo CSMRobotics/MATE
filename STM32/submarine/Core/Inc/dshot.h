@@ -101,8 +101,16 @@ typedef enum
 
 
 /* Functions */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void dshot_init(dshot_type_e dshot_type);
 void dshot_write(uint16_t *motor_value);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* __DSHOT_H__ */
