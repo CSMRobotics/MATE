@@ -2,7 +2,7 @@
  * @file writer.cpp
  * @brief Test program for publishing a MAVLink raw_IMU message over shared memory.
  */
-#include "fast_sensor_fusion/MavlinkPubSub.hpp"
+#include "MavlinkPubSub.hpp"
 
 #include <atomic>
 #include <cerrno>
@@ -24,7 +24,7 @@ extern "C" {
 
 const auto start_time = std::chrono::steady_clock::now();
 
-static constexpr const char* SHM_NAME = "/mavlink_shm_sensor_fusion";
+static constexpr const char* SHM_NAME = "/mavlink_sensor_fusion";
 
 int main() {
     // Setup shared memory data structure
@@ -61,9 +61,11 @@ int main() {
             &raw_imu
         );
 
-        shm.write(msg);
-
-        std::cout << "Published Raw IMU message" << std::endl;
+        if (shm.write(msg) != 0) {
+            std::cerr << "ERROR: failed to publish raw IMU message" << std::endl;
+        } else {
+            std::cout << "Published Raw IMU message" << std::endl;
+        }
         
         std::this_thread::sleep_for(
         std::chrono::seconds(1));

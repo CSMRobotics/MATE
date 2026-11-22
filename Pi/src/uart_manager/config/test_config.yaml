@@ -1,0 +1,25 @@
+uart_manager:
+  ros__parameters:
+    serial_port: "/dev/ttyAMA0"
+
+    # Polling rate (Hz)
+    tx_polling_rate: 200
+    rx_polling_rate: 200
+
+    # pi->microcontroller channels with corresponding priorities
+    tx_channel_names:
+      - "/sub_controls"
+      - "/mavlink_sensor_fusion"
+
+    # Corresponds to each channel, 0 = normal, 1 = high priority
+    tx_channel_priorities:
+      - 1
+      - 0
+
+    # rx_channel_names:
+    #   - "/mavlink_test_heartbeat"
+    #   - "/mavlink_sensor_fusion"
+
+    # rx_message_ids:
+    #   - 0
+    #   - 27
