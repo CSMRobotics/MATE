@@ -1,4 +1,5 @@
 "./Core/Src/FlightController.o"
+"./Core/Src/UartMavlink.o"
 "./Core/Src/adc.o"
 "./Core/Src/can.o"
 "./Core/Src/dma.o"
