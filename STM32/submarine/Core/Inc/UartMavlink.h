@@ -8,7 +8,7 @@
 #include <string>
 
 #define UART_TYPE_DEF   UART4
-UART_HandleTypeDef& UART_HANDLE = huart4;
+extern UART_HandleTypeDef& UART_HANDLE;
 
 //********************************************************************************************
 // Transmit
@@ -23,6 +23,7 @@ void mavlink_log(const std::string& log_msg, MAV_SEVERITY severity);
 
 //********************************************************************************************
 // Receive
+extern uint32_t last_mavlink_heartbeat_time;
 extern volatile uint8_t sub_controls_received;
 extern mavlink_sub_controls_t latest_sub_controls;
 

@@ -1,5 +1,7 @@
 #include "UartMavlink.h"
 
+UART_HandleTypeDef& UART_HANDLE = huart4;
+
 //********************************************************************************************
 // Transmit
 static volatile uint8_t mavlink_tx_busy = 0;
@@ -35,7 +37,7 @@ void mavlink_log(const std::string& log_msg, MAV_SEVERITY severity) {
 
 //********************************************************************************************
 // Receive
-
+uint32_t last_mavlink_heartbeat_time = 0;
 static mavlink_message_t mavlink_msg;
 static mavlink_status_t mavlink_status;
 volatile uint8_t sub_controls_received = 0;
@@ -55,9 +57,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
             if (mavlink_msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
                 // Heartbeat received
                 HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-            }
-
-            else if (mavlink_msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
+            } else if (mavlink_msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
                 mavlink_msg_sub_controls_decode(
                     &mavlink_msg,
                     &latest_sub_controls
@@ -65,6 +65,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
                 sub_controls_received = 1;
             }
+
+            // Set time of last message received
+            // Used for EStop in case of disconnection
+            last_mavlink_heartbeat_time = HAL_GetTick();
         }
 
         // Restart reception for the next byte

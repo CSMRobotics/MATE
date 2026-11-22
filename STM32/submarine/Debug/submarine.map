@@ -2672,6 +2672,8 @@ Discarded input sections
  .rodata        0x00000000       0x68 ./Core/Src/UartMavlink.o
  .text._Z11mavlink_logRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE12MAV_SEVERITY
                 0x00000000      0x144 ./Core/Src/UartMavlink.o
+ .bss.last_mavlink_heartbeat_time
+                0x00000000        0x4 ./Core/Src/UartMavlink.o
  .bss._ZL11mavlink_msg
                 0x00000000      0x123 ./Core/Src/UartMavlink.o
  .bss._ZL14mavlink_status
@@ -2684,7 +2686,7 @@ Discarded input sections
  .text._Z20init_uart_mavlink_rxv
                 0x00000000       0x1c ./Core/Src/UartMavlink.o
  .text.HAL_UART_RxCpltCallback
-                0x00000000       0x98 ./Core/Src/UartMavlink.o
+                0x00000000       0xa4 ./Core/Src/UartMavlink.o
  .text.HAL_UART_ErrorCallback
                 0x00000000       0x90 ./Core/Src/UartMavlink.o
  .text._ZNSt15__new_allocatorIcED2Ev
@@ -2695,13 +2697,13 @@ Discarded input sections
                 0x00000000        0x1 ./Core/Src/UartMavlink.o
  .rodata._ZNSt8__detail30__integer_to_chars_is_unsignedIyEE
                 0x00000000        0x1 ./Core/Src/UartMavlink.o
- .debug_info    0x00000000     0xa4e6 ./Core/Src/UartMavlink.o
+ .debug_info    0x00000000     0xa512 ./Core/Src/UartMavlink.o
  .debug_abbrev  0x00000000      0xa37 ./Core/Src/UartMavlink.o
  .debug_aranges
                 0x00000000      0x118 ./Core/Src/UartMavlink.o
  .debug_rnglists
                 0x00000000       0xe9 ./Core/Src/UartMavlink.o
- .debug_macro   0x00000000     0x11e2 ./Core/Src/UartMavlink.o
+ .debug_macro   0x00000000     0x11e1 ./Core/Src/UartMavlink.o
  .debug_macro   0x00000000      0xbb0 ./Core/Src/UartMavlink.o
  .debug_macro   0x00000000       0x2e ./Core/Src/UartMavlink.o
  .debug_macro   0x00000000       0x1c ./Core/Src/UartMavlink.o
@@ -3074,8 +3076,8 @@ Discarded input sections
  .debug_macro   0x00000000       0x18 ./Core/Src/UartMavlink.o
  .debug_macro   0x00000000       0x34 ./Core/Src/UartMavlink.o
  .debug_macro   0x00000000      0x5c4 ./Core/Src/UartMavlink.o
- .debug_line    0x00000000     0x449f ./Core/Src/UartMavlink.o
- .debug_str     0x00000000   0x13fe53 ./Core/Src/UartMavlink.o
+ .debug_line    0x00000000     0x44a9 ./Core/Src/UartMavlink.o
+ .debug_str     0x00000000   0x13fe7b ./Core/Src/UartMavlink.o
  .comment       0x00000000       0x44 ./Core/Src/UartMavlink.o
  .debug_frame   0x00000000      0x4b4 ./Core/Src/UartMavlink.o
  .ARM.attributes

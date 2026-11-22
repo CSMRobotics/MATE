@@ -1,5 +1,7 @@
 #include "UartMavlink.h"
 
+UART_HandleTypeDef& UART_HANDLE = huart1;
+
 //********************************************************************************************
 // Transmit
 static volatile uint8_t mavlink_tx_busy = 0;
@@ -19,7 +21,7 @@ void mavlink_log(const std::string& log_msg, MAV_SEVERITY severity) {
 	uint16_t len = mavlink_msg_to_send_buffer(mavlink_log_buffer, &mavlink_log_msg);
 
 	// Send message
-	HAL_StatusTypeDef result = HAL_UART_Transmit(&huart1, mavlink_log_buffer, len, 10);
+	HAL_StatusTypeDef result = HAL_UART_Transmit(&UART_HANDLE, mavlink_log_buffer, len, 10);
 
 	if (result == HAL_TIMEOUT) {
 		char local_log_buf[100];
@@ -35,7 +37,7 @@ void mavlink_log(const std::string& log_msg, MAV_SEVERITY severity) {
 
 //********************************************************************************************
 // Receive
-
+uint32_t last_mavlink_heartbeat_time = 0;
 static mavlink_message_t mavlink_msg;
 static mavlink_status_t mavlink_status;
 volatile uint8_t sub_controls_received = 0;
@@ -44,20 +46,18 @@ mavlink_sub_controls_t latest_sub_controls;
 uint8_t rx_byte;
 
 void init_uart_mavlink_rx() {
-	HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+	HAL_UART_Receive_IT(&UART_HANDLE, &rx_byte, 1);
 }
 
 // UART Interrupt callback
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART1) {
+    if (huart->Instance == UART_TYPE_DEF) {
         // Feed received byte into MAVLink parser
         if (mavlink_parse_char(MAVLINK_COMM_0, rx_byte, &mavlink_msg, &mavlink_status)) {
             if (mavlink_msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
                 // Heartbeat received
                 HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-            }
-
-            else if (mavlink_msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
+            } else if (mavlink_msg.msgid == MAVLINK_MSG_ID_SUB_CONTROLS) {
                 mavlink_msg_sub_controls_decode(
                     &mavlink_msg,
                     &latest_sub_controls
@@ -65,16 +65,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
                 sub_controls_received = 1;
             }
+
+            // Set time of last message received
+            // Used for EStop in case of disconnection
+            last_mavlink_heartbeat_time = HAL_GetTick();
         }
 
         // Restart reception for the next byte
-        HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+        HAL_UART_Receive_IT(&UART_HANDLE, &rx_byte, 1);
     }
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART1) {
+    if (huart->Instance == UART_TYPE_DEF) {
         __HAL_UART_CLEAR_OREFLAG(huart);
         __HAL_UART_CLEAR_NEFLAG(huart);
         __HAL_UART_CLEAR_FEFLAG(huart);

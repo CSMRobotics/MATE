@@ -58,7 +58,7 @@ FlightController flight_controller(
     &throttle_controller
 );
 
-bool mode_button_pressed = false;
+bool safe_mode = true;
 
 void setup() {
 	HAL_UART_Transmit(
@@ -71,6 +71,10 @@ void setup() {
 
 	// Start receiving one byte using interrupts
 	init_uart_mavlink_rx();
+
+	// Start in safe mode
+	safe_mode = true;
+	mavlink_log("Flight Controller start in safe mode", MAV_SEVERITY_INFO);
 }
 
 int real_main() {
@@ -87,20 +91,34 @@ int real_main() {
 	sub_controls.mode_switch = latest_sub_controls.mode_switch;
 	sub_controls.estop = latest_sub_controls.estop;
 
+	// Watchdog the heartbeat
+	if (HAL_GetTick() - last_mavlink_heartbeat_time > 1000 && !safe_mode) {
+		sub_controls.estop = true;
+		safe_mode = true;
+		mavlink_log("ESTOP: Heartbeat disconnection", MAV_SEVERITY_ERROR);
+	}
+
 	// Test Flight Controller loop
-	flight_controller.update_orient_state(Eigen::Quaternionf::Identity());
-	flight_controller.update_depth_state(0);
-	flight_controller.update_sub_controls(sub_controls);
-	flight_controller.update_simple();
+	if (!safe_mode) {
+		flight_controller.update_orient_state(Eigen::Quaternionf::Identity());
+		flight_controller.update_depth_state(0);
+		flight_controller.update_sub_controls(sub_controls);
+		flight_controller.update_simple();
+	}
+
 
 	// Estop
 	if (sub_controls.estop) {
+		safe_mode = true;
 		flight_controller.activate_safe_mode();
+		mavlink_log("ESTOP: Activated safe mode", MAV_SEVERITY_WARNING);
 	}
 
 	// Switch off safe mode
 	if (sub_controls.mode_switch) {
+		safe_mode = false;
 		flight_controller.disable_safe_mode();
+		mavlink_log("Mode switch: Deactivate safe mode", MAV_SEVERITY_INFO);
 	}
 
 	HAL_Delay(100);
